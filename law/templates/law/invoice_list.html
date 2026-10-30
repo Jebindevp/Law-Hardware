@@ -1,0 +1,2262 @@
+{% extends 'law/base.html' %}
+
+{% block title %}Invoices & Billing Cards - {{ shop_name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Invoices Page Header */
+    .inv-header-card {
+        background: var(--color-white);
+        border: 1.5px solid var(--color-gray-border);
+        border-radius: var(--radius-lg);
+        padding: 20px 24px;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .header-left h1 {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--color-black);
+        letter-spacing: -0.02em;
+    }
+
+    .header-left p {
+        font-size: 13.5px;
+        color: var(--color-gray-text);
+        margin-top: 4px;
+    }
+
+    /* Embedded Real-Time Live Clock Widget */
+    .page-live-clock {
+        background: linear-gradient(135deg, #090d16 0%, #1e293b 100%);
+        color: #ffffff;
+        border: 2px solid #0284c7;
+        border-radius: 12px;
+        padding: 10px 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: 'JetBrains Mono', monospace;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
+
+    .page-clock-date {
+        font-size: 13px;
+        color: #e2e8f0;
+        font-weight: 600;
+    }
+
+    .page-clock-time {
+        font-size: 15px;
+        color: #38bdf8;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+    }
+
+    /* Stat Cards Bar - White, Black, Blue, Red */
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-box {
+        background: var(--color-white);
+        border: 1.5px solid var(--color-gray-border);
+        border-radius: var(--radius-md);
+        padding: 18px 20px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: transform 0.2s;
+    }
+
+    .stat-box:hover {
+        transform: translateY(-2px);
+    }
+
+    .stat-box.box-black { border-left: 5px solid var(--color-black); }
+    .stat-box.box-blue { border-left: 5px solid var(--color-blue); }
+    .stat-box.box-green { border-left: 5px solid #10b981; }
+    .stat-box.box-red { border-left: 5px solid var(--color-red); }
+
+    .stat-box-title {
+        font-size: 11.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--color-gray-text);
+        letter-spacing: 0.04em;
+    }
+
+    .stat-box-value {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--color-black);
+        margin-top: 4px;
+    }
+
+    /* Controls Bar */
+    .controls-card {
+        background: var(--color-white);
+        border: 1.5px solid var(--color-gray-border);
+        border-radius: var(--radius-lg);
+        padding: 18px 20px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .search-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .search-input-wrap {
+        flex: 1;
+        min-width: 260px;
+    }
+
+    .search-input-field {
+        width: 100%;
+        padding: 11px 16px;
+        border-radius: 8px;
+        border: 1.5px solid var(--color-gray-border);
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .search-input-field:focus {
+        border-color: var(--color-blue);
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+
+    .select-dropdown {
+        padding: 11px 16px;
+        border-radius: 8px;
+        border: 1.5px solid var(--color-gray-border);
+        background: var(--color-white);
+        font-size: 13.5px;
+        font-weight: 600;
+        outline: none;
+        cursor: pointer;
+    }
+
+    /* Bulk Action Toolbar */
+    .bulk-toolbar {
+        background: #0f172a;
+        color: #ffffff;
+        padding: 10px 18px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        border: 1px solid #334155;
+    }
+
+    .select-all-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .custom-check {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--color-blue);
+    }
+
+    /* View Switcher */
+    .view-switcher {
+        display: flex;
+        gap: 6px;
+    }
+
+    .btn-view {
+        background: #f1f5f9;
+        border: 1px solid var(--color-gray-border);
+        padding: 7px 12px;
+        border-radius: 6px;
+        font-size: 12.5px;
+        font-weight: 700;
+        cursor: pointer;
+        color: #475569;
+    }
+
+    .btn-view.active {
+        background: var(--color-black);
+        color: #ffffff;
+        border-color: var(--color-black);
+    }
+
+    /* INVOICES CARD GRID */
+    .invoices-card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+        gap: 20px;
+    }
+
+    /* 1. SEPARATE CARD TO ADD NEW BILL */
+    .add-bill-launcher-card {
+        background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
+        border: 2.5px dashed #0284c7;
+        border-radius: 14px;
+        padding: 26px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08);
+        min-height: 380px;
+    }
+
+    .add-bill-launcher-card:hover {
+        transform: translateY(-4px);
+        border-color: #0369a1;
+        background: linear-gradient(180deg, #e0f2fe 0%, #ffffff 100%);
+        box-shadow: 0 12px 28px rgba(2, 132, 199, 0.22);
+    }
+
+    .add-bill-circle {
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 34px;
+        margin-bottom: 16px;
+        box-shadow: 0 4px 16px rgba(2, 132, 199, 0.4);
+    }
+
+    .add-bill-title {
+        font-size: 19px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 6px;
+    }
+
+    .add-bill-desc {
+        font-size: 13px;
+        color: #64748b;
+        max-width: 270px;
+        line-height: 1.45;
+        margin-bottom: 18px;
+    }
+
+    .btn-card-add-bill {
+        background: #0284c7;
+        color: #ffffff;
+        border: none;
+        padding: 11px 22px;
+        border-radius: 8px;
+        font-weight: 800;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 3px 10px rgba(2, 132, 199, 0.35);
+        transition: background 0.15s;
+    }
+
+    .btn-card-add-bill:hover {
+        background: #0369a1;
+    }
+
+    /* 2. SEPARATE CARD FOR EACH ALREADY ADDED BILL */
+    .bill-card {
+        background: var(--color-white);
+        border: 1.5px solid var(--color-gray-border);
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        transition: all 0.2s ease;
+    }
+
+    .bill-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--color-blue);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.09);
+    }
+
+    .bill-card.selected-card {
+        border-color: var(--color-blue);
+        background: #f0f9ff;
+    }
+
+    .card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .bill-number-pill {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--color-blue);
+        background: var(--color-blue-light);
+        padding: 4px 10px;
+        border-radius: 6px;
+        border: 1px solid rgba(2, 132, 199, 0.2);
+    }
+
+    /* 5-Tier Payment Status Badges */
+    .status-badge-pill {
+        font-size: 11px;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        line-height: 1.2;
+    }
+
+    .status-completed {
+        background: #dcfce7;
+        color: #15803d;
+        border: 1px solid #86efac;
+    }
+
+    .status-high80 {
+        background: #e0f2fe;
+        color: #0369a1;
+        border: 1px solid #7dd3fc;
+    }
+
+    .status-high50 {
+        background: #fef3c7;
+        color: #b45309;
+        border: 1px solid #fde047;
+    }
+
+    .status-down50 {
+        background: #ffedd5;
+        color: #c2410c;
+        border: 1px solid #fdba74;
+    }
+
+    .status-nopaid {
+        background: #fee2e2;
+        color: #b91c1c;
+        border: 1px solid #fca5a5;
+    }
+
+    /* Customer Metadata Chips */
+    .cust-chip {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .chip-gender {
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+    }
+
+    .chip-id {
+        background: #e0f2fe;
+        color: #0369a1;
+        border: 1px solid #bae6fd;
+    }
+
+    .chip-address {
+        background: #f8fafc;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+    }
+
+    .pay-badge {
+        font-size: 11px;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+    .badge-cash { background: #dcfce7; color: #166534; }
+    .badge-upi { background: #e0f2fe; color: #0369a1; }
+    .badge-card { background: #f3e8ff; color: #7e22ce; }
+    .badge-credit { background: #ffedd5; color: #c2410c; }
+
+    /* Horizontal Status Filter Bar */
+    .status-filter-bar {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 4px 0 12px 0;
+        margin-bottom: 12px;
+    }
+
+    .status-filter-btn {
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        border: 1.5px solid #cbd5e1;
+        background: #ffffff;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        transition: all 0.15s;
+        color: #475569;
+    }
+
+    .status-filter-btn:hover {
+        border-color: #0284c7;
+        color: #0284c7;
+    }
+
+    .status-filter-btn.active {
+        background: #0f172a;
+        color: #ffffff;
+        border-color: #0f172a;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .status-count-tag {
+        font-size: 10.5px;
+        padding: 1px 6px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.08);
+        font-weight: 800;
+    }
+
+    .status-filter-btn.active .status-count-tag {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+    }
+
+    .cust-info {
+        margin-bottom: 12px;
+    }
+
+    .cust-name {
+        font-size: 15.5px;
+        font-weight: 800;
+        color: var(--color-black);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+
+    .cust-phone {
+        font-size: 12.5px;
+        color: var(--color-gray-text);
+        margin-top: 2px;
+    }
+
+    .bill-date-text {
+        font-size: 11.5px;
+        color: #64748b;
+        margin-top: 4px;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Items List Box in each card */
+    .card-items-preview {
+        background: #f8fafc;
+        border: 1px solid var(--color-gray-border);
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 12px;
+        max-height: 120px;
+        overflow-y: auto;
+    }
+
+    .preview-header {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 6px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .preview-item-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        padding: 3px 0;
+        border-bottom: 1px dashed #e2e8f0;
+    }
+
+    .preview-item-row:last-child {
+        border-bottom: none;
+    }
+
+    .bill-stats-box {
+        background: #f8fafc;
+        border: 1px solid var(--color-gray-border);
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin-bottom: 12px;
+    }
+
+    .bill-stat-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12.5px;
+        margin-bottom: 3px;
+        color: #475569;
+    }
+
+    .bill-grand-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--color-black);
+        border-top: 1.5px dashed var(--color-gray-border);
+        padding-top: 6px;
+        margin-top: 6px;
+    }
+
+    .bill-grand-val {
+        color: #0f766e;
+    }
+
+    /* 3 Card Action Buttons: View/Print, Edit, Delete */
+    .bill-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr 40px;
+        gap: 6px;
+        margin-top: 8px;
+        border-top: 1px dashed var(--color-gray-border);
+        padding-top: 12px;
+    }
+
+    .btn-act-print {
+        background: var(--color-blue);
+        color: #ffffff;
+        border: none;
+        padding: 8px 10px;
+        border-radius: 6px;
+        font-size: 12.5px;
+        font-weight: 700;
+        text-decoration: none;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        transition: background 0.15s;
+    }
+
+    .btn-act-print:hover {
+        background: var(--color-blue-dark);
+    }
+
+    .btn-act-edit {
+        background: var(--color-black);
+        color: #ffffff;
+        border: none;
+        padding: 8px 10px;
+        border-radius: 6px;
+        font-size: 12.5px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        transition: background 0.15s;
+    }
+
+    .btn-act-edit:hover {
+        background: #1e293b;
+    }
+
+    .btn-act-del {
+        background: #ffffff;
+        color: var(--color-red);
+        border: 1.5px solid var(--color-red);
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+    }
+
+    .btn-act-del:hover {
+        background: var(--color-red);
+        color: #ffffff;
+    }
+
+    /* Table View Alternative */
+    .inv-table-wrap {
+        display: none;
+        background: var(--color-white);
+        border: 1.5px solid var(--color-gray-border);
+        border-radius: var(--radius-lg);
+        overflow-x: auto;
+    }
+
+    .inv-data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+    }
+
+    .inv-data-table th {
+        background: #0f172a;
+        color: #ffffff;
+        padding: 12px 16px;
+        font-size: 12px;
+        text-transform: uppercase;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .inv-data-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--color-gray-border);
+        vertical-align: middle;
+    }
+
+    .inv-data-table tr:hover td {
+        background: #f8fafc;
+    }
+
+    /* FULL CATEGORY-WISE PRODUCT BILLING MODAL */
+    .modal-backdrop-bill {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(5px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 16px;
+    }
+
+    .modal-backdrop-bill.show {
+        display: flex;
+    }
+
+    .modal-bill-box {
+        background: #ffffff;
+        width: 100%;
+        max-width: 980px;
+        max-height: 90vh;
+        border-radius: 16px;
+        border: 2px solid #0284c7;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: scaleBillModal 0.2s ease-out;
+    }
+
+    @keyframes scaleBillModal {
+        from { transform: scale(0.96); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-bill-head {
+        background: #0f172a;
+        color: #ffffff;
+        padding: 16px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #0284c7;
+    }
+
+    .modal-bill-head h2 {
+        font-size: 18px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-close-modal {
+        background: none;
+        border: none;
+        font-size: 22px;
+        color: #ffffff;
+        cursor: pointer;
+        font-weight: 800;
+    }
+
+    .modal-bill-body {
+        padding: 20px 24px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* Modal Customer Row */
+    .modal-cust-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 160px;
+        gap: 12px;
+    }
+
+    .modal-form-label {
+        font-size: 11.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #475569;
+        margin-bottom: 4px;
+        display: block;
+    }
+
+    .modal-form-input {
+        width: 100%;
+        padding: 9px 12px;
+        border-radius: 8px;
+        border: 1.5px solid var(--color-gray-border);
+        font-size: 13.5px;
+        outline: none;
+    }
+
+    .modal-form-input:focus {
+        border-color: var(--color-blue);
+    }
+
+    /* CATEGORY-WISE SELECTOR UI */
+    .category-section-title {
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .modal-category-pills {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 6px;
+        margin-bottom: 12px;
+        scrollbar-width: thin;
+    }
+
+    .modal-cat-btn {
+        background: #f1f5f9;
+        border: 1.5px solid var(--color-gray-border);
+        padding: 7px 14px;
+        border-radius: 999px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #334155;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s;
+        user-select: none;
+    }
+
+    .modal-cat-btn:hover {
+        background: #e2e8f0;
+        border-color: #cbd5e1;
+    }
+
+    .modal-cat-btn.active {
+        background: #0284c7;
+        color: #ffffff;
+        border-color: #0284c7;
+        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+    }
+
+    /* PRODUCTS GRID INSIDE MODAL (CATEGORY-WISE) */
+    .modal-products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 10px;
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1.5px solid var(--color-gray-border);
+        border-radius: 10px;
+        padding: 12px;
+        background: #f8fafc;
+    }
+
+    .modal-prod-item-card {
+        background: #ffffff;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 10px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+        user-select: none;
+    }
+
+    .modal-prod-item-card:hover {
+        transform: translateY(-2px);
+        border-color: #0284c7;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .modal-prod-name {
+        font-size: 13px;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1.3;
+    }
+
+    .modal-prod-size {
+        font-size: 11px;
+        color: #64748b;
+        font-weight: 700;
+        background: #f1f5f9;
+        padding: 1px 6px;
+        border-radius: 4px;
+        display: inline-block;
+        margin: 4px 0 8px 0;
+    }
+
+    .modal-prod-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px dashed #e2e8f0;
+        padding-top: 6px;
+    }
+
+    .modal-prod-rate {
+        font-size: 14.5px;
+        font-weight: 800;
+        color: #0284c7;
+    }
+
+    .btn-add-pill {
+        background: #0284c7;
+        color: #ffffff;
+        border: none;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    /* CURRENT BILL ITEMS TABLE IN MODAL */
+    .bill-cart-section {
+        background: #ffffff;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .bill-cart-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12.5px;
+    }
+
+    .bill-cart-table th {
+        background: #0f172a;
+        color: #ffffff;
+        padding: 8px 10px;
+        text-align: left;
+        font-size: 11px;
+        text-transform: uppercase;
+    }
+
+    .bill-cart-table td {
+        padding: 8px 10px;
+        border-bottom: 1px solid #e2e8f0;
+        vertical-align: middle;
+    }
+
+    .qty-stepper-sm {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .qty-stepper-sm button {
+        background: #f1f5f9;
+        border: none;
+        width: 22px;
+        height: 22px;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .qty-stepper-sm input {
+        width: 28px;
+        height: 22px;
+        border: none;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 800;
+        outline: none;
+    }
+
+    /* Modal Bill Footer with Totals */
+    .modal-bill-footer {
+        background: #f8fafc;
+        border-top: 2px solid var(--color-gray-border);
+        padding: 14px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .modal-bill-totals {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .modal-tot-item {
+        font-size: 13px;
+        color: #475569;
+    }
+
+    .modal-grand-val {
+        font-size: 20px;
+        font-weight: 800;
+        color: #0f766e;
+    }
+
+    /* Modal 2: Edit Customer Details */
+    .modal-backdrop-edit {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-backdrop-edit.show {
+        display: flex;
+    }
+
+    .modal-edit-box {
+        background: #ffffff;
+        width: 90%;
+        max-width: 480px;
+        border-radius: 14px;
+        padding: 24px;
+        box-shadow: var(--shadow-lg);
+        border: 2px solid #0284c7;
+    }
+
+    @media (max-width: 768px) {
+        .modal-cust-row {
+            grid-template-columns: 1fr;
+        }
+        .stats-container {
+            grid-template-columns: 1fr;
+        }
+        .invoices-card-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header with Live Real-Time Clock -->
+<div class="inv-header-card">
+    <div class="header-left">
+        <h1>Plumbing Invoices & Customer Bills (Card View)</h1>
+        <p>Shop Owner: <strong>{{ shop_owner }}</strong> | Category-wise product bill generator & separate bill cards</p>
+    </div>
+
+    <!-- Live Digital Clock Widget -->
+    <div class="page-live-clock">
+        <span style="font-size: 18px;">🕒</span>
+        <div>
+            <div id="pageClockDate" class="page-clock-date">-- --- ----</div>
+            <div id="pageClockTime" class="page-clock-time">--:--:-- --</div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Stat Cards Bar (White, Black, Blue, Red) -->
+<div class="stats-container">
+    <div class="stat-box box-black">
+        <div>
+            <div class="stat-box-title">Total Invoices</div>
+            <div class="stat-box-value">{{ total_bills_count|default:bills|length }}</div>
+        </div>
+        <span style="font-size: 26px;">📑</span>
+    </div>
+    <div class="stat-box box-blue">
+        <div>
+            <div class="stat-box-title">Total Sales Revenue</div>
+            <div class="stat-box-value" style="color: #0284c7;">₹{{ total_revenue|default:0|floatformat:2 }}</div>
+        </div>
+        <span style="font-size: 26px;">💰</span>
+    </div>
+    <div class="stat-box box-green">
+        <div>
+            <div class="stat-box-title">Total Paid Amount</div>
+            <div class="stat-box-value" style="color: #10b981;">₹{{ total_paid|default:0|floatformat:2 }}</div>
+        </div>
+        <span style="font-size: 26px;">💵</span>
+    </div>
+    <div class="stat-box box-red">
+        <div>
+            <div class="stat-box-title">Total Balance Due</div>
+            <div class="stat-box-value" style="color: #ef4444;">₹{{ total_balance|default:0|floatformat:2 }}</div>
+        </div>
+        <span style="font-size: 26px;">⚠️</span>
+    </div>
+</div>
+
+<!-- 5-Tier Payment Status Filter Bar -->
+<div class="status-filter-bar">
+    <button type="button" class="status-filter-btn active" onclick="filterByPaymentStatus('ALL', this)">
+        <span>All Invoices</span>
+        <span class="status-count-tag">{{ total_bills_count|default:bills|length }}</span>
+    </button>
+    <button type="button" class="status-filter-btn" onclick="filterByPaymentStatus('COMPLETED_PAID', this)">
+        <span style="color: #15803d;">✓ Completed Paid</span>
+        <span class="status-count-tag" style="background: #dcfce7; color: #15803d;">{{ completed_paid_count|default:0 }}</span>
+    </button>
+    <button type="button" class="status-filter-btn" onclick="filterByPaymentStatus('HIGH_80_PAID', this)">
+        <span style="color: #0369a1;">● 80%+ High Paid</span>
+        <span class="status-count-tag" style="background: #e0f2fe; color: #0369a1;">{{ high_80_count|default:0 }}</span>
+    </button>
+    <button type="button" class="status-filter-btn" onclick="filterByPaymentStatus('HIGH_50_PAID', this)">
+        <span style="color: #b45309;">● 50%+ High Paid</span>
+        <span class="status-count-tag" style="background: #fef3c7; color: #b45309;">{{ high_50_count|default:0 }}</span>
+    </button>
+    <button type="button" class="status-filter-btn" onclick="filterByPaymentStatus('DOWN_50_PAID', this)">
+        <span style="color: #c2410c;">● 50% Down Paid</span>
+        <span class="status-count-tag" style="background: #ffedd5; color: #c2410c;">{{ down_50_count|default:0 }}</span>
+    </button>
+    <button type="button" class="status-filter-btn" onclick="filterByPaymentStatus('NO_PAID', this)">
+        <span style="color: #b91c1c;">✕ No Paid</span>
+        <span class="status-count-tag" style="background: #fee2e2; color: #b91c1c;">{{ no_paid_count|default:0 }}</span>
+    </button>
+</div>
+
+<!-- Controls & Search Toolbar -->
+<div class="controls-card">
+    <div class="search-row">
+        <!-- Live Search Field -->
+        <div class="search-input-wrap">
+            <input type="text" id="invoiceSearch" class="search-input-field" 
+                   placeholder="Search invoice by Bill #, Customer name, Phone, Door No, ID proof, or Payment mode..." 
+                   onkeyup="handleInvoiceSearchKey(event)">
+        </div>
+
+        <!-- Explicit JavaScript Search Button -->
+        <button class="btn-blue" onclick="executeInvoiceSearch()">
+            🔍 Search
+        </button>
+
+        <button class="btn-white" onclick="resetInvoiceSearch()">
+            ↺ Reset
+        </button>
+
+        <!-- Payment Mode Dropdown Filter -->
+        <select id="paymentFilter" class="select-dropdown" onchange="executeInvoiceSearch()">
+            <option value="ALL">All Payment Modes</option>
+            <option value="CASH">Cash Only</option>
+            <option value="UPI">UPI / GPay</option>
+            <option value="CARD">Card</option>
+            <option value="CREDIT">Credit / Due</option>
+        </select>
+
+        <!-- Direct Quick Add Bill Button -->
+        <button class="btn-black" onclick="openCategoryBillModal()" style="margin-left: auto;">
+            ➕ Add Bill (Category-wise)
+        </button>
+
+        <!-- View Switcher -->
+        <div class="view-switcher">
+            <button class="btn-view active" id="btnViewCards" onclick="switchInvoiceView('cards')">🗂️ Cards</button>
+            <button class="btn-view" id="btnViewTable" onclick="switchInvoiceView('table')">📋 Table</button>
+        </div>
+    </div>
+
+    <!-- Bulk Action Toolbar (Select All & Bulk Delete) -->
+    <div class="bulk-toolbar">
+        <label class="select-all-label">
+            <input type="checkbox" id="selectAllInvoices" class="custom-check" onchange="toggleSelectAllInvoices(this)">
+            <span>Select All Invoices (<span id="selectedInvoiceCount">0</span> selected)</span>
+        </label>
+        <div>
+            <button class="btn-red" id="btnBulkDeleteInvoices" onclick="deleteSelectedInvoices()" style="display: none; padding: 6px 14px; font-size: 12.5px;">
+                🗑️ Delete Selected
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- INVOICES CARD MODEL GRID -->
+<div class="invoices-card-grid" id="invoiceCardContainer">
+
+    <!-- 1. SEPARATE CARD TO ADD NEW BILL (CATEGORY-WISE PRODUCT CLICK) -->
+    <div class="add-bill-launcher-card" onclick="openCategoryBillModal()">
+        <div class="add-bill-circle">➕</div>
+        <div class="add-bill-title">Create / Add New Bill</div>
+        <div class="add-bill-desc">
+            Click here to choose products <strong>category-wise</strong> and generate bill with ID proof & payment tracking.
+        </div>
+        <button type="button" class="btn-card-add-bill" onclick="event.stopPropagation(); openCategoryBillModal()">
+            ⚡ Add Bill (Category-wise)
+        </button>
+    </div>
+
+    <!-- 2. SEPARATE CARDS FOR EACH ALREADY ADDED BILL -->
+    {% for b in bills %}
+    <div class="bill-card" id="bill-card-{{ b.id }}"
+         data-id="{{ b.id }}"
+         data-number="{{ b.bill_number|lower }}"
+         data-customer="{{ b.customer_name|lower }}"
+         data-phone="{{ b.customer_phone|default:''|lower }}"
+         data-address="{{ b.door_no|default:''|lower }} {{ b.address|default:''|lower }}"
+         data-idproof="{{ b.id_proof_number|default:''|lower }}"
+         data-mode="{{ b.payment_mode }}"
+         data-status="{{ b.payment_status }}">
+        
+        <div>
+            <div class="card-top">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" class="card-checkbox invoice-select" value="{{ b.id }}" onchange="handleInvoiceCheckboxChange(this, 'bill-card-{{ b.id }}')">
+                    <span class="bill-number-pill">#{{ b.bill_number }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
+                    <!-- 5-Tier Payment Status Badge -->
+                    {% if b.payment_status == 'COMPLETED_PAID' %}
+                    <span class="status-badge-pill status-completed">✓ Completed Paid</span>
+                    {% elif b.payment_status == 'HIGH_80_PAID' %}
+                    <span class="status-badge-pill status-high80">● 80%+ High Paid</span>
+                    {% elif b.payment_status == 'HIGH_50_PAID' %}
+                    <span class="status-badge-pill status-high50">● 50%+ High Paid</span>
+                    {% elif b.payment_status == 'DOWN_50_PAID' %}
+                    <span class="status-badge-pill status-down50">● 50% Down Paid</span>
+                    {% else %}
+                    <span class="status-badge-pill status-nopaid">✕ No Paid</span>
+                    {% endif %}
+
+                    {% if b.payment_mode == 'CASH' %}
+                    <span class="pay-badge badge-cash">💵 Cash</span>
+                    {% elif b.payment_mode == 'UPI' %}
+                    <span class="pay-badge badge-upi">📱 UPI</span>
+                    {% elif b.payment_mode == 'CARD' %}
+                    <span class="pay-badge badge-card">💳 Card</span>
+                    {% else %}
+                    <span class="pay-badge badge-credit">📝 Due</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Customer Details with Icons, Gender, Address, ID Proof -->
+            <div class="cust-info">
+                <div class="cust-name">
+                    <span>{{ b.gender_icon }}</span>
+                    <span>{{ b.customer_name }}</span>
+                    <span class="cust-chip chip-gender">{{ b.get_gender_display }}</span>
+                </div>
+                <div class="cust-phone">📞 Mobile: <strong>{{ b.customer_phone|default:"No phone provided" }}</strong></div>
+                {% if b.door_no or b.address %}
+                <div style="font-size: 12px; color: #475569; margin-top: 2px;">
+                    🏠 {% if b.door_no %}<strong>Door:</strong> {{ b.door_no }}, {% endif %}{{ b.address }}
+                </div>
+                {% endif %}
+                {% if b.id_proof_number %}
+                <div style="margin-top: 4px;">
+                    <span class="cust-chip chip-id">🪪 {{ b.get_id_proof_type_display }}: {{ b.id_proof_number }}</span>
+                </div>
+                {% endif %}
+                <div class="bill-date-text">📅 {{ b.created_at|date:"d M Y, h:i A" }}</div>
+            </div>
+
+            <!-- Itemized breakdown of items in this bill -->
+            <div class="card-items-preview">
+                <div class="preview-header">
+                    <span>Products Billed</span>
+                    <span>{{ b.items.count }} item{{ b.items.count|pluralize }}</span>
+                </div>
+                {% for item in b.items.all %}
+                <div class="preview-item-row">
+                    <div>
+                        <strong>{{ item.product_name }}</strong>
+                        <span style="color: #64748b; font-size: 11px;">({{ item.size }})</span>
+                    </div>
+                    <div>
+                        <span>{{ item.quantity }} × ₹{{ item.rate|floatformat:2 }}</span> = 
+                        <strong>₹{{ item.total|floatformat:2 }}</strong>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="font-size: 11.5px; color: #94a3b8; text-align: center; padding: 4px;">No line items snapshot</div>
+                {% endfor %}
+            </div>
+
+            <!-- Summary Calculations -->
+            <div class="bill-stats-box">
+                <div class="bill-stat-row">
+                    <span>Subtotal:</span>
+                    <span>₹{{ b.subtotal|floatformat:2 }}</span>
+                </div>
+                {% if b.discount > 0 %}
+                <div class="bill-stat-row" style="color: #ef4444;">
+                    <span>Discount:</span>
+                    <span>-₹{{ b.discount|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+                <div class="bill-stat-row">
+                    <span>GST ({{ b.gst_rate|floatformat:0 }}%):</span>
+                    <span>+₹{{ b.gst_amount|floatformat:2 }}</span>
+                </div>
+                <div class="bill-grand-row">
+                    <span>Total Amount:</span>
+                    <span class="bill-grand-val">₹{{ b.grand_total|floatformat:2 }}</span>
+                </div>
+                <div class="bill-stat-row" style="margin-top: 6px; font-weight: 700; color: #16a34a;">
+                    <span>Paid Amount:</span>
+                    <span>₹{{ b.paid_amount|floatformat:2 }}</span>
+                </div>
+                <div class="bill-stat-row" style="font-weight: 800; color: {% if b.balance_amount > 0 %}#dc2626{% else %}#16a34a{% endif %}; border-top: 1px dashed #e2e8f0; padding-top: 4px;">
+                    <span>Balance Due:</span>
+                    <span>₹{{ b.balance_amount|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3 Card Action Buttons: View/Print, Edit, Delete -->
+        <div class="bill-actions">
+            <a href="{% url 'invoice_detail' b.id %}" target="_blank" class="btn-act-print">
+                🖨️ Print
+            </a>
+            <button class="btn-act-edit" onclick="openEditInvoiceModal({{ b.id }}, '{{ b.customer_name|escapejs }}', '{{ b.customer_phone|default:''|escapejs }}', '{{ b.gender }}', '{{ b.door_no|default:''|escapejs }}', '{{ b.address|default:''|escapejs }}', '{{ b.id_proof_type }}', '{{ b.id_proof_number|default:''|escapejs }}', '{{ b.payment_mode }}', {{ b.paid_amount|default:0 }}, '{{ b.notes|default:''|escapejs }}')">
+                ✏️ Edit
+            </button>
+            <button class="btn-act-del" onclick="deleteSingleInvoice({{ b.id }}, '{{ b.bill_number|escapejs }}')" title="Delete invoice">
+                🗑️
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ALTERNATIVE INVOICES TABLE VIEW -->
+<div class="inv-table-wrap" id="invoiceTableContainer">
+    <table class="inv-data-table">
+        <thead>
+            <tr>
+                <th style="width: 40px;"></th>
+                <th>Bill / Invoice #</th>
+                <th>Customer Name</th>
+                <th>Mobile</th>
+                <th>Door No & Address</th>
+                <th>ID Proof</th>
+                <th>Total (₹)</th>
+                <th>Paid (₹)</th>
+                <th>Balance (₹)</th>
+                <th>Status</th>
+                <th>Mode</th>
+                <th>Date</th>
+                <th style="text-align: right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="invoiceTableBody">
+            {% for b in bills %}
+            <tr id="table-row-{{ b.id }}" 
+                data-id="{{ b.id }}" 
+                data-number="{{ b.bill_number|lower }}" 
+                data-customer="{{ b.customer_name|lower }}" 
+                data-phone="{{ b.customer_phone|default:''|lower }}" 
+                data-address="{{ b.door_no|default:''|lower }} {{ b.address|default:''|lower }}"
+                data-idproof="{{ b.id_proof_number|default:''|lower }}"
+                data-mode="{{ b.payment_mode }}"
+                data-status="{{ b.payment_status }}">
+                <td>
+                    <input type="checkbox" class="card-checkbox invoice-select" value="{{ b.id }}" onchange="handleInvoiceCheckboxChange(this, 'table-row-{{ b.id }}')">
+                </td>
+                <td><strong style="color: #0284c7; font-family: 'JetBrains Mono', monospace;">{{ b.bill_number }}</strong></td>
+                <td>
+                    <span>{{ b.gender_icon }}</span> <strong>{{ b.customer_name }}</strong>
+                    <span class="cust-chip chip-gender">{{ b.get_gender_display }}</span>
+                </td>
+                <td style="color: #64748b;">{{ b.customer_phone|default:"-" }}</td>
+                <td style="font-size: 12px; color: #475569;">
+                    {% if b.door_no %}Door: {{ b.door_no }}, {% endif %}{{ b.address|default:"-" }}
+                </td>
+                <td>
+                    {% if b.id_proof_number %}
+                    <span class="cust-chip chip-id">{{ b.get_id_proof_type_display }}: {{ b.id_proof_number }}</span>
+                    {% else %}
+                    <span style="color: #94a3b8; font-size: 11px;">-</span>
+                    {% endif %}
+                </td>
+                <td><strong style="color: #0f172a; font-size: 14px;">₹{{ b.grand_total|floatformat:2 }}</strong></td>
+                <td><strong style="color: #16a34a; font-size: 14px;">₹{{ b.paid_amount|floatformat:2 }}</strong></td>
+                <td>
+                    <strong style="font-size: 14px; color: {% if b.balance_amount > 0 %}#dc2626{% else %}#16a34a{% endif %};">
+                        ₹{{ b.balance_amount|floatformat:2 }}
+                    </strong>
+                </td>
+                <td>
+                    {% if b.payment_status == 'COMPLETED_PAID' %}
+                    <span class="status-badge-pill status-completed">Completed</span>
+                    {% elif b.payment_status == 'HIGH_80_PAID' %}
+                    <span class="status-badge-pill status-high80">80%+ Paid</span>
+                    {% elif b.payment_status == 'HIGH_50_PAID' %}
+                    <span class="status-badge-pill status-high50">50%+ Paid</span>
+                    {% elif b.payment_status == 'DOWN_50_PAID' %}
+                    <span class="status-badge-pill status-down50">Down Paid</span>
+                    {% else %}
+                    <span class="status-badge-pill status-nopaid">No Paid</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if b.payment_mode == 'CASH' %}
+                    <span class="pay-badge badge-cash">Cash</span>
+                    {% elif b.payment_mode == 'UPI' %}
+                    <span class="pay-badge badge-upi">UPI</span>
+                    {% elif b.payment_mode == 'CARD' %}
+                    <span class="pay-badge badge-card">Card</span>
+                    {% else %}
+                    <span class="pay-badge badge-credit">Due</span>
+                    {% endif %}
+                </td>
+                <td style="font-size: 12px; color: #64748b;">{{ b.created_at|date:"d M Y, h:i A" }}</td>
+                <td style="text-align: right;">
+                    <a href="{% url 'invoice_detail' b.id %}" target="_blank" class="btn-act-print" style="display: inline-flex; padding: 4px 10px; font-size: 12px;">🖨️ Print</a>
+                    <button class="btn-act-edit" style="display: inline-flex; padding: 4px 10px; font-size: 12px;" onclick="openEditInvoiceModal({{ b.id }}, '{{ b.customer_name|escapejs }}', '{{ b.customer_phone|default:''|escapejs }}', '{{ b.gender }}', '{{ b.door_no|default:''|escapejs }}', '{{ b.address|default:''|escapejs }}', '{{ b.id_proof_type }}', '{{ b.id_proof_number|default:''|escapejs }}', '{{ b.payment_mode }}', {{ b.paid_amount|default:0 }}, '{{ b.notes|default:''|escapejs }}')">✏️ Edit</button>
+                    <button class="btn-act-del" style="display: inline-flex; padding: 4px 8px; font-size: 12px;" onclick="deleteSingleInvoice({{ b.id }}, '{{ b.bill_number|escapejs }}')">🗑️</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- ======================================================== -->
+<!-- MODAL: CATEGORY-WISE CLICK PRODUCT BILL GENERATOR MODAL -->
+<!-- ======================================================== -->
+<div class="modal-backdrop-bill" id="categoryBillModal">
+    <div class="modal-bill-box">
+        <!-- Modal Head -->
+        <div class="modal-bill-head">
+            <h2>
+                <span>🧾 Create New Customer Bill</span>
+                <span style="font-size: 12px; font-weight: 600; background: rgba(255, 255, 255, 0.15); padding: 3px 8px; border-radius: 6px; margin-left: 8px;">
+                    Category-Wise Product Selector & ID Verification
+                </span>
+            </h2>
+            <button type="button" class="btn-close-modal" onclick="closeCategoryBillModal()">✕</button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-bill-body">
+            <!-- 1. Customer Information & ID Proof -->
+            <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+                <div style="font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase; display: flex; justify-content: space-between;">
+                    <span>👤 Customer Details & ID Proof Verification</span>
+                    <span style="color: #0284c7;">Shop Owner: {{ shop_owner }}</span>
+                </div>
+
+                <!-- Row 1: Name and Phone -->
+                <div class="modal-cust-row">
+                    <div>
+                        <label class="modal-form-label">Customer Name *</label>
+                        <input type="text" id="billCustName" class="modal-form-input" placeholder="e.g. Ramesh Kumar" value="Walk-in Customer" required>
+                    </div>
+                    <div>
+                        <label class="modal-form-label">Mobile Number</label>
+                        <input type="text" id="billCustPhone" class="modal-form-input" placeholder="e.g. +91 98765 43210">
+                    </div>
+                    <div>
+                        <label class="modal-form-label">Payment Mode</label>
+                        <select id="billPaymentMode" class="modal-form-input">
+                            <option value="CASH">💵 Cash</option>
+                            <option value="UPI">📱 UPI / GPay</option>
+                            <option value="CARD">💳 Card</option>
+                            <option value="CREDIT">📝 Due / Credit</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Row 2: Gender Selection -->
+                <div>
+                    <label class="modal-form-label">Customer Gender</label>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="gender-pill-btn active" id="modalGenderMale" onclick="setModalGender('MALE', this)">👨 Male</button>
+                        <button type="button" class="gender-pill-btn" id="modalGenderFemale" onclick="setModalGender('FEMALE', this)">👩 Female</button>
+                        <button type="button" class="gender-pill-btn" id="modalGenderOther" onclick="setModalGender('OTHER', this)">⚧ Other</button>
+                    </div>
+                </div>
+
+                <!-- Row 3: Door No and Address -->
+                <div class="modal-cust-row" style="grid-template-columns: 1fr 2fr;">
+                    <div>
+                        <label class="modal-form-label">Door / Flat No</label>
+                        <input type="text" id="billDoorNo" class="modal-form-input" placeholder="e.g. #24/B">
+                    </div>
+                    <div>
+                        <label class="modal-form-label">Address with Door No</label>
+                        <input type="text" id="billAddress" class="modal-form-input" placeholder="e.g. Main Road, Hardware Market">
+                    </div>
+                </div>
+
+                <!-- Row 4: ID Proof Type & ID Number -->
+                <div class="modal-cust-row" style="grid-template-columns: 1fr 1fr;">
+                    <div>
+                        <label class="modal-form-label">ID Proof Type</label>
+                        <select id="billIdProofType" class="modal-form-input">
+                            <option value="AADHAAR">🪪 Aadhaar Card</option>
+                            <option value="PAN">💳 PAN Card</option>
+                            <option value="DRIVING_LICENCE">🚗 Driving Licence</option>
+                            <option value="VOTER_ID">🗳️ Voter ID</option>
+                            <option value="SMART_CARD">💳 Smart / Ration Card</option>
+                            <option value="OTHER">📄 Other ID</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="modal-form-label">ID Proof Number</label>
+                        <input type="text" id="billIdProofNumber" class="modal-form-input" placeholder="e.g. 1234 5678 9012">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. CATEGORIES SELECTOR (CLICK CATEGORY TO SHOW PRODUCTS) -->
+            <div>
+                <div class="category-section-title">
+                    <span>🏷️ 1. Click Category to View Hardware Items:</span>
+                    <span style="font-size: 11px; color: #64748b; font-weight: 600;">(Filter products below)</span>
+                </div>
+                <div class="modal-category-pills">
+                    <button type="button" class="modal-cat-btn active" onclick="filterModalCategory('ALL', this)">
+                        All Categories ({{ products|length }})
+                    </button>
+                    {% for cat in categories %}
+                    <button type="button" class="modal-cat-btn" onclick="filterModalCategory('{{ cat.name|escapejs }}', this)">
+                        {{ cat.name }} ({{ cat.products.count }})
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 3. PRODUCTS GRID (CLICK TO ADD PRODUCT TO BILL) -->
+            <div>
+                <div class="category-section-title">
+                    <span>📦 2. Click Product to Add into Bill:</span>
+                    <span style="font-size: 11px; color: #0284c7; font-weight: 700;" id="modalVisibleCount">{{ products|length }} Products Available</span>
+                </div>
+                <div class="modal-products-grid" id="modalProductsGrid">
+                    {% for p in products %}
+                    <div class="modal-prod-item-card"
+                         data-category="{{ p.category.name|escapejs }}"
+                         onclick="addModalProduct({{ p.id }}, '{{ p.name|escapejs }}', '{{ p.size|escapejs }}', {{ p.rate }}, {{ p.quantity }})">
+                        <div>
+                            <div class="modal-prod-name">{{ p.name }}</div>
+                            <span class="modal-prod-size">Size: {{ p.size }}</span>
+                        </div>
+                        <div class="modal-prod-footer">
+                            <span class="modal-prod-rate">₹{{ p.rate|floatformat:2 }}</span>
+                            <button type="button" class="btn-add-pill">+ Add to Bill</button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="grid-column: 1/-1; text-align: center; color: #94a3b8; padding: 20px;">
+                        No products found in this category.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 4. CURRENT BILL ITEMS TABLE -->
+            <div>
+                <div class="category-section-title" style="justify-content: space-between;">
+                    <span>🧾 3. Items Added in Current Bill:</span>
+                    <span id="modalCartCount" style="font-size: 12px; color: #0284c7; font-weight: 800;">0 Items</span>
+                </div>
+                <div class="bill-cart-section">
+                    <table class="bill-cart-table">
+                        <thead>
+                            <tr>
+                                <th>Item & Size</th>
+                                <th style="width: 70px;">Rate</th>
+                                <th style="width: 100px; text-align: center;">Qty</th>
+                                <th style="width: 90px; text-align: right;">Total</th>
+                                <th style="width: 30px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalCartBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #94a3b8; padding: 24px;">
+                                    🛒 No items added yet. Click any plumbing product in step 2 above.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Footer with Real-Time Totals, GST, Paid Amount, Balance & 5-Tier Status Preview -->
+        <div class="modal-bill-footer">
+            <div class="modal-bill-totals" style="flex-wrap: wrap; gap: 14px;">
+                <div class="modal-tot-item">
+                    Subtotal: <strong id="modalSubtotalText">₹0.00</strong>
+                </div>
+                <div class="modal-tot-item" style="display: flex; align-items: center; gap: 6px;">
+                    Discount (₹): 
+                    <input type="number" id="modalDiscountField" value="0" min="0" step="1" 
+                           oninput="updateCategoryModalTotals()" 
+                           style="width: 70px; padding: 3px 6px; border: 1.5px solid #cbd5e1; border-radius: 6px; text-align: right; font-weight: 800;">
+                </div>
+                <!-- GST Rate Selector & live calculated GST amount -->
+                <div class="modal-tot-item" style="display: flex; align-items: center; gap: 6px;">
+                    <span>GST:</span>
+                    <div style="display: flex; gap: 2px;">
+                        <button type="button" class="gst-pill-btn" onclick="setModalGstRate(0, this)">0%</button>
+                        <button type="button" class="gst-pill-btn" onclick="setModalGstRate(5, this)">5%</button>
+                        <button type="button" class="gst-pill-btn" onclick="setModalGstRate(12, this)">12%</button>
+                        <button type="button" class="gst-pill-btn active" onclick="setModalGstRate(18, this)">18%</button>
+                        <button type="button" class="gst-pill-btn" onclick="setModalGstRate(28, this)">28%</button>
+                    </div>
+                    <strong id="modalGstAmountText" style="color: #0284c7; margin-left: 4px;">+₹0.00</strong>
+                </div>
+
+                <div class="modal-tot-item">
+                    Total Amount: <span class="modal-grand-val" id="modalGrandTotalText">₹0.00</span>
+                </div>
+
+                <!-- Paid Amount Input and Balance Calculation -->
+                <div class="modal-tot-item" style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-weight: 700; color: #16a34a;">Paid (₹):</span>
+                    <input type="number" id="modalPaidAmountField" value="0" min="0" step="1"
+                           oninput="handleModalPaidAmountInput()"
+                           style="width: 85px; padding: 3px 6px; border: 1.5px solid #86efac; border-radius: 6px; text-align: right; font-weight: 800; color: #15803d;">
+                    <button type="button" onclick="setModalFullPaid()" style="background: #dcfce7; border: 1px solid #86efac; color: #15803d; font-size: 11px; font-weight: 800; padding: 3px 6px; border-radius: 4px; cursor: pointer;">Full</button>
+                </div>
+
+                <div class="modal-tot-item">
+                    Balance: <strong id="modalBalanceAmountText" style="color: #16a34a; font-size: 15px;">₹0.00</strong>
+                </div>
+
+                <!-- 5-Tier Payment Status Preview Badge -->
+                <div class="modal-tot-item">
+                    <span id="modalPaymentStatusBadge" class="status-badge-completed">✓ Completed Paid</span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn-white" onclick="closeCategoryBillModal()">Cancel</button>
+                <button type="button" class="btn-blue" id="btnSubmitCategoryBill" onclick="submitCategoryBill()" disabled style="padding: 10px 22px; font-size: 14px;">
+                    ⚡ Complete & Save Bill
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: EDIT INVOICE DETAILS -->
+<div class="modal-backdrop-edit" id="invoiceModal">
+    <div class="modal-edit-box" style="max-width: 540px;">
+        <div class="modal-head" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid var(--color-gray-border); padding-bottom: 12px; margin-bottom: 16px;">
+            <h2 id="invoiceModalTitle" style="font-size: 18px; font-weight: 800; color: var(--color-black);">✏️ Edit Customer & Invoice Details</h2>
+            <button class="btn-close-modal" onclick="closeInvoiceModal()" style="color: #64748b;">✕</button>
+        </div>
+        <form id="editInvoiceForm" onsubmit="saveInvoiceEdit(event)">
+            <input type="hidden" id="editBillId" value="">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label class="modal-form-label">Customer Name</label>
+                    <input type="text" id="editCustName" class="modal-form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="modal-form-label">Mobile Number</label>
+                    <input type="text" id="editCustPhone" class="modal-form-input" placeholder="e.g. +91 98765 43210">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label class="modal-form-label">Gender</label>
+                    <select id="editGender" class="modal-form-input">
+                        <option value="MALE">👨 Male</option>
+                        <option value="FEMALE">👩 Female</option>
+                        <option value="OTHER">⚧ Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="modal-form-label">Door / Flat No</label>
+                    <input type="text" id="editDoorNo" class="modal-form-input" placeholder="e.g. #24/B">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 12px;">
+                <label class="modal-form-label">Address</label>
+                <input type="text" id="editAddress" class="modal-form-input" placeholder="Street / Area Address">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label class="modal-form-label">ID Proof Type</label>
+                    <select id="editIdProofType" class="modal-form-input">
+                        <option value="AADHAAR">🪪 Aadhaar Card</option>
+                        <option value="PAN">💳 PAN Card</option>
+                        <option value="DRIVING_LICENCE">🚗 Driving Licence</option>
+                        <option value="VOTER_ID">🗳️ Voter ID</option>
+                        <option value="SMART_CARD">💳 Smart / Ration Card</option>
+                        <option value="OTHER">📄 Other ID</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="modal-form-label">ID Proof Number</label>
+                    <input type="text" id="editIdProofNumber" class="modal-form-input" placeholder="e.g. 1234 5678 9012">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label class="modal-form-label">Payment Mode</label>
+                    <select id="editPaymentMode" class="modal-form-input">
+                        <option value="CASH">💵 Cash</option>
+                        <option value="UPI">📱 UPI / GPay / PhonePe</option>
+                        <option value="CARD">💳 Debit / Credit Card</option>
+                        <option value="CREDIT">📝 Credit / Due</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="modal-form-label">Paid Amount (₹)</label>
+                    <input type="number" id="editPaidAmount" class="modal-form-input" min="0" step="0.01">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 14px;">
+                <label class="modal-form-label">Notes / Remarks</label>
+                <input type="text" id="editNotes" class="modal-form-input" placeholder="Optional notes...">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid var(--color-gray-border); padding-top: 14px;">
+                <button type="button" class="btn-white" onclick="closeInvoiceModal()">Cancel</button>
+                <button type="submit" class="btn-blue">💾 Update Invoice</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentStatusFilter = 'ALL';
+    let currentModalGender = 'MALE';
+    let currentModalGstRate = 18.0;
+    let manualModalPaidModified = false;
+
+    // REAL-TIME CLOCK FUNCTION
+    function updatePageClock() {
+        const now = new Date();
+        const dateOptions = { day: '2-digit', month: 'short', year: 'numeric' };
+        const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+
+        const dateStr = now.toLocaleDateString('en-GB', dateOptions);
+        const timeStr = now.toLocaleTimeString('en-US', timeOptions);
+
+        const clockDate = document.getElementById('pageClockDate');
+        const clockTime = document.getElementById('pageClockTime');
+
+        if (clockDate) clockDate.textContent = dateStr;
+        if (clockTime) clockTime.textContent = timeStr;
+    }
+    setInterval(updatePageClock, 1000);
+    updatePageClock();
+
+    // VIEW SWITCHER (CARDS VS TABLE)
+    function switchInvoiceView(view) {
+        const cards = document.getElementById('invoiceCardContainer');
+        const table = document.getElementById('invoiceTableContainer');
+        const btnCards = document.getElementById('btnViewCards');
+        const btnTable = document.getElementById('btnViewTable');
+
+        if (view === 'cards') {
+            cards.style.display = 'grid';
+            table.style.display = 'none';
+            btnCards.classList.add('active');
+            btnTable.classList.remove('active');
+        } else {
+            cards.style.display = 'none';
+            table.style.display = 'block';
+            btnCards.classList.remove('active');
+            btnTable.classList.add('active');
+        }
+    }
+
+    // 5-TIER PAYMENT STATUS FILTER
+    function filterByPaymentStatus(status, btn) {
+        currentStatusFilter = status;
+        document.querySelectorAll('.status-filter-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        executeInvoiceSearch();
+    }
+
+    // JAVASCRIPT SEARCH FUNCTIONALITY
+    function handleInvoiceSearchKey(event) {
+        if (event.key === 'Enter') {
+            executeInvoiceSearch();
+        } else {
+            executeInvoiceSearch();
+        }
+    }
+
+    function executeInvoiceSearch() {
+        const query = document.getElementById('invoiceSearch').value.toLowerCase().trim();
+        const payFilter = document.getElementById('paymentFilter').value;
+
+        // Filter cards (keep Add Bill Launcher Card always visible)
+        const cards = document.querySelectorAll('.bill-card');
+        cards.forEach(card => {
+            const billNum = card.getAttribute('data-number') || '';
+            const cust = card.getAttribute('data-customer') || '';
+            const phone = card.getAttribute('data-phone') || '';
+            const address = card.getAttribute('data-address') || '';
+            const idproof = card.getAttribute('data-idproof') || '';
+            const mode = card.getAttribute('data-mode') || '';
+            const status = card.getAttribute('data-status') || '';
+
+            const matchPay = (payFilter === 'ALL' || mode === payFilter);
+            const matchStatus = (currentStatusFilter === 'ALL' || status === currentStatusFilter);
+            const matchQuery = (!query || billNum.includes(query) || cust.includes(query) || phone.includes(query) || address.includes(query) || idproof.includes(query) || mode.toLowerCase().includes(query));
+
+            if (matchPay && matchStatus && matchQuery) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Filter table rows
+        const rows = document.querySelectorAll('#invoiceTableBody tr');
+        rows.forEach(row => {
+            const billNum = row.getAttribute('data-number') || '';
+            const cust = row.getAttribute('data-customer') || '';
+            const phone = row.getAttribute('data-phone') || '';
+            const address = row.getAttribute('data-address') || '';
+            const idproof = row.getAttribute('data-idproof') || '';
+            const mode = row.getAttribute('data-mode') || '';
+            const status = row.getAttribute('data-status') || '';
+
+            const matchPay = (payFilter === 'ALL' || mode === payFilter);
+            const matchStatus = (currentStatusFilter === 'ALL' || status === currentStatusFilter);
+            const matchQuery = (!query || billNum.includes(query) || cust.includes(query) || phone.includes(query) || address.includes(query) || idproof.includes(query) || mode.toLowerCase().includes(query));
+
+            if (matchPay && matchStatus && matchQuery) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function resetInvoiceSearch() {
+        document.getElementById('invoiceSearch').value = '';
+        document.getElementById('paymentFilter').value = 'ALL';
+        currentStatusFilter = 'ALL';
+        document.querySelectorAll('.status-filter-btn').forEach((b, idx) => {
+            if (idx === 0) b.classList.add('active');
+            else b.classList.remove('active');
+        });
+        executeInvoiceSearch();
+    }
+
+    // SELECTION & BULK DELETE FOR INVOICES
+    function toggleSelectAllInvoices(masterCheckbox) {
+        const isChecked = masterCheckbox.checked;
+        const checkboxes = document.querySelectorAll('.invoice-select');
+
+        checkboxes.forEach(cb => {
+            cb.checked = isChecked;
+            const parentCard = cb.closest('.bill-card');
+            if (parentCard) {
+                if (isChecked) parentCard.classList.add('selected-card');
+                else parentCard.classList.remove('selected-card');
+            }
+        });
+        updateSelectedInvoiceCounter();
+    }
+
+    function handleInvoiceCheckboxChange(cb, elemId) {
+        const parentCard = cb.closest('.bill-card');
+        if (parentCard) {
+            if (cb.checked) parentCard.classList.add('selected-card');
+            else parentCard.classList.remove('selected-card');
+        }
+        updateSelectedInvoiceCounter();
+    }
+
+    function updateSelectedInvoiceCounter() {
+        const checked = document.querySelectorAll('.invoice-select:checked');
+        const count = checked.length;
+        document.getElementById('selectedInvoiceCount').textContent = count;
+        const bulkBtn = document.getElementById('btnBulkDeleteInvoices');
+
+        if (count > 0) {
+            bulkBtn.style.display = 'inline-flex';
+            bulkBtn.innerHTML = `🗑️ Delete Selected (${count})`;
+        } else {
+            bulkBtn.style.display = 'none';
+            document.getElementById('selectAllInvoices').checked = false;
+        }
+    }
+
+    async function deleteSelectedInvoices() {
+        const checked = Array.from(document.querySelectorAll('.invoice-select:checked')).map(cb => parseInt(cb.value));
+        if (checked.length === 0) return;
+
+        if (!confirm(`Are you sure you want to delete ${checked.length} selected invoice(s)? This will permanently remove them.`)) {
+            return;
+        }
+
+        try {
+            const resp = await fetch('{% url "bulk_delete_invoices_api" %}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bill_ids: checked })
+            });
+            const data = await resp.json();
+
+            if (data.status === 'success') {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (err) {
+            alert('Server error: ' + err.message);
+        }
+    }
+
+    async function deleteSingleInvoice(id, billNum) {
+        if (!confirm(`Are you sure you want to delete invoice #${billNum}?`)) {
+            return;
+        }
+
+        try {
+            const resp = await fetch(`/api/invoice/delete/${id}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await resp.json();
+
+            if (data.status === 'success') {
+                const card = document.getElementById(`bill-card-${id}`);
+                const row = document.getElementById(`table-row-${id}`);
+                if (card) card.remove();
+                if (row) row.remove();
+                alert(data.message);
+                updateSelectedInvoiceCounter();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (err) {
+            alert('Server error: ' + err.message);
+        }
+    }
+
+    // EDIT INVOICE MODAL
+    function openEditInvoiceModal(id, custName, custPhone, gender, doorNo, address, idType, idNum, payMode, paidAmt, notes) {
+        document.getElementById('editBillId').value = id;
+        document.getElementById('editCustName').value = custName || '';
+        document.getElementById('editCustPhone').value = custPhone || '';
+        document.getElementById('editGender').value = gender || 'MALE';
+        document.getElementById('editDoorNo').value = doorNo || '';
+        document.getElementById('editAddress').value = address || '';
+        document.getElementById('editIdProofType').value = idType || 'AADHAAR';
+        document.getElementById('editIdProofNumber').value = idNum || '';
+        document.getElementById('editPaymentMode').value = payMode || 'CASH';
+        document.getElementById('editPaidAmount').value = paidAmt || 0;
+        document.getElementById('editNotes').value = notes || '';
+        document.getElementById('invoiceModal').classList.add('show');
+    }
+
+    function closeInvoiceModal() {
+        document.getElementById('invoiceModal').classList.remove('show');
+    }
+
+    async function saveInvoiceEdit(event) {
+        event.preventDefault();
+        const id = document.getElementById('editBillId').value;
+        const payload = {
+            customer_name: document.getElementById('editCustName').value.trim(),
+            customer_phone: document.getElementById('editCustPhone').value.trim(),
+            gender: document.getElementById('editGender').value,
+            door_no: document.getElementById('editDoorNo').value.trim(),
+            address: document.getElementById('editAddress').value.trim(),
+            id_proof_type: document.getElementById('editIdProofType').value,
+            id_proof_number: document.getElementById('editIdProofNumber').value.trim(),
+            payment_mode: document.getElementById('editPaymentMode').value,
+            paid_amount: parseFloat(document.getElementById('editPaidAmount').value) || 0,
+            notes: document.getElementById('editNotes').value.trim()
+        };
+
+        try {
+            const resp = await fetch(`/api/invoice/edit/${id}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+
+            if (data.status === 'success') {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (err) {
+            alert('Failed to update invoice: ' + err.message);
+        }
+    }
+
+    // ==========================================================
+    // CATEGORY-WISE PRODUCT SELECTION & BILL GENERATOR LOGIC
+    // ==========================================================
+    let categoryModalCart = [];
+    let modalSelectedCategory = 'ALL';
+
+    function setModalGender(gender, btn) {
+        currentModalGender = gender;
+        document.querySelectorAll('.gender-pill-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+    }
+
+    function setModalGstRate(rate, btn) {
+        currentModalGstRate = parseFloat(rate);
+        document.querySelectorAll('.gst-pill-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        updateCategoryModalTotals();
+    }
+
+    function handleModalPaidAmountInput() {
+        manualModalPaidModified = true;
+        updateCategoryModalTotals();
+    }
+
+    function setModalFullPaid() {
+        manualModalPaidModified = false;
+        updateCategoryModalTotals();
+    }
+
+    function openCategoryBillModal() {
+        categoryModalCart = [];
+        modalSelectedCategory = 'ALL';
+        manualModalPaidModified = false;
+        currentModalGender = 'MALE';
+        currentModalGstRate = 18.0;
+
+        document.getElementById('billCustName').value = 'Walk-in Customer';
+        document.getElementById('billCustPhone').value = '';
+        document.getElementById('billDoorNo').value = '';
+        document.getElementById('billAddress').value = '';
+        document.getElementById('billIdProofNumber').value = '';
+        document.getElementById('modalDiscountField').value = '0';
+        document.getElementById('modalPaidAmountField').value = '0';
+        
+        // Reset gender & GST pills
+        setModalGender('MALE', document.getElementById('modalGenderMale'));
+        document.querySelectorAll('.gst-pill-btn').forEach((b, idx) => {
+            if (b.textContent.includes('18')) b.classList.add('active');
+            else b.classList.remove('active');
+        });
+
+        // Reset category pills
+        document.querySelectorAll('.modal-cat-btn').forEach((btn, idx) => {
+            if (idx === 0) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        filterModalCategory('ALL', document.querySelector('.modal-cat-btn'));
+
+        renderCategoryModalCart();
+        document.getElementById('categoryBillModal').classList.add('show');
+    }
+
+    function closeCategoryBillModal() {
+        document.getElementById('categoryBillModal').classList.remove('show');
+    }
+
+    // CATEGORY-WISE FILTER FUNCTION
+    function filterModalCategory(catName, btnElem) {
+        modalSelectedCategory = catName;
+        document.querySelectorAll('.modal-cat-btn').forEach(b => b.classList.remove('active'));
+        if (btnElem) btnElem.classList.add('active');
+
+        const productCards = document.querySelectorAll('.modal-prod-item-card');
+        let visibleCount = 0;
+
+        productCards.forEach(card => {
+            const itemCat = card.getAttribute('data-category') || '';
+            if (modalSelectedCategory === 'ALL' || itemCat === modalSelectedCategory) {
+                card.style.display = 'flex';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        const countBadge = document.getElementById('modalVisibleCount');
+        if (countBadge) {
+            countBadge.textContent = `${visibleCount} Product${visibleCount === 1 ? '' : 's'} in ${catName === 'ALL' ? 'All Categories' : catName}`;
+        }
+    }
+
+    // CLICK PRODUCT TO ADD TO BILL
+    function addModalProduct(id, name, size, rate, stock) {
+        const existing = categoryModalCart.find(i => i.id === id);
+        if (existing) {
+            existing.qty += 1;
+        } else {
+            categoryModalCart.push({
+                id: id,
+                name: name,
+                size: size,
+                rate: parseFloat(rate),
+                qty: 1,
+                stock: parseInt(stock)
+            });
+        }
+        renderCategoryModalCart();
+    }
+
+    function updateModalItemQty(id, delta) {
+        const item = categoryModalCart.find(i => i.id === id);
+        if (!item) return;
+        item.qty += delta;
+        if (item.qty <= 0) {
+            categoryModalCart = categoryModalCart.filter(i => i.id !== id);
+        }
+        renderCategoryModalCart();
+    }
+
+    function setModalItemQty(id, val) {
+        const item = categoryModalCart.find(i => i.id === id);
+        if (!item) return;
+        const parsed = parseInt(val) || 0;
+        if (parsed <= 0) {
+            categoryModalCart = categoryModalCart.filter(i => i.id !== id);
+        } else {
+            item.qty = parsed;
+        }
+        renderCategoryModalCart();
+    }
+
+    function removeModalCartItem(id) {
+        categoryModalCart = categoryModalCart.filter(i => i.id !== id);
+        renderCategoryModalCart();
+    }
+
+    function renderCategoryModalCart() {
+        const tbody = document.getElementById('modalCartBody');
+        const badge = document.getElementById('modalCartCount');
+        const btnSubmit = document.getElementById('btnSubmitCategoryBill');
+
+        tbody.innerHTML = '';
+        if (categoryModalCart.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 24px;">🛒 No items added yet. Click any plumbing product in step 2 above.</td></tr>';
+            badge.textContent = '0 Items';
+            btnSubmit.disabled = true;
+            updateCategoryModalTotals();
+            return;
+        }
+
+        badge.textContent = `${categoryModalCart.length} Item${categoryModalCart.length > 1 ? 's' : ''}`;
+        btnSubmit.disabled = false;
+
+        categoryModalCart.forEach(item => {
+            const lineTotal = (item.rate * item.qty).toFixed(2);
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <div style="font-weight: 800; color: #0f172a;">${item.name}</div>
+                    <span style="font-size: 11px; color: #64748b; background: #f1f5f9; padding: 1px 6px; border-radius: 4px;">Size: ${item.size}</span>
+                </td>
+                <td style="font-weight: 700; color: #0284c7;">₹${item.rate.toFixed(2)}</td>
+                <td style="text-align: center;">
+                    <div class="qty-stepper-sm">
+                        <button type="button" onclick="updateModalItemQty(${item.id}, -1)">−</button>
+                        <input type="text" value="${item.qty}" onchange="setModalItemQty(${item.id}, this.value)">
+                        <button type="button" onclick="updateModalItemQty(${item.id}, 1)">+</button>
+                    </div>
+                </td>
+                <td style="text-align: right; font-weight: 800; color: #0f172a;">₹${lineTotal}</td>
+                <td style="text-align: center;">
+                    <button type="button" onclick="removeModalCartItem(${item.id})" style="background: none; border: none; color: #ef4444; font-size: 14px; font-weight: 800; cursor: pointer;">✕</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        updateCategoryModalTotals();
+    }
+
+    function updateCategoryModalTotals() {
+        const subtotal = categoryModalCart.reduce((sum, item) => sum + (item.rate * item.qty), 0);
+        const discountInput = document.getElementById('modalDiscountField');
+        const discount = Math.max(0, parseFloat(discountInput.value) || 0);
+
+        const taxable = Math.max(0, subtotal - discount);
+        const gstAmount = (taxable * currentModalGstRate) / 100.0;
+        const grandTotal = taxable + gstAmount;
+
+        const paidInput = document.getElementById('modalPaidAmountField');
+        if (!manualModalPaidModified) {
+            paidInput.value = grandTotal > 0 ? grandTotal.toFixed(2) : '0';
+        }
+
+        const paid = Math.max(0, parseFloat(paidInput.value) || 0);
+        const balance = Math.max(0, grandTotal - paid);
+
+        document.getElementById('modalSubtotalText').textContent = `₹${subtotal.toFixed(2)}`;
+        document.getElementById('modalGstAmountText').textContent = `+₹${gstAmount.toFixed(2)}`;
+        document.getElementById('modalGrandTotalText').textContent = `₹${grandTotal.toFixed(2)}`;
+
+        const balElem = document.getElementById('modalBalanceAmountText');
+        balElem.textContent = `₹${balance.toFixed(2)}`;
+        balElem.style.color = balance > 0 ? '#dc2626' : '#16a34a';
+
+        // Update modal status badge preview
+        const statusBadge = document.getElementById('modalPaymentStatusBadge');
+        if (statusBadge) {
+            if (grandTotal <= 0) {
+                statusBadge.className = 'status-badge-completed';
+                statusBadge.textContent = '✓ Completed Paid (100%)';
+            } else {
+                const ratio = paid / grandTotal;
+                const pct = Math.min(100, Math.round((paid / grandTotal) * 100));
+                if (ratio >= 1.0 || paid >= grandTotal) {
+                    statusBadge.className = 'status-badge-completed';
+                    statusBadge.textContent = '✓ Completed Paid (100%)';
+                } else if (ratio >= 0.8) {
+                    statusBadge.className = 'status-badge-high80';
+                    statusBadge.textContent = `● 80%+ High Paid (${pct}%)`;
+                } else if (ratio >= 0.5) {
+                    statusBadge.className = 'status-badge-high50';
+                    statusBadge.textContent = `● 50%+ High Paid (${pct}%)`;
+                } else if (ratio > 0) {
+                    statusBadge.className = 'status-badge-down50';
+                    statusBadge.textContent = `● 50% Down Paid (${pct}%)`;
+                } else {
+                    statusBadge.className = 'status-badge-nopaid';
+                    statusBadge.textContent = `✕ No Paid (0%)`;
+                }
+            }
+        }
+    }
+
+    async function submitCategoryBill() {
+        if (categoryModalCart.length === 0) {
+            alert('Please click on at least one hardware product to add to the bill.');
+            return;
+        }
+
+        const custName = document.getElementById('billCustName').value.trim() || 'Walk-in Customer';
+        const custPhone = document.getElementById('billCustPhone').value.trim();
+        const doorNo = document.getElementById('billDoorNo').value.trim();
+        const address = document.getElementById('billAddress').value.trim();
+        const idType = document.getElementById('billIdProofType').value;
+        const idNumber = document.getElementById('billIdProofNumber').value.trim();
+        const paymentMode = document.getElementById('billPaymentMode').value;
+        const discount = parseFloat(document.getElementById('modalDiscountField').value) || 0;
+        const paidAmount = parseFloat(document.getElementById('modalPaidAmountField').value) || 0;
+
+        const payload = {
+            customer_name: custName,
+            customer_phone: custPhone,
+            gender: currentModalGender,
+            door_no: doorNo,
+            address: address,
+            id_proof_type: idType,
+            id_proof_number: idNumber,
+            payment_mode: paymentMode,
+            discount: discount,
+            gst_rate: currentModalGstRate,
+            paid_amount: paidAmount,
+            items: categoryModalCart.map(item => ({
+                product_id: item.id,
+                quantity: item.qty
+            }))
+        };
+
+        const btn = document.getElementById('btnSubmitCategoryBill');
+        btn.disabled = true;
+        btn.textContent = 'Generating Bill...';
+
+        try {
+            const resp = await fetch('{% url "create_bill_api" %}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+
+            if (data.status === 'success') {
+                alert(`✓ Bill #${data.bill_number} generated successfully!\nCustomer: ${custName}\nTotal Amount: ₹${data.grand_total.toFixed(2)}\nPaid: ₹${data.paid_amount.toFixed(2)} | Balance: ₹${data.balance_amount.toFixed(2)}\nStatus: ${data.payment_status_display}`);
+                window.location.reload();
+            } else {
+                alert('Error creating bill: ' + (data.message || 'Unknown error'));
+            }
+        } catch (err) {
+            alert('Server error: ' + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '⚡ Complete & Save Bill';
+        }
+    }
+</script>
+{% endblock %}
+

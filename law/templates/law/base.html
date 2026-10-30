@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ZAM ZAM HARDWARE - Billing & Inventory Management{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Distinct high-contrast palette: White, Black, Blue, Red */
+            --color-white: #ffffff;
+            --color-black: #0f172a;
+            --color-black-card: #1e293b;
+            --color-blue: #0284c7;
+            --color-blue-dark: #0369a1;
+            --color-blue-light: #e0f2fe;
+            --color-red: #ef4444;
+            --color-red-dark: #dc2626;
+            --color-red-light: #fee2e2;
+            --color-gray-bg: #f8fafc;
+            --color-gray-border: #e2e8f0;
+            --color-gray-text: #64748b;
+            
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.15);
+            --radius-md: 10px;
+            --radius-lg: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--color-gray-bg);
+            color: var(--color-black);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navbar - Black with Blue & White Accents */
+        .top-navbar {
+            background: linear-gradient(135deg, #090d16 0%, #0f172a 50%, #1e293b 100%);
+            color: var(--color-white);
+            padding: 12px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 2px solid #0284c7;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-badge {
+            background: rgba(2, 132, 199, 0.3);
+            color: #38bdf8;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            text-transform: uppercase;
+        }
+
+        .brand-owner {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .owner-highlight {
+            color: #38bdf8;
+            font-weight: 800;
+        }
+
+        /* Real-Time Live Clock Badge */
+        .live-clock-badge {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1.5px solid rgba(56, 189, 248, 0.35);
+            padding: 6px 14px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12.5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .clock-icon {
+            font-size: 14px;
+            animation: pulseClock 2s infinite ease-in-out;
+        }
+
+        @keyframes pulseClock {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.92); }
+        }
+
+        .live-date-text {
+            color: #cbd5e1;
+            font-weight: 600;
+        }
+
+        .live-sep {
+            color: #475569;
+        }
+
+        .live-time-text {
+            color: #38bdf8;
+            font-weight: 800;
+        }
+
+        /* Nav Links */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 700;
+            padding: 8px 14px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-link:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link.active {
+            color: #ffffff;
+            background: var(--color-blue);
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.5);
+        }
+
+        .admin-btn {
+            background: var(--color-black-card);
+            border: 1.5px solid #334155;
+            color: #ffffff !important;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .admin-btn:hover {
+            background: #334155;
+            border-color: #64748b;
+        }
+
+        /* Container */
+        .main-container {
+            flex: 1;
+            padding: 24px;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Reusable Card Model */
+        .card-model {
+            background: var(--color-white);
+            border-radius: var(--radius-lg);
+            border: 1.5px solid var(--color-gray-border);
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        }
+
+        .card-model:hover {
+            border-color: var(--color-blue);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Shared Buttons */
+        .btn-blue {
+            background: var(--color-blue);
+            color: var(--color-white);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13.5px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s;
+        }
+
+        .btn-blue:hover {
+            background: var(--color-blue-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-red {
+            background: var(--color-red);
+            color: var(--color-white);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13.5px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s;
+        }
+
+        .btn-red:hover {
+            background: var(--color-red-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-black {
+            background: var(--color-black);
+            color: var(--color-white);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13.5px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s;
+        }
+
+        .btn-black:hover {
+            background: #1e293b;
+        }
+
+        .btn-white {
+            background: var(--color-white);
+            color: var(--color-black);
+            border: 1.5px solid var(--color-gray-border);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s;
+        }
+
+        .btn-white:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--color-white);
+            border-top: 1px solid var(--color-gray-border);
+            padding: 16px 28px;
+            font-size: 12.5px;
+            color: var(--color-gray-text);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        @media (max-width: 1024px) {
+            .top-navbar {
+                flex-direction: column;
+                gap: 12px;
+                padding: 14px;
+            }
+            .nav-links {
+                width: 100%;
+                overflow-x: auto;
+                justify-content: flex-start;
+                padding-bottom: 4px;
+            }
+            .live-clock-badge {
+                order: 3;
+            }
+            .main-container {
+                padding: 14px;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header class="top-navbar">
+        <div class="brand-section">
+            <div class="brand-logo-icon">🔧</div>
+            <div>
+                <div class="brand-title">
+                    {{ shop_name|default:"ZAM ZAM HARDWARE" }}
+                    <span class="brand-badge">POS Billing</span>
+                </div>
+                <div class="brand-owner">
+                    Proprietor: <span class="owner-highlight">{{ shop_owner|default:"Lawrence C" }}</span> | Plumbing Hardware & Fittings
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Date & Clock Indicator -->
+        <div class="live-clock-badge" id="navbarClock">
+            <span class="clock-icon">🕒</span>
+            <span id="liveDate" class="live-date-text">-- --- ----</span>
+            <span class="live-sep">|</span>
+            <span id="liveTime" class="live-time-text">--:--:-- --</span>
+        </div>
+
+        <nav class="nav-links">
+            <a href="{% url 'index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' or request.resolver_match.url_name == 'home' %}active{% endif %}">
+                🏠 Home
+            </a>
+            <a href="{% url 'admindashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admindashboard' or request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                📊 Admin Dashboard
+            </a>
+            <a href="{% url 'billing_pos' %}" class="nav-link {% if request.resolver_match.url_name == 'billing_pos' %}active{% endif %}">
+                🧾 New Bill
+            </a>
+            <a href="{% url 'inventory' %}" class="nav-link {% if request.resolver_match.url_name == 'inventory' %}active{% endif %}">
+                📦 Inventory Cards
+            </a>
+            <a href="{% url 'invoices_list' %}" class="nav-link {% if request.resolver_match.url_name == 'invoices_list' %}active{% endif %}">
+                📑 Invoices List
+            </a>
+            <a href="/admin/" target="_blank" class="admin-btn" title="Open Django Admin Panel">
+                ⚙️ Django Admin
+            </a>
+        </nav>
+    </header>
+
+    <main class="main-container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div>
+            <strong>{{ shop_name }}</strong> — Plumbing & Hardware Billing Management System.
+        </div>
+        <div>
+            Shop Owner: <strong>{{ shop_owner }}</strong> | Real-Time Inventory Control
+        </div>
+    </footer>
+
+    <!-- Universal Real-time Clock Script -->
+    <script>
+        function updateGlobalClock() {
+            const now = new Date();
+            const dateOptions = { day: '2-digit', month: 'short', year: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+
+            const dateStr = now.toLocaleDateString('en-GB', dateOptions);
+            const timeStr = now.toLocaleTimeString('en-US', timeOptions);
+
+            const dateElem = document.getElementById('liveDate');
+            const timeElem = document.getElementById('liveTime');
+
+            if (dateElem) dateElem.textContent = dateStr;
+            if (timeElem) timeElem.textContent = timeStr;
+
+            // Also update local clock elements if any page has them
+            const pageClockDate = document.getElementById('pageClockDate');
+            const pageClockTime = document.getElementById('pageClockTime');
+            if (pageClockDate) pageClockDate.textContent = dateStr;
+            if (pageClockTime) pageClockTime.textContent = timeStr;
+        }
+
+        setInterval(updateGlobalClock, 1000);
+        updateGlobalClock();
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
