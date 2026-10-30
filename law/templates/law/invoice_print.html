@@ -230,22 +230,20 @@
         <div class="meta-grid">
             <div>
                 <strong style="color: #0f172a; font-size: 14px;">Billed To Customer:</strong>
-                <div style="font-size: 16px; font-weight: 800; margin-top: 4px; color: #0284c7; display: flex; align-items: center; gap: 6px;">
-                    <span>{{ bill.gender_icon }}</span>
-                    <span>{{ bill.customer_name }}</span>
-                    <span style="font-size: 11px; font-weight: 700; color: #475569; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">{{ bill.get_gender_display }}</span>
+                <div style="font-size: 16px; font-weight: 800; margin-top: 4px; color: #0f172a;">
+                    {{ bill.customer_name }}
                 </div>
                 <div style="color: #475569; margin-top: 4px; font-size: 13px;">
-                    📞 Mobile: <strong>{{ bill.customer_phone|default:"Not Provided" }}</strong>
+                    Mobile: <strong>{{ bill.customer_phone|default:"Not Provided" }}</strong>
                 </div>
                 {% if bill.door_no or bill.address %}
                 <div style="color: #475569; margin-top: 3px; font-size: 12.5px;">
-                    🏠 Address: {% if bill.door_no %}Door No. {{ bill.door_no }}, {% endif %}{{ bill.address }}
+                    Address: {% if bill.door_no %}Door No. {{ bill.door_no }}, {% endif %}{{ bill.address }}
                 </div>
                 {% endif %}
                 {% if bill.id_proof_number %}
-                <div style="margin-top: 4px; font-size: 12px; display: inline-block; background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700;">
-                    🪪 {{ bill.get_id_proof_type_display }}: {{ bill.id_proof_number }}
+                <div style="margin-top: 4px; font-size: 12px; display: inline-block; background: #e2e8f0; color: #334155; padding: 3px 8px; border-radius: 4px; font-weight: 700;">
+                    {{ bill.get_id_proof_type_display }}: {{ bill.id_proof_number }}
                 </div>
                 {% endif %}
             </div>

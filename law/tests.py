@@ -201,3 +201,97 @@ class PlumbingBillingTests(TestCase):
         self.assertIn('total_paid', response.context)
         self.assertIn('total_balance', response.context)
 
+
+    def test_featured_offer_apis_and_index_view(self):
+        """Verify featured offer add, update, and delete APIs and homepage rendering."""
+        from .models import FeaturedOfferProduct
+
+        # 1. Add featured offer API
+        add_payload = {
+            "name": "Brass Bib Tap Premium Test",
+            "category_name": "Taps & Faucets",
+            "size": "1/2 inch",
+            "image_url": "https://example.com/tap.jpg",
+            "original_price": 400.0,
+            "discount_price": 280.0,
+            "offer_date": "31 Dec 2026",
+            "description": "Chrome finish heavy duty bib cock tap.",
+            "button_text": "Add to Bill",
+            "button_link": "/pos/",
+            "order": 1
+        }
+        res_add = self.client.post(
+            reverse('add_featured_offer_api'),
+            data=json.dumps(add_payload),
+            content_type='application/json'
+        )
+        self.assertEqual(res_add.status_code, 200)
+        offer_id = res_add.json().get('offer_id')
+        self.assertTrue(offer_id)
+
+        # 2. Update featured offer API
+        update_payload = {
+            "name": "Brass Bib Tap Premium Test",
+            "category_name": "Taps & Faucets",
+            "size": "1/2 inch",
+            "image_url": "https://example.com/tap_updated.jpg",
+            "original_price": 450.0,
+            "discount_price": 299.0,
+            "offer_date": "15 Jan 2027",
+            "description": "Updated chrome finish bib cock tap."
+        }
+        res_update = self.client.post(
+            reverse('update_featured_offer_api', kwargs={'offer_id': offer_id}),
+            data=json.dumps(update_payload),
+            content_type='application/json'
+        )
+        self.assertEqual(res_update.status_code, 200)
+        self.assertEqual(res_update.json()['status'], 'success')
+
+        # Verify DB update
+        offer = FeaturedOfferProduct.objects.get(id=offer_id)
+        self.assertEqual(float(offer.discount_price), 299.0)
+
+        # 3. Check homepage rendering (Anonymous visitor sees View Details & Booking mobile +91 77086 23440)
+        res_home = self.client.get(reverse('index'))
+        self.assertEqual(res_home.status_code, 200)
+        html = res_home.content.decode('utf-8')
+        self.assertIn("77086 23440", html)
+        self.assertIn("Lawrence C", html)
+        self.assertNotIn('{{ shop_owner|default:"Lawrence C"', html)
+        self.assertIn("btn-product-view", html)
+
+        # 4. Delete featured offer API
+        res_del = self.client.post(
+            reverse('delete_featured_offer_api', kwargs={'offer_id': offer_id})
+        )
+        self.assertEqual(res_del.status_code, 200)
+        self.assertFalse(FeaturedOfferProduct.objects.filter(id=offer_id).exists())
+
+    def test_invoice_print_view_clean_rendering(self):
+        """Verify invoice print view renders without customer gender emojis."""
+        bill = Bill.objects.create(
+            customer_name="Walk-in Customer",
+            customer_phone="",
+            gender="MALE",
+            grand_total=Decimal("200.00"),
+            paid_amount=Decimal("200.00"),
+            payment_status="COMPLETED_PAID"
+        )
+        BillItem.objects.create(
+            bill=bill,
+            product=self.product1,
+            product_name=self.product1.name,
+            category_name=self.category.name,
+            size="25mm",
+            rate=Decimal("45.00"),
+            quantity=2,
+            total=Decimal("90.00")
+        )
+        response = self.client.get(reverse('invoice_detail', kwargs={'bill_id': bill.id}))
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode('utf-8')
+        self.assertIn("Walk-in Customer", html)
+        self.assertNotIn("<span>👨</span>", html)
+        self.assertNotIn("<span>👩</span>", html)
+        self.assertNotIn("📞 Mobile:", html)

@@ -15,8 +15,8 @@ def index_view(request):
     Features Fullscreen Hero, About Shop, 4-Card Single-Row Product Offers (Admin Managed),
     3-Card Plumbing Services, and Contact section with Google Maps.
     """
-    # Fetch dynamic featured offer products managed by Admin in backend
-    db_featured = FeaturedOfferProduct.objects.filter(is_active=True).order_by('order', '-created_at')[:4]
+    # Fetch dynamic featured offer products managed by Admin in backend (no artificial 4 limit; rows of 4 in UI)
+    db_featured = FeaturedOfferProduct.objects.filter(is_active=True).order_by('order', '-created_at')
     
     if db_featured.exists():
         featured_products = []
@@ -1031,6 +1031,55 @@ def delete_featured_offer_api(request, offer_id):
         return JsonResponse({
             'status': 'success',
             'message': f'Featured Offer Product "{name}" deleted successfully!'
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+def update_featured_offer_api(request, offer_id):
+    """
+    API for Admin to update an existing Featured Offer Product on the homepage.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Only POST allowed'}, status=405)
+    try:
+        offer = get_object_or_404(FeaturedOfferProduct, id=offer_id)
+        data = json.loads(request.body)
+        name = (data.get('name') or offer.name).strip()
+        category_name = (data.get('category_name') or offer.category_name).strip()
+        size = (data.get('size') or offer.size).strip()
+        image_url = (data.get('image_url') or offer.image_url).strip()
+        original_price = float(data.get('original_price', offer.original_price) or 0)
+        discount_price = float(data.get('discount_price', offer.discount_price) or 0)
+        offer_date = (data.get('offer_date') or offer.offer_date).strip()
+        description = (data.get('description') or offer.description).strip()
+        button_text = (data.get('button_text') or offer.button_text).strip()
+        button_link = (data.get('button_link') or offer.button_link).strip()
+
+        # Check duplicate name+size excluding this offer
+        if FeaturedOfferProduct.objects.filter(name__iexact=name, size__iexact=size).exclude(id=offer_id).exists():
+            return JsonResponse({
+                'status': 'error',
+                'is_duplicate': True,
+                'message': f'Another featured offer with name "{name}" and size "{size}" already exists!'
+            }, status=400)
+
+        offer.name = name
+        offer.category_name = category_name
+        offer.size = size
+        offer.image_url = image_url
+        offer.original_price = original_price
+        offer.discount_price = discount_price
+        offer.offer_date = offer_date
+        offer.description = description
+        offer.button_text = button_text
+        offer.button_link = button_link
+        offer.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Featured Offer "{offer.name}" updated successfully!'
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

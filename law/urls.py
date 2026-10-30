@@ -30,5 +30,6 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('api/login/', views.api_login_view, name='api_login'),
     path('api/featured-offer/add/', views.add_featured_offer_api, name='add_featured_offer_api'),
+    path('api/featured-offer/update/<int:offer_id>/', views.update_featured_offer_api, name='update_featured_offer_api'),
     path('api/featured-offer/delete/<int:offer_id>/', views.delete_featured_offer_api, name='delete_featured_offer_api'),
 ]
