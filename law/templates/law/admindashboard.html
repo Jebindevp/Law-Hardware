@@ -1216,9 +1216,14 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <button class="btn-white" style="padding: 4px 10px; font-size: 12px;" onclick="openQuickRestockModal({{ p.id }}, '{{ p.name|escapejs }}', '{{ p.size|escapejs }}', {{ p.rate }}, {{ p.quantity }})">
-                                    ⚡ Restock +
-                                </button>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button class="btn-white" style="padding: 4px 8px; font-size: 11px;" onclick="openQuickRestockModal({{ p.id }}, '{{ p.name|escapejs }}', '{{ p.size|escapejs }}', {{ p.rate }}, {{ p.quantity }})">
+                                        ⚡ Restock +
+                                    </button>
+                                    <button class="btn-blue" style="padding: 4px 8px; font-size: 11px;" onclick="openEditProductModal({{ p.id }}, {{ p.category.id }}, '{{ p.name|escapejs }}', '{{ p.size|escapejs }}', {{ p.rate }}, {{ p.quantity }})">
+                                        ✏️ Edit
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
@@ -1267,9 +1272,14 @@
                                 ₹{{ cat.total_value|floatformat:2 }}
                             </td>
                             <td>
-                                <a href="{% url 'inventory' %}?category={{ cat.name|urlencode }}" class="btn-white" style="padding: 4px 10px; font-size: 12px; text-decoration: none;">
-                                    View in Inventory →
-                                </a>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button class="btn-blue" style="padding: 4px 8px; font-size: 11px;" onclick="openEditCategoryModal({{ cat.id }}, '{{ cat.name|escapejs }}', '{{ cat.description|default:''|escapejs }}')">
+                                        ✏️ Edit
+                                    </button>
+                                    <a href="{% url 'inventory' %}?category={{ cat.name|urlencode }}" class="btn-white" style="padding: 4px 8px; font-size: 11px; text-decoration: none;">
+                                        Inventory →
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -1344,9 +1354,14 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="{% url 'invoice_detail' b.id %}" target="_blank" class="btn-white" style="padding: 4px 10px; font-size: 12px; text-decoration: none;">
-                                    🖨️ Print Receipt
-                                </a>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <a href="{% url 'invoice_detail' b.id %}" target="_blank" class="btn-white" style="padding: 4px 8px; font-size: 11px; text-decoration: none;">
+                                        🖨️ Print
+                                    </a>
+                                    <a href="{% url 'invoices_list' %}" class="btn-blue" style="padding: 4px 8px; font-size: 11px; text-decoration: none;" title="Edit in Invoices Manager">
+                                        ✏️ Edit
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
@@ -1395,9 +1410,14 @@
                             <td><span class="status-pill pill-blue">{{ cat.product_count }} items</span></td>
                             <td style="font-size: 12px; color: #64748b;">{{ cat.created_at|date:"d-M-Y" }}</td>
                             <td>
-                                <a href="{% url 'inventory' %}" class="btn-white" style="padding: 4px 10px; font-size: 12px; text-decoration: none;">
-                                    Manage Items →
-                                </a>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button class="btn-blue" style="padding: 4px 8px; font-size: 11px;" onclick="openEditCategoryModal({{ cat.id }}, '{{ cat.name|escapejs }}', '{{ cat.description|default:''|escapejs }}')">
+                                        ✏️ Edit
+                                    </button>
+                                    <a href="{% url 'inventory' %}?category={{ cat.name|urlencode }}" class="btn-white" style="padding: 4px 8px; font-size: 11px; text-decoration: none;">
+                                        Manage Items →
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -1447,9 +1467,14 @@
                             <td style="font-size: 12px; color: #64748b;">{{ e.reference_no|default:"-" }}</td>
                             <td style="font-size: 12px; color: #64748b;">{{ e.notes|default:"-" }}</td>
                             <td>
-                                <button class="btn-red" style="padding: 3px 8px; font-size: 11px;" onclick="deleteExpense({{ e.id }})">
-                                    🗑️ Delete
-                                </button>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button class="btn-blue" style="padding: 3px 8px; font-size: 11px;" onclick="openEditExpenseModal({{ e.id }}, '{{ e.title|escapejs }}', '{{ e.category }}', {{ e.amount }}, '{{ e.payment_mode }}', '{{ e.expense_date|date:'Y-m-d' }}', '{{ e.reference_no|default:''|escapejs }}', '{{ e.notes|default:''|escapejs }}')">
+                                        ✏️ Edit
+                                    </button>
+                                    <button class="btn-red" style="padding: 3px 8px; font-size: 11px;" onclick="deleteExpense({{ e.id }})">
+                                        🗑️ Delete
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
@@ -1505,9 +1530,14 @@
                             </td>
                             <td style="font-size: 12px; color: #64748b;">{{ s.address|default:"-" }}</td>
                             <td>
-                                <button class="btn-red" style="padding: 3px 8px; font-size: 11px;" onclick="deleteSupplier({{ s.id }})">
-                                    🗑️ Delete
-                                </button>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button class="btn-blue" style="padding: 3px 8px; font-size: 11px;" onclick="openEditSupplierModal({{ s.id }}, '{{ s.name|escapejs }}', '{{ s.company_name|escapejs }}', '{{ s.phone|escapejs }}', '{{ s.supply_category|escapejs }}', '{{ s.gstin|default:''|escapejs }}', {{ s.balance_due|default:0 }}, '{{ s.address|default:''|escapejs }}', '{{ s.notes|default:''|escapejs }}')">
+                                        ✏️ Edit
+                                    </button>
+                                    <button class="btn-red" style="padding: 3px 8px; font-size: 11px;" onclick="deleteSupplier({{ s.id }})">
+                                        🗑️ Delete
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
@@ -1555,7 +1585,7 @@
                             <th>Rate (₹)</th>
                             <th>Current Stock</th>
                             <th>Stock Valuation</th>
-                            <th>Quick Restock Options</th>
+                            <th>Stock & Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1574,7 +1604,7 @@
                                 ₹{{ p.total|floatformat:2 }}
                             </td>
                             <td>
-                                <div style="display: flex; gap: 6px;">
+                                <div style="display: flex; gap: 5px; align-items: center; flex-wrap: wrap;">
                                     <button class="btn-white" style="padding: 2px 7px; font-size: 11px;" onclick="applyQuickStockAdd({{ p.id }}, 10)">
                                         +10
                                     </button>
@@ -1584,8 +1614,11 @@
                                     <button class="btn-white" style="padding: 2px 7px; font-size: 11px;" onclick="applyQuickStockAdd({{ p.id }}, 50)">
                                         +50
                                     </button>
-                                    <button class="btn-blue" style="padding: 2px 8px; font-size: 11px;" onclick="openQuickRestockModal({{ p.id }}, '{{ p.name|escapejs }}', '{{ p.size|escapejs }}', {{ p.rate }}, {{ p.quantity }})">
-                                        Custom
+                                    <button class="btn-white" style="padding: 2px 8px; font-size: 11px;" onclick="openQuickRestockModal({{ p.id }}, '{{ p.name|escapejs }}', '{{ p.size|escapejs }}', {{ p.rate }}, {{ p.quantity }})">
+                                        Restock
+                                    </button>
+                                    <button class="btn-blue" style="padding: 2px 8px; font-size: 11px;" onclick="openEditProductModal({{ p.id }}, {{ p.category.id }}, '{{ p.name|escapejs }}', '{{ p.size|escapejs }}', {{ p.rate }}, {{ p.quantity }})">
+                                        ✏️ Edit
                                     </button>
                                 </div>
                             </td>
@@ -1652,9 +1685,14 @@
                             <td><span class="status-pill pill-red">{{ item.discount_percent }}</span></td>
                             <td><span style="font-size: 12px; font-weight: 700; color: #0f172a;">⏳ {{ item.offer_date }}</span></td>
                             <td>
-                                <button type="button" class="btn-red" style="padding: 4px 10px; font-size: 12px;" onclick="deleteFeaturedOffer({{ item.id }}, '{{ item.name|escapejs }}')">
-                                    🗑️ Delete
-                                </button>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button type="button" class="btn-blue" style="padding: 4px 10px; font-size: 12px;" onclick="openEditFeaturedOfferModal({{ item.id }}, '{{ item.name|escapejs }}', '{{ item.category_name|escapejs }}', '{{ item.size|escapejs }}', {{ item.original_price }}, {{ item.discount_price }}, '{{ item.offer_date|escapejs }}', {{ item.order }}, '{{ item.image_url|escapejs }}', '{{ item.description|escapejs }}', '{{ item.button_text|escapejs }}', '{{ item.button_link|escapejs }}')">
+                                        ✏️ Edit
+                                    </button>
+                                    <button type="button" class="btn-red" style="padding: 4px 10px; font-size: 12px;" onclick="deleteFeaturedOffer({{ item.id }}, '{{ item.name|escapejs }}')">
+                                        🗑️ Delete
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
@@ -2060,6 +2098,293 @@
         <div class="modal-footer">
             <button type="button" class="btn-white" onclick="closeModal('modalFullCalendar')">Close Calendar</button>
         </div>
+    </div>
+</div>
+
+<!-- ===================================================================
+     EDIT MODALS SECTION
+     =================================================================== -->
+
+<!-- EDIT PRODUCT MODAL -->
+<div class="modal-overlay" id="modalEditProduct">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">
+                <span>✏️ Edit Hardware Product</span>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('modalEditProduct')">&times;</button>
+        </div>
+        <form id="formEditProduct" onsubmit="submitEditProduct(event)">
+            <input type="hidden" id="editProdId">
+            <div class="modal-body">
+                <div id="editProdWarning" style="display: none; background: #fef2f2; border: 1.5px solid #ef4444; color: #b91c1c; padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 16px;"></div>
+
+                <div class="form-group">
+                    <label class="form-label">Category *</label>
+                    <select class="form-control" id="editProdCategory" required>
+                        <option value="">-- Select Category --</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Product Name *</label>
+                    <input type="text" class="form-control" id="editProdName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Size / Spec *</label>
+                    <input type="text" class="form-control" id="editProdSize" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Unit Rate (₹) *</label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="editProdRate" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stock Quantity (Units) *</label>
+                        <input type="number" min="0" class="form-control" id="editProdQty" required>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-white" onclick="closeModal('modalEditProduct')">Cancel</button>
+                <button type="submit" class="btn-blue" id="btnUpdateProd">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT CATEGORY MODAL -->
+<div class="modal-overlay" id="modalEditCategory">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">
+                <span>✏️ Edit Product Category</span>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('modalEditCategory')">&times;</button>
+        </div>
+        <form id="formEditCategory" onsubmit="submitEditCategory(event)">
+            <input type="hidden" id="editCatId">
+            <div class="modal-body">
+                <div id="editCatWarning" style="display: none; background: #fef2f2; border: 1.5px solid #ef4444; color: #b91c1c; padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 16px;"></div>
+
+                <div class="form-group">
+                    <label class="form-label">Category Name *</label>
+                    <input type="text" class="form-control" id="editCatName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" id="editCatDesc" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-white" onclick="closeModal('modalEditCategory')">Cancel</button>
+                <button type="submit" class="btn-blue" id="btnUpdateCat">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT EXPENSE MODAL -->
+<div class="modal-overlay" id="modalEditExpense">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">
+                <span>✏️ Edit Shop Expense</span>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('modalEditExpense')">&times;</button>
+        </div>
+        <form id="formEditExpense" onsubmit="submitEditExpense(event)">
+            <input type="hidden" id="editExpId">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Expense Title *</label>
+                    <input type="text" class="form-control" id="editExpTitle" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Expense Category *</label>
+                        <select class="form-control" id="editExpCategory" required>
+                            <option value="RENT">Shop Rent</option>
+                            <option value="ELECTRICITY">Electricity Bill</option>
+                            <option value="SALARY">Staff Salaries</option>
+                            <option value="SUPPLIER_PAY">Supplier Payment</option>
+                            <option value="TRANSPORT">Freight & Transport</option>
+                            <option value="MAINTENANCE">Shop Maintenance</option>
+                            <option value="TEA_SNACKS">Tea & Refreshments</option>
+                            <option value="TAX_GST">Taxes & GST</option>
+                            <option value="OTHER">Other Operational Cost</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Amount (₹) *</label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="editExpAmount" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Payment Mode *</label>
+                        <select class="form-control" id="editExpMode" required>
+                            <option value="CASH">Cash</option>
+                            <option value="UPI">UPI / GPay / PhonePe</option>
+                            <option value="BANK_TRANSFER">Bank NetBanking</option>
+                            <option value="CHEQUE">Cheque</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Expense Date *</label>
+                        <input type="date" class="form-control" id="editExpDate" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Reference / Receipt #</label>
+                    <input type="text" class="form-control" id="editExpRef">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes / Remarks</label>
+                    <textarea class="form-control" id="editExpNotes" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-white" onclick="closeModal('modalEditExpense')">Cancel</button>
+                <button type="submit" class="btn-blue" id="btnUpdateExp">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT SUPPLIER MODAL -->
+<div class="modal-overlay" id="modalEditSupplier">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">
+                <span>✏️ Edit Supplier / Vendor</span>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('modalEditSupplier')">&times;</button>
+        </div>
+        <form id="formEditSupplier" onsubmit="submitEditSupplier(event)">
+            <input type="hidden" id="editSuppId">
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Company / Brand Name *</label>
+                        <input type="text" class="form-control" id="editSuppCompany" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contact Person Name *</label>
+                        <input type="text" class="form-control" id="editSuppName" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Phone Number *</label>
+                        <input type="text" class="form-control" id="editSuppPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Supply Category</label>
+                        <input type="text" class="form-control" id="editSuppCat">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">GSTIN Number</label>
+                        <input type="text" class="form-control" id="editSuppGstin">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Outstanding Balance (₹)</label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="editSuppBal">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Office Address</label>
+                    <input type="text" class="form-control" id="editSuppAddr">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea class="form-control" id="editSuppNotes" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-white" onclick="closeModal('modalEditSupplier')">Cancel</button>
+                <button type="submit" class="btn-blue" id="btnUpdateSupp">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT HOMEPAGE FEATURED OFFER MODAL -->
+<div class="modal-overlay" id="modalEditFeaturedOffer">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">
+                <span>✏️ Edit Homepage Featured Offer Card</span>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('modalEditFeaturedOffer')">&times;</button>
+        </div>
+        <form id="formEditFeaturedOffer" onsubmit="submitEditFeaturedOffer(event)">
+            <input type="hidden" id="editOfferId">
+            <div class="modal-body">
+                <div id="editOfferWarning" style="display: none; background: #fef2f2; border: 1.5px solid #ef4444; color: #b91c1c; padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 16px;"></div>
+
+                <div class="form-group">
+                    <label class="form-label">Product Offer Name *</label>
+                    <input type="text" class="form-control" id="editOfferName" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Category Name *</label>
+                        <input type="text" class="form-control" id="editOfferCategory" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Size / Dimension *</label>
+                        <input type="text" class="form-control" id="editOfferSize" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Original MRP Price (₹) *</label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="editOfferOrigPrice" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Special Discount Offer Price (₹) *</label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="editOfferDiscPrice" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Offer Valid Till Date *</label>
+                        <input type="text" class="form-control" id="editOfferDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Display Order (1 - 4)</label>
+                        <input type="number" min="1" max="10" class="form-control" id="editOfferOrder" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Product Image URL</label>
+                    <input type="url" class="form-control" id="editOfferImageUrl">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Short Description</label>
+                    <textarea class="form-control" id="editOfferDesc" rows="2"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Button Text</label>
+                        <input type="text" class="form-control" id="editOfferBtnText">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Button Link</label>
+                        <input type="text" class="form-control" id="editOfferBtnLink">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-white" onclick="closeModal('modalEditFeaturedOffer')">Cancel</button>
+                <button type="submit" class="btn-blue" id="btnUpdateOffer">Save Changes</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -2561,6 +2886,299 @@
             }
         } catch (err) {
             showToast('Network error while deleting offer.', 'error');
+        }
+    }
+
+    // ==========================================
+    // EDIT PRODUCT MODAL HANDLERS
+    // ==========================================
+    function openEditProductModal(id, catId, name, size, rate, qty) {
+        document.getElementById('editProdId').value = id;
+        document.getElementById('editProdCategory').value = catId;
+        document.getElementById('editProdName').value = name;
+        document.getElementById('editProdSize').value = size;
+        document.getElementById('editProdRate').value = parseFloat(rate) || 0;
+        document.getElementById('editProdQty').value = parseInt(qty) || 0;
+        const warnBox = document.getElementById('editProdWarning');
+        if (warnBox) warnBox.style.display = 'none';
+        openModal('modalEditProduct');
+    }
+
+    async function submitEditProduct(e) {
+        e.preventDefault();
+        const id = document.getElementById('editProdId').value;
+        const btn = document.getElementById('btnUpdateProd');
+        const warnBox = document.getElementById('editProdWarning');
+        if (warnBox) warnBox.style.display = 'none';
+
+        btn.disabled = true;
+        btn.textContent = 'Updating...';
+
+        const payload = {
+            category_id: document.getElementById('editProdCategory').value,
+            name: document.getElementById('editProdName').value.trim(),
+            size: document.getElementById('editProdSize').value.trim(),
+            rate: parseFloat(document.getElementById('editProdRate').value) || 0,
+            quantity: parseInt(document.getElementById('editProdQty').value) || 0
+        };
+
+        try {
+            const resp = await fetch(`/api/product/edit/${id}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                closeModal('modalEditProduct');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                if (warnBox) {
+                    warnBox.innerHTML = `⚠️ <strong>Update Failed:</strong> ${data.message}`;
+                    warnBox.style.display = 'block';
+                }
+                showToast(data.message || 'Failed to update product.', 'error');
+            }
+        } catch (err) {
+            showToast('Network error while updating product.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Save Changes';
+        }
+    }
+
+    // ==========================================
+    // EDIT CATEGORY MODAL HANDLERS
+    // ==========================================
+    function openEditCategoryModal(id, name, desc) {
+        document.getElementById('editCatId').value = id;
+        document.getElementById('editCatName').value = name;
+        document.getElementById('editCatDesc').value = desc || '';
+        const warnBox = document.getElementById('editCatWarning');
+        if (warnBox) warnBox.style.display = 'none';
+        openModal('modalEditCategory');
+    }
+
+    async function submitEditCategory(e) {
+        e.preventDefault();
+        const id = document.getElementById('editCatId').value;
+        const btn = document.getElementById('btnUpdateCat');
+        const warnBox = document.getElementById('editCatWarning');
+        if (warnBox) warnBox.style.display = 'none';
+
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        const payload = {
+            name: document.getElementById('editCatName').value.trim(),
+            description: document.getElementById('editCatDesc').value.trim()
+        };
+
+        try {
+            const resp = await fetch(`/api/category/edit/${id}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                closeModal('modalEditCategory');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                if (warnBox) {
+                    warnBox.innerHTML = `⚠️ <strong>Duplicate Category:</strong> ${data.message}`;
+                    warnBox.style.display = 'block';
+                }
+                showToast(data.message || 'Duplicate category name.', 'error');
+            }
+        } catch (err) {
+            showToast('Network error while updating category.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Save Changes';
+        }
+    }
+
+    // ==========================================
+    // EDIT EXPENSE MODAL HANDLERS
+    // ==========================================
+    function openEditExpenseModal(id, title, category, amount, mode, date, ref, notes) {
+        document.getElementById('editExpId').value = id;
+        document.getElementById('editExpTitle').value = title;
+        document.getElementById('editExpCategory').value = category;
+        document.getElementById('editExpAmount').value = parseFloat(amount) || 0;
+        document.getElementById('editExpMode').value = mode;
+        document.getElementById('editExpDate').value = date;
+        document.getElementById('editExpRef').value = ref || '';
+        document.getElementById('editExpNotes').value = notes || '';
+        openModal('modalEditExpense');
+    }
+
+    async function submitEditExpense(e) {
+        e.preventDefault();
+        const id = document.getElementById('editExpId').value;
+        const btn = document.getElementById('btnUpdateExp');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        const payload = {
+            title: document.getElementById('editExpTitle').value.trim(),
+            category: document.getElementById('editExpCategory').value,
+            amount: parseFloat(document.getElementById('editExpAmount').value) || 0,
+            payment_mode: document.getElementById('editExpMode').value,
+            expense_date: document.getElementById('editExpDate').value,
+            reference_no: document.getElementById('editExpRef').value.trim(),
+            notes: document.getElementById('editExpNotes').value.trim()
+        };
+
+        try {
+            const resp = await fetch(`/api/expense/edit/${id}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                closeModal('modalEditExpense');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                showToast(data.message || 'Failed to update expense.', 'error');
+            }
+        } catch (err) {
+            showToast('Network error while updating expense.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Save Changes';
+        }
+    }
+
+    // ==========================================
+    // EDIT SUPPLIER MODAL HANDLERS
+    // ==========================================
+    function openEditSupplierModal(id, name, company, phone, supplyCat, gstin, balanceDue, address, notes) {
+        document.getElementById('editSuppId').value = id;
+        document.getElementById('editSuppName').value = name;
+        document.getElementById('editSuppCompany').value = company;
+        document.getElementById('editSuppPhone').value = phone;
+        document.getElementById('editSuppCat').value = supplyCat || '';
+        document.getElementById('editSuppGstin').value = gstin || '';
+        document.getElementById('editSuppBal').value = parseFloat(balanceDue) || 0;
+        document.getElementById('editSuppAddr').value = address || '';
+        document.getElementById('editSuppNotes').value = notes || '';
+        openModal('modalEditSupplier');
+    }
+
+    async function submitEditSupplier(e) {
+        e.preventDefault();
+        const id = document.getElementById('editSuppId').value;
+        const btn = document.getElementById('btnUpdateSupp');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        const payload = {
+            name: document.getElementById('editSuppName').value.trim(),
+            company_name: document.getElementById('editSuppCompany').value.trim(),
+            phone: document.getElementById('editSuppPhone').value.trim(),
+            supply_category: document.getElementById('editSuppCat').value.trim(),
+            gstin: document.getElementById('editSuppGstin').value.trim(),
+            balance_due: parseFloat(document.getElementById('editSuppBal').value) || 0,
+            address: document.getElementById('editSuppAddr').value.trim(),
+            notes: document.getElementById('editSuppNotes').value.trim()
+        };
+
+        try {
+            const resp = await fetch(`/api/supplier/edit/${id}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                closeModal('modalEditSupplier');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                showToast(data.message || 'Failed to update supplier.', 'error');
+            }
+        } catch (err) {
+            showToast('Network error while updating supplier.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Save Changes';
+        }
+    }
+
+    // ==========================================
+    // EDIT HOMEPAGE FEATURED OFFER MODAL HANDLERS
+    // ==========================================
+    function openEditFeaturedOfferModal(id, name, catName, size, origPrice, discPrice, date, order, imgUrl, desc, btnText, btnLink) {
+        document.getElementById('editOfferId').value = id;
+        document.getElementById('editOfferName').value = name;
+        document.getElementById('editOfferCategory').value = catName;
+        document.getElementById('editOfferSize').value = size;
+        document.getElementById('editOfferOrigPrice').value = parseFloat(origPrice) || 0;
+        document.getElementById('editOfferDiscPrice').value = parseFloat(discPrice) || 0;
+        document.getElementById('editOfferDate').value = date;
+        document.getElementById('editOfferOrder').value = parseInt(order) || 1;
+        document.getElementById('editOfferImageUrl').value = imgUrl || '';
+        document.getElementById('editOfferDesc').value = desc || '';
+        document.getElementById('editOfferBtnText').value = btnText || '🛒 Add to Bill / Enquire';
+        document.getElementById('editOfferBtnLink').value = btnLink || '/pos/';
+        const warnBox = document.getElementById('editOfferWarning');
+        if (warnBox) warnBox.style.display = 'none';
+        openModal('modalEditFeaturedOffer');
+    }
+
+    async function submitEditFeaturedOffer(e) {
+        e.preventDefault();
+        const id = document.getElementById('editOfferId').value;
+        const btn = document.getElementById('btnUpdateOffer');
+        const warnBox = document.getElementById('editOfferWarning');
+        if (warnBox) warnBox.style.display = 'none';
+
+        btn.disabled = true;
+        btn.textContent = 'Updating Offer...';
+
+        const payload = {
+            name: document.getElementById('editOfferName').value.trim(),
+            category_name: document.getElementById('editOfferCategory').value.trim(),
+            size: document.getElementById('editOfferSize').value.trim(),
+            original_price: parseFloat(document.getElementById('editOfferOrigPrice').value) || 0,
+            discount_price: parseFloat(document.getElementById('editOfferDiscPrice').value) || 0,
+            offer_date: document.getElementById('editOfferDate').value.trim(),
+            order: parseInt(document.getElementById('editOfferOrder').value) || 1,
+            image_url: document.getElementById('editOfferImageUrl').value.trim(),
+            description: document.getElementById('editOfferDesc').value.trim(),
+            button_text: document.getElementById('editOfferBtnText').value.trim(),
+            button_link: document.getElementById('editOfferBtnLink').value.trim(),
+        };
+
+        try {
+            const resp = await fetch(`/api/featured-offer/update/${id}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                closeModal('modalEditFeaturedOffer');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                if (warnBox) {
+                    warnBox.innerHTML = `⚠️ <strong>Duplicate Offer Warning:</strong> ${data.message}`;
+                    warnBox.style.display = 'block';
+                }
+                showToast(data.message || 'Duplicate offer item not allowed.', 'error');
+            }
+        } catch (err) {
+            showToast('Network error while updating featured offer.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Save Changes';
         }
     }
 

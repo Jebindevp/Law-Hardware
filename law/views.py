@@ -174,10 +174,49 @@ def invoices_list(request):
     down_50_count = bills.filter(payment_status='DOWN_50_PAID').count()
     no_paid_count = bills.filter(payment_status='NO_PAID').count()
 
+    # Pre-serialize bills data for clean json_script rendering (eliminates raw template tags in script blocks)
+    bills_dict = {}
+    for b in bills:
+        bills_dict[str(b.id)] = {
+            'id': b.id,
+            'bill_number': b.bill_number,
+            'customer_name': b.customer_name,
+            'customer_phone': b.customer_phone or '',
+            'gender': b.gender,
+            'door_no': b.door_no or '',
+            'address': b.address or '',
+            'id_proof_type': b.id_proof_type,
+            'id_proof_number': b.id_proof_number or '',
+            'payment_mode': b.payment_mode,
+            'subtotal': float(b.subtotal),
+            'discount': float(b.discount),
+            'gst_rate': float(b.gst_rate),
+            'gst_amount': float(b.gst_amount),
+            'grand_total': float(b.grand_total),
+            'paid_amount': float(b.paid_amount),
+            'balance_amount': float(b.balance_amount),
+            'payment_status': b.payment_status,
+            'notes': b.notes or '',
+            'created_at': b.created_at.strftime('%d %b %Y, %I:%M %p') if b.created_at else '',
+            'items': [
+                {
+                    'id': it.id,
+                    'product_id': it.product_id,
+                    'product_name': it.product_name,
+                    'category_name': it.category_name,
+                    'size': it.size,
+                    'rate': float(it.rate),
+                    'quantity': it.quantity,
+                    'total': float(it.total)
+                } for it in b.items.all()
+            ]
+        }
+
     context = {
         'shop_name': "ZAM ZAM HARDWARE",
         'shop_owner': "Lawrence C",
         'bills': bills,
+        'bills_dict': bills_dict,
         'products': products,
         'categories': categories,
         'total_bills_count': bills.count(),
@@ -465,43 +504,158 @@ def bulk_delete_products_api(request):
 
 @csrf_exempt
 def edit_invoice_api(request, bill_id):
-    """API to edit customer details, ID proof, payment mode, or paid amount on an existing invoice."""
+    """
+    API to edit customer details, ID proof, payment mode, line items (quantity, rate, removal, additions),
+    and recalculate subtotal, GST, grand total, paid amount, and payment status.
+    """
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'Only POST allowed'}, status=405)
     try:
         data = json.loads(request.body)
         bill = get_object_or_404(Bill, id=bill_id)
 
-        if 'customer_name' in data and str(data['customer_name']).strip():
-            bill.customer_name = str(data['customer_name']).strip()
-        if 'customer_phone' in data:
-            bill.customer_phone = str(data['customer_phone']).strip()
-        if 'gender' in data and data['gender'] in ['MALE', 'FEMALE', 'OTHER']:
-            bill.gender = data['gender']
-        if 'door_no' in data:
-            bill.door_no = str(data['door_no']).strip()
-        if 'address' in data:
-            bill.address = str(data['address']).strip()
-        if 'id_proof_type' in data and data['id_proof_type']:
-            bill.id_proof_type = data['id_proof_type']
-        if 'id_proof_number' in data:
-            bill.id_proof_number = str(data['id_proof_number']).strip()
-        if 'payment_mode' in data and data['payment_mode']:
-            bill.payment_mode = data['payment_mode']
-        if 'paid_amount' in data and data['paid_amount'] is not None:
-            bill.paid_amount = max(0.0, float(data['paid_amount']))
-            bill.balance_amount = max(0.0, round(float(bill.grand_total) - float(bill.paid_amount), 2))
-        if 'notes' in data:
-            bill.notes = str(data['notes']).strip()
+        with transaction.atomic():
+            # 1. Update customer information
+            if 'customer_name' in data and str(data['customer_name']).strip():
+                bill.customer_name = str(data['customer_name']).strip()
+            if 'customer_phone' in data:
+                bill.customer_phone = str(data['customer_phone']).strip()
+            if 'gender' in data and data['gender'] in ['MALE', 'FEMALE', 'OTHER']:
+                bill.gender = data['gender']
+            if 'door_no' in data:
+                bill.door_no = str(data['door_no']).strip()
+            if 'address' in data:
+                bill.address = str(data['address']).strip()
+            if 'id_proof_type' in data and data['id_proof_type']:
+                bill.id_proof_type = data['id_proof_type']
+            if 'id_proof_number' in data:
+                bill.id_proof_number = str(data['id_proof_number']).strip()
+            if 'payment_mode' in data and data['payment_mode']:
+                bill.payment_mode = data['payment_mode']
+            if 'notes' in data:
+                bill.notes = str(data['notes']).strip()
 
-        bill.payment_status = bill.calculate_payment_status()
-        bill.save()
+            # 2. Update line items if provided
+            if 'items' in data:
+                new_items_data = data.get('items', [])
+                if not new_items_data:
+                    return JsonResponse({'status': 'error', 'message': 'An invoice must have at least one product item.'}, status=400)
+
+                existing_items = {item.id: item for item in bill.items.all()}
+                kept_item_ids = set()
+                subtotal = 0.0
+
+                for it in new_items_data:
+                    item_id = it.get('id')
+                    try:
+                        qty = max(1, int(it.get('quantity', 1)))
+                    except (ValueError, TypeError):
+                        qty = 1
+                    try:
+                        rate = max(0.0, float(it.get('rate', 0)))
+                    except (ValueError, TypeError):
+                        rate = 0.0
+
+                    line_total = round(qty * rate, 2)
+                    subtotal += line_total
+
+                    if item_id and int(item_id) in existing_items:
+                        b_item = existing_items[int(item_id)]
+                        kept_item_ids.add(b_item.id)
+                        old_qty = b_item.quantity
+
+                        # Stock adjustment
+                        if b_item.product:
+                            prod = b_item.product
+                            diff = qty - old_qty
+                            if diff > 0:
+                                if prod.quantity >= diff:
+                                    prod.quantity -= diff
+                                else:
+                                    prod.quantity = 0
+                                prod.save(update_fields=['quantity', 'updated_at'])
+                            elif diff < 0:
+                                prod.quantity += abs(diff)
+                                prod.save(update_fields=['quantity', 'updated_at'])
+
+                        b_item.quantity = qty
+                        b_item.rate = rate
+                        b_item.total = line_total
+                        b_item.save(update_fields=['quantity', 'rate', 'total'])
+                    else:
+                        # Newly added item
+                        prod = None
+                        prod_id = it.get('product_id')
+                        prod_name = (it.get('product_name') or 'Custom Item').strip()
+                        cat_name = (it.get('category_name') or 'General').strip()
+                        size_val = (it.get('size') or 'Standard').strip()
+
+                        if prod_id:
+                            prod = Product.objects.filter(id=prod_id).first()
+                            if prod:
+                                prod_name = prod.name
+                                cat_name = prod.category.name if prod.category else cat_name
+                                size_val = prod.size
+                                if prod.quantity >= qty:
+                                    prod.quantity -= qty
+                                else:
+                                    prod.quantity = 0
+                                prod.save(update_fields=['quantity', 'updated_at'])
+
+                        new_item = BillItem.objects.create(
+                            bill=bill,
+                            product=prod,
+                            product_name=prod_name,
+                            category_name=cat_name,
+                            size=size_val,
+                            rate=rate,
+                            quantity=qty,
+                            total=line_total
+                        )
+                        kept_item_ids.add(new_item.id)
+
+                # Remove deleted items and restore product inventory
+                for old_id, old_item in existing_items.items():
+                    if old_id not in kept_item_ids:
+                        if old_item.product:
+                            prod = old_item.product
+                            prod.quantity += old_item.quantity
+                            prod.save(update_fields=['quantity', 'updated_at'])
+                        old_item.delete()
+
+                # Recalculate bill financial totals
+                discount = float(data.get('discount', bill.discount) or 0)
+                gst_rate = float(data.get('gst_rate', bill.gst_rate) if data.get('gst_rate') is not None else 18)
+                subtotal = round(subtotal, 2)
+                taxable_amount = max(0.0, round(subtotal - discount, 2))
+                gst_amount = round((taxable_amount * gst_rate) / 100.0, 2)
+                grand_total = round(taxable_amount + gst_amount, 2)
+
+                bill.subtotal = subtotal
+                bill.discount = discount
+                bill.gst_rate = gst_rate
+                bill.gst_amount = gst_amount
+                bill.grand_total = grand_total
+
+            # 3. Update paid amount & balance
+            if 'paid_amount' in data and data['paid_amount'] is not None:
+                bill.paid_amount = max(0.0, float(data['paid_amount']))
+
+            bill.balance_amount = max(0.0, round(float(bill.grand_total) - float(bill.paid_amount), 2))
+            bill.payment_status = bill.calculate_payment_status()
+            bill.save()
 
         return JsonResponse({
             'status': 'success',
-            'message': f'Invoice #{bill.bill_number} updated successfully!',
+            'message': f'Invoice #{bill.bill_number} updated successfully with line items!',
             'bill_id': bill.id,
+            'bill_number': bill.bill_number,
             'customer_name': bill.customer_name,
+            'subtotal': float(bill.subtotal),
+            'discount': float(bill.discount),
+            'gst_rate': float(bill.gst_rate),
+            'gst_amount': float(bill.gst_amount),
+            'grand_total': float(bill.grand_total),
             'paid_amount': float(bill.paid_amount),
             'balance_amount': float(bill.balance_amount),
             'payment_status': bill.payment_status,
@@ -738,6 +892,41 @@ def add_category_api(request):
 
 
 @csrf_exempt
+def edit_category_api(request, category_id):
+    """API to edit an existing category."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Only POST allowed'}, status=405)
+    try:
+        data = json.loads(request.body)
+        cat = get_object_or_404(Category, id=category_id)
+        name = (data.get('name') or cat.name).strip()
+        description = (data.get('description') or '').strip()
+
+        if not name:
+            return JsonResponse({'status': 'error', 'message': 'Category name cannot be empty.'}, status=400)
+
+        if Category.objects.filter(name__iexact=name).exclude(id=category_id).exists():
+            return JsonResponse({
+                'status': 'error',
+                'is_duplicate': True,
+                'message': f'Another category named "{name}" already exists!'
+            }, status=400)
+
+        cat.name = name
+        cat.description = description
+        cat.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Category "{cat.name}" updated successfully!',
+            'category_id': cat.id,
+            'name': cat.name
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
 def add_expense_api(request):
     """API to record a new business expense from the Admin Dashboard."""
     if request.method != 'POST':
@@ -799,6 +988,46 @@ def delete_expense_api(request, expense_id):
 
 
 @csrf_exempt
+def edit_expense_api(request, expense_id):
+    """API to edit an existing expense."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Only POST allowed'}, status=405)
+    try:
+        data = json.loads(request.body)
+        expense = get_object_or_404(Expense, id=expense_id)
+        title = (data.get('title') or expense.title).strip()
+        category = data.get('category', expense.category)
+        amount = float(data.get('amount', expense.amount) or 0)
+        payment_mode = data.get('payment_mode', expense.payment_mode)
+        reference_no = (data.get('reference_no') if 'reference_no' in data else expense.reference_no or '').strip()
+        notes = (data.get('notes') if 'notes' in data else expense.notes or '').strip()
+        expense_date_str = data.get('expense_date')
+
+        if not title:
+            return JsonResponse({'status': 'error', 'message': 'Expense title is required.'}, status=400)
+        if amount <= 0:
+            return JsonResponse({'status': 'error', 'message': 'Amount must be greater than zero.'}, status=400)
+
+        expense.title = title
+        expense.category = category
+        expense.amount = amount
+        expense.payment_mode = payment_mode
+        expense.reference_no = reference_no
+        expense.notes = notes
+        if expense_date_str:
+            expense.expense_date = expense_date_str
+
+        expense.save()
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Expense "{expense.title}" updated successfully!',
+            'expense_id': expense.id
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
 def add_supplier_api(request):
     """API to add a new supplier/vendor from the Admin Dashboard."""
     if request.method != 'POST':
@@ -851,6 +1080,47 @@ def delete_supplier_api(request, supplier_id):
         return JsonResponse({
             'status': 'success',
             'message': f'Supplier "{comp}" deleted successfully!'
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+def edit_supplier_api(request, supplier_id):
+    """API to edit an existing supplier."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Only POST allowed'}, status=405)
+    try:
+        data = json.loads(request.body)
+        supplier = get_object_or_404(Supplier, id=supplier_id)
+        name = (data.get('name') or supplier.name).strip()
+        company_name = (data.get('company_name') or supplier.company_name).strip()
+        phone = (data.get('phone') or supplier.phone).strip()
+        email = (data.get('email') or supplier.email).strip()
+        address = (data.get('address') or supplier.address).strip()
+        gstin = (data.get('gstin') or supplier.gstin).strip()
+        supply_category = (data.get('supply_category') or supplier.supply_category).strip()
+        balance_due = float(data.get('balance_due', supplier.balance_due) or 0)
+        notes = (data.get('notes') or supplier.notes).strip()
+
+        if not company_name or not name:
+            return JsonResponse({'status': 'error', 'message': 'Company name and contact person are required.'}, status=400)
+
+        supplier.name = name
+        supplier.company_name = company_name
+        supplier.phone = phone
+        supplier.email = email
+        supplier.address = address
+        supplier.gstin = gstin
+        supplier.supply_category = supply_category
+        supplier.balance_due = balance_due
+        supplier.notes = notes
+        supplier.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Supplier "{supplier.company_name}" updated successfully!',
+            'supplier_id': supplier.id
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

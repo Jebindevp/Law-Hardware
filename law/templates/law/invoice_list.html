@@ -979,6 +979,8 @@
         align-items: center;
         justify-content: center;
         z-index: 1000;
+        padding: 16px;
+        overflow-y: auto;
     }
 
     .modal-backdrop-edit.show {
@@ -987,12 +989,106 @@
 
     .modal-edit-box {
         background: #ffffff;
-        width: 90%;
-        max-width: 480px;
-        border-radius: 14px;
-        padding: 24px;
-        box-shadow: var(--shadow-lg);
+        width: 95%;
+        max-width: 860px;
+        max-height: 92vh;
+        overflow-y: auto;
+        border-radius: 16px;
+        padding: 24px 28px;
+        box-shadow: 0 20px 45px rgba(0,0,0,0.25);
         border: 2px solid #0284c7;
+    }
+
+    .btn-qty-step {
+        width: 26px;
+        height: 26px;
+        border: 1px solid #cbd5e1;
+        background: #f1f5f9;
+        border-radius: 4px;
+        font-weight: 800;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+    }
+    .btn-qty-step:hover {
+        background: #0284c7;
+        color: #ffffff;
+        border-color: #0284c7;
+    }
+    .btn-add-item-to-bill {
+        background: #f0fdf4;
+        color: #166534;
+        border: 1.5px solid #86efac;
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 12.5px;
+        font-weight: 800;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.15s;
+    }
+    .btn-add-item-to-bill:hover {
+        background: #22c55e;
+        color: #ffffff;
+        border-color: #22c55e;
+    }
+    .edit-items-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    .edit-items-table th {
+        background: #f8fafc;
+        padding: 9px 12px;
+        font-weight: 700;
+        color: #475569;
+        border-bottom: 2px solid #cbd5e1;
+        font-size: 12px;
+        text-transform: uppercase;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+    .edit-items-table td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #e2e8f0;
+        vertical-align: middle;
+    }
+    .edit-rate-input, .edit-qty-input {
+        padding: 5px 8px;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 700;
+        font-family: 'JetBrains Mono', monospace;
+        outline: none;
+        transition: border-color 0.15s;
+    }
+    .edit-rate-input:focus, .edit-qty-input:focus {
+        border-color: #0284c7;
+        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+    }
+    .btn-remove-line-item {
+        background: #fee2e2;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.15s;
+    }
+    .btn-remove-line-item:hover {
+        background: #dc2626;
+        color: #ffffff;
     }
 
     @media (max-width: 768px) {
@@ -1017,13 +1113,19 @@
         <p>Shop Owner: <strong>{{ shop_owner }}</strong> | Category-wise product bill generator & separate bill cards</p>
     </div>
 
-    <!-- Live Digital Clock Widget -->
-    <div class="page-live-clock">
-        <span style="font-size: 18px;">🕒</span>
-        <div>
-            <div id="pageClockDate" class="page-clock-date">-- --- ----</div>
-            <div id="pageClockTime" class="page-clock-time">--:--:-- --</div>
+    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <!-- Live Digital Clock Widget -->
+        <div class="page-live-clock">
+            <span style="font-size: 18px;">🕒</span>
+            <div>
+                <div id="pageClockDate" class="page-clock-date">-- --- ----</div>
+                <div id="pageClockTime" class="page-clock-time">--:--:-- --</div>
+            </div>
         </div>
+
+        <a href="{% url 'admindashboard' %}" class="btn-black" style="text-decoration: none; padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid #334155;">
+            📊 Admin Dashboard
+        </a>
     </div>
 </div>
 
@@ -1279,7 +1381,7 @@
             <a href="{% url 'invoice_detail' b.id %}" target="_blank" class="btn-act-print">
                 🖨️ Print
             </a>
-            <button class="btn-act-edit" onclick="openEditInvoiceModal({{ b.id }}, '{{ b.customer_name|escapejs }}', '{{ b.customer_phone|default:''|escapejs }}', '{{ b.gender }}', '{{ b.door_no|default:''|escapejs }}', '{{ b.address|default:''|escapejs }}', '{{ b.id_proof_type }}', '{{ b.id_proof_number|default:''|escapejs }}', '{{ b.payment_mode }}', {{ b.paid_amount|default:0 }}, '{{ b.notes|default:''|escapejs }}')">
+            <button class="btn-act-edit" onclick="openEditInvoiceModal({{ b.id }})">
                 ✏️ Edit
             </button>
             <button class="btn-act-del" onclick="deleteSingleInvoice({{ b.id }}, '{{ b.bill_number|escapejs }}')" title="Delete invoice">
@@ -1289,6 +1391,9 @@
     </div>
     {% endfor %}
 </div>
+
+<!-- Embedded Bills Full JSON for instant Edit Modal (clean, 100% valid JSON without editor errors) -->
+{{ bills_dict|json_script:"allBillsJsonData" }}
 
 <!-- ALTERNATIVE INVOICES TABLE VIEW -->
 <div class="inv-table-wrap" id="invoiceTableContainer">
@@ -1374,7 +1479,7 @@
                 <td style="font-size: 12px; color: #64748b;">{{ b.created_at|date:"d M Y, h:i A" }}</td>
                 <td style="text-align: right;">
                     <a href="{% url 'invoice_detail' b.id %}" target="_blank" class="btn-act-print" style="display: inline-flex; padding: 4px 10px; font-size: 12px;">🖨️ Print</a>
-                    <button class="btn-act-edit" style="display: inline-flex; padding: 4px 10px; font-size: 12px;" onclick="openEditInvoiceModal({{ b.id }}, '{{ b.customer_name|escapejs }}', '{{ b.customer_phone|default:''|escapejs }}', '{{ b.gender }}', '{{ b.door_no|default:''|escapejs }}', '{{ b.address|default:''|escapejs }}', '{{ b.id_proof_type }}', '{{ b.id_proof_number|default:''|escapejs }}', '{{ b.payment_mode }}', {{ b.paid_amount|default:0 }}, '{{ b.notes|default:''|escapejs }}')">✏️ Edit</button>
+                    <button class="btn-act-edit" style="display: inline-flex; padding: 4px 10px; font-size: 12px;" onclick="openEditInvoiceModal({{ b.id }})">✏️ Edit</button>
                     <button class="btn-act-del" style="display: inline-flex; padding: 4px 8px; font-size: 12px;" onclick="deleteSingleInvoice({{ b.id }}, '{{ b.bill_number|escapejs }}')">🗑️</button>
                 </td>
             </tr>
@@ -1495,18 +1600,43 @@
                     <span>📦 2. Click Product to Add into Bill:</span>
                     <span style="font-size: 11px; color: #0284c7; font-weight: 700;" id="modalVisibleCount">{{ products|length }} Products Available</span>
                 </div>
+
+                <!-- Direct Product Select Dropdown in Modal -->
+                <div style="margin-bottom: 12px;">
+                    <label class="modal-form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <span>🔍 Or Select Product from Dropdown:</span>
+                        <span style="color: #0284c7; font-weight: 700;">Direct Product Select</span>
+                    </label>
+                    <select id="modalProductSelectDropdown" class="modal-form-input" onchange="handleModalDropdownSelect(this)">
+                        <option value="">-- Choose Hardware Product to Add to Bill --</option>
+                        {% for p in products %}
+                        <option value="{{ p.id }}" data-name="{{ p.name }}" data-size="{{ p.size }}" data-rate="{{ p.rate }}" data-stock="{{ p.quantity }}">
+                            {{ p.category.name }} • {{ p.name }} ({{ p.size }}) — ₹{{ p.rate|floatformat:2 }} [Stock: {{ p.quantity }}]
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
                 <div class="modal-products-grid" id="modalProductsGrid">
                     {% for p in products %}
                     <div class="modal-prod-item-card"
-                         data-category="{{ p.category.name|escapejs }}"
-                         onclick="addModalProduct({{ p.id }}, '{{ p.name|escapejs }}', '{{ p.size|escapejs }}', {{ p.rate }}, {{ p.quantity }})">
+                         id="modal-prod-{{ p.id }}"
+                         data-id="{{ p.id }}"
+                         data-category="{{ p.category.name }}"
+                         data-name="{{ p.name }}"
+                         data-size="{{ p.size }}"
+                         data-rate="{{ p.rate }}"
+                         data-stock="{{ p.quantity }}"
+                         onclick="selectModalCardProduct(this)">
                         <div>
                             <div class="modal-prod-name">{{ p.name }}</div>
                             <span class="modal-prod-size">Size: {{ p.size }}</span>
                         </div>
                         <div class="modal-prod-footer">
                             <span class="modal-prod-rate">₹{{ p.rate|floatformat:2 }}</span>
-                            <button type="button" class="btn-add-pill">+ Add to Bill</button>
+                            <button type="button" class="btn-add-pill" onclick="event.stopPropagation(); selectModalCardProduct(this.closest('.modal-prod-item-card'))">
+                                + Add to Bill
+                            </button>
                         </div>
                     </div>
                     {% empty %}
@@ -1604,89 +1734,217 @@
     </div>
 </div>
 
-<!-- MODAL: EDIT INVOICE DETAILS -->
+<!-- MODAL: EDIT INVOICE DETAILS & LINE ITEMS -->
 <div class="modal-backdrop-edit" id="invoiceModal">
-    <div class="modal-edit-box" style="max-width: 540px;">
-        <div class="modal-head" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid var(--color-gray-border); padding-bottom: 12px; margin-bottom: 16px;">
-            <h2 id="invoiceModalTitle" style="font-size: 18px; font-weight: 800; color: var(--color-black);">✏️ Edit Customer & Invoice Details</h2>
-            <button class="btn-close-modal" onclick="closeInvoiceModal()" style="color: #64748b;">✕</button>
+    <div class="modal-edit-box">
+        <div class="modal-head" style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1.5px solid var(--color-gray-border); padding-bottom: 14px; margin-bottom: 18px;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <h2 id="invoiceModalTitle" style="font-size: 20px; font-weight: 800; color: var(--color-black); margin: 0;">✏️ Edit Bill #<span id="editModalBillNo"></span></h2>
+                    <span id="editModalStatusBadge" class="status-badge-pill status-completed">✓ Completed</span>
+                </div>
+                <div style="font-size: 12.5px; color: #64748b; margin-top: 4px;" id="editModalDate"></div>
+            </div>
+            <button type="button" class="btn-close-modal" onclick="closeInvoiceModal()" style="color: #64748b; font-size: 20px; background: none; border: none; cursor: pointer; padding: 4px 8px;">✕</button>
         </div>
+
         <form id="editInvoiceForm" onsubmit="saveInvoiceEdit(event)">
             <input type="hidden" id="editBillId" value="">
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                <div class="form-group">
-                    <label class="modal-form-label">Customer Name</label>
-                    <input type="text" id="editCustName" class="modal-form-input" required>
+            <!-- 1. Customer Information Section -->
+            <div style="margin-bottom: 18px;">
+                <div style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                    <span>👤 Customer & Delivery Information</span>
                 </div>
-                <div class="form-group">
-                    <label class="modal-form-label">Mobile Number</label>
-                    <input type="text" id="editCustPhone" class="modal-form-input" placeholder="e.g. +91 98765 43210">
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                    <div class="form-group">
+                        <label class="modal-form-label">Customer Name *</label>
+                        <input type="text" id="editCustName" class="modal-form-input" required placeholder="Walk-in Customer">
+                    </div>
+                    <div class="form-group">
+                        <label class="modal-form-label">Mobile Number</label>
+                        <input type="text" id="editCustPhone" class="modal-form-input" placeholder="+91 98765 43210">
+                    </div>
+                    <div class="form-group">
+                        <label class="modal-form-label">Gender</label>
+                        <select id="editGender" class="modal-form-input">
+                            <option value="MALE">👨 Male</option>
+                            <option value="FEMALE">👩 Female</option>
+                            <option value="OTHER">⚧ Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; margin-bottom: 12px;">
+                    <div class="form-group">
+                        <label class="modal-form-label">Door / Flat No</label>
+                        <input type="text" id="editDoorNo" class="modal-form-input" placeholder="e.g. 12/A">
+                    </div>
+                    <div class="form-group">
+                        <label class="modal-form-label">Street / Area Address</label>
+                        <input type="text" id="editAddress" class="modal-form-input" placeholder="Delivery street, colony or site address">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label class="modal-form-label">ID Proof Type</label>
+                        <select id="editIdProofType" class="modal-form-input">
+                            <option value="AADHAAR">🪪 Aadhaar Card</option>
+                            <option value="PAN">💳 PAN Card</option>
+                            <option value="DRIVING_LICENCE">🚗 Driving Licence</option>
+                            <option value="VOTER_ID">🗳️ Voter ID</option>
+                            <option value="SMART_CARD">💳 Smart / Ration Card</option>
+                            <option value="OTHER">📄 Other ID</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="modal-form-label">ID Proof Number</label>
+                        <input type="text" id="editIdProofNumber" class="modal-form-input" placeholder="e.g. 1234 5678 9012">
+                    </div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                <div class="form-group">
-                    <label class="modal-form-label">Gender</label>
-                    <select id="editGender" class="modal-form-input">
-                        <option value="MALE">👨 Male</option>
-                        <option value="FEMALE">👩 Female</option>
-                        <option value="OTHER">⚧ Other</option>
-                    </select>
+            <!-- 2. Line Items Section (Edit Rate, Qty, Remove Items, Add Items) -->
+            <div style="margin-bottom: 20px; border-top: 1.5px solid var(--color-gray-border); padding-top: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                    <div style="font-size: 14px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+                        <span>📦 Products Billed (<span id="editItemsCount">0</span> items)</span>
+                        <span style="font-size: 11.5px; font-weight: 600; color: #64748b;">(Edit rate & qty, or remove items)</span>
+                    </div>
+                    <button type="button" class="btn-add-item-to-bill" onclick="toggleAddProductBar()">
+                        <span>➕ Add Product to Bill</span>
+                    </button>
                 </div>
-                <div class="form-group">
-                    <label class="modal-form-label">Door / Flat No</label>
-                    <input type="text" id="editDoorNo" class="modal-form-input" placeholder="e.g. #24/B">
+
+                <!-- Quick-Add Product Bar -->
+                <div id="editQuickAddBar" style="display: none; background: #f0f9ff; border: 1.5px dashed #0284c7; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+                    <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+                        <div style="flex: 2; min-width: 200px;">
+                            <label style="font-size: 11.5px; font-weight: 700; color: #0369a1; display: block; margin-bottom: 4px;">Select Store Product</label>
+                            <select id="quickAddProductSelect" class="modal-form-input" style="font-size: 13px;" onchange="onQuickAddProductChange()">
+                                <option value="">-- Choose Product to Add --</option>
+                                {% for p in products %}
+                                <option value="{{ p.id }}" data-name="{{ p.name|escapejs }}" data-category="{{ p.category.name|escapejs }}" data-size="{{ p.size|escapejs }}" data-rate="{{ p.rate|stringformat:'.2f' }}">
+                                    {{ p.name }} ({{ p.size }}) - ₹{{ p.rate|floatformat:2 }} [Stock: {{ p.quantity }}]
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div style="width: 100px;">
+                            <label style="font-size: 11.5px; font-weight: 700; color: #0369a1; display: block; margin-bottom: 4px;">Rate (₹)</label>
+                            <input type="number" step="0.01" min="0" id="quickAddRate" class="modal-form-input" style="font-size: 13px;">
+                        </div>
+                        <div style="width: 80px;">
+                            <label style="font-size: 11.5px; font-weight: 700; color: #0369a1; display: block; margin-bottom: 4px;">Qty</label>
+                            <input type="number" step="1" min="1" value="1" id="quickAddQty" class="modal-form-input" style="font-size: 13px;">
+                        </div>
+                        <button type="button" class="btn-blue" onclick="addQuickProductToEditList()" style="padding: 9px 16px; font-size: 13px; font-weight: 700;">
+                            ✓ Add Item
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Line Items Table -->
+                <div style="max-height: 240px; overflow-y: auto; border: 1.5px solid #e2e8f0; border-radius: 10px; background: #ffffff;">
+                    <table class="edit-items-table" id="editItemsTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 32px;">#</th>
+                                <th>Product Name & Size</th>
+                                <th style="width: 120px;">Rate (₹)</th>
+                                <th style="width: 120px; text-align: center;">Qty</th>
+                                <th style="width: 120px; text-align: right;">Total (₹)</th>
+                                <th style="width: 80px; text-align: center;">Remove</th>
+                            </tr>
+                        </thead>
+                        <tbody id="editItemsTableBody">
+                            <!-- Injected dynamically via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="noItemsWarning" style="display: none; padding: 12px; background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; border-radius: 8px; font-size: 12.5px; font-weight: 700; margin-top: 8px;">
+                    ⚠️ An invoice must have at least one product! Please add or keep at least one line item.
                 </div>
             </div>
 
-            <div class="form-group" style="margin-bottom: 12px;">
-                <label class="modal-form-label">Address</label>
-                <input type="text" id="editAddress" class="modal-form-input" placeholder="Street / Area Address">
+            <!-- 3. Totals & Payment Settlement Section -->
+            <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 18px;">
+                <div style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                    <span>💵 Payment & Invoice Totals</span>
+                    <span id="editPreviewPaymentStatus" class="status-badge-pill status-completed">✓ Completed Paid</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 12px;">
+                    <div>
+                        <label class="modal-form-label">Payment Mode</label>
+                        <select id="editPaymentMode" class="modal-form-input">
+                            <option value="CASH">💵 Cash</option>
+                            <option value="UPI">📱 UPI / GPay / PhonePe</option>
+                            <option value="CARD">💳 Debit / Credit Card</option>
+                            <option value="CREDIT">📝 Credit / Due</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="modal-form-label">Discount (₹)</label>
+                        <input type="number" id="editDiscount" class="modal-form-input" min="0" step="0.01" value="0" oninput="recalculateEditTotals()">
+                    </div>
+                    <div>
+                        <label class="modal-form-label">GST Rate (%)</label>
+                        <select id="editGstRate" class="modal-form-input" onchange="recalculateEditTotals()">
+                            <option value="0">0% (Exempted)</option>
+                            <option value="5">5% GST</option>
+                            <option value="12">12% GST</option>
+                            <option value="18" selected>18% Standard GST</option>
+                            <option value="28">28% Luxury GST</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="modal-form-label">Paid Amount (₹) *</label>
+                        <input type="number" id="editPaidAmount" class="modal-form-input" min="0" step="0.01" required oninput="recalculateEditTotals()">
+                    </div>
+                </div>
+
+                <!-- Live Summary Calculation Bar -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; text-align: center;">
+                    <div>
+                        <div style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Subtotal</div>
+                        <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-top: 2px;" id="calcSubtotal">₹0.00</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Discount</div>
+                        <div style="font-size: 15px; font-weight: 800; color: #ef4444; margin-top: 2px;" id="calcDiscount">-₹0.00</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">GST Amount</div>
+                        <div style="font-size: 15px; font-weight: 800; color: #0284c7; margin-top: 2px;" id="calcGstAmount">+₹0.00</div>
+                    </div>
+                    <div style="border-left: 2px solid #e2e8f0; padding-left: 10px;">
+                        <div style="font-size: 11px; color: #0f172a; font-weight: 800; text-transform: uppercase;">Grand Total</div>
+                        <div style="font-size: 18px; font-weight: 900; color: #0284c7; margin-top: 2px;" id="calcGrandTotal">₹0.00</div>
+                    </div>
+                    <div style="border-left: 2px solid #e2e8f0; padding-left: 10px;">
+                        <div style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Balance Due</div>
+                        <div style="font-size: 16px; font-weight: 900; color: #16a34a; margin-top: 2px;" id="calcBalanceDue">₹0.00</div>
+                    </div>
+                </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                <div class="form-group">
-                    <label class="modal-form-label">ID Proof Type</label>
-                    <select id="editIdProofType" class="modal-form-input">
-                        <option value="AADHAAR">🪪 Aadhaar Card</option>
-                        <option value="PAN">💳 PAN Card</option>
-                        <option value="DRIVING_LICENCE">🚗 Driving Licence</option>
-                        <option value="VOTER_ID">🗳️ Voter ID</option>
-                        <option value="SMART_CARD">💳 Smart / Ration Card</option>
-                        <option value="OTHER">📄 Other ID</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="modal-form-label">ID Proof Number</label>
-                    <input type="text" id="editIdProofNumber" class="modal-form-input" placeholder="e.g. 1234 5678 9012">
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                <div class="form-group">
-                    <label class="modal-form-label">Payment Mode</label>
-                    <select id="editPaymentMode" class="modal-form-input">
-                        <option value="CASH">💵 Cash</option>
-                        <option value="UPI">📱 UPI / GPay / PhonePe</option>
-                        <option value="CARD">💳 Debit / Credit Card</option>
-                        <option value="CREDIT">📝 Credit / Due</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="modal-form-label">Paid Amount (₹)</label>
-                    <input type="number" id="editPaidAmount" class="modal-form-input" min="0" step="0.01">
-                </div>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 14px;">
+            <!-- Notes -->
+            <div class="form-group" style="margin-bottom: 16px;">
                 <label class="modal-form-label">Notes / Remarks</label>
-                <input type="text" id="editNotes" class="modal-form-input" placeholder="Optional notes...">
+                <input type="text" id="editNotes" class="modal-form-input" placeholder="e.g. Delivered to site / Paid via GPay">
             </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid var(--color-gray-border); padding-top: 14px;">
-                <button type="button" class="btn-white" onclick="closeInvoiceModal()">Cancel</button>
-                <button type="submit" class="btn-blue">💾 Update Invoice</button>
+            <!-- Footer Action Buttons -->
+            <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1.5px solid var(--color-gray-border); padding-top: 16px;">
+                <button type="button" class="btn-white" onclick="closeInvoiceModal()" style="padding: 10px 20px; font-weight: 700;">
+                    Cancel
+                </button>
+                <button type="submit" class="btn-blue" id="btnSaveInvoiceEdit" style="padding: 10px 24px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;">
+                    <span>💾 Update Invoice & Recalculate</span>
+                </button>
             </div>
         </form>
     </div>
@@ -1909,19 +2167,92 @@
         }
     }
 
-    // EDIT INVOICE MODAL
+    // ==========================================================
+    // ENHANCED EDIT INVOICE MODAL WITH LINE ITEMS & RECALCULATION
+    // ==========================================================
+    let currentEditingBill = null;
+    let editBillItems = [];
+
     function openEditInvoiceModal(id, custName, custPhone, gender, doorNo, address, idType, idNum, payMode, paidAmt, notes) {
-        document.getElementById('editBillId').value = id;
-        document.getElementById('editCustName').value = custName || '';
-        document.getElementById('editCustPhone').value = custPhone || '';
-        document.getElementById('editGender').value = gender || 'MALE';
-        document.getElementById('editDoorNo').value = doorNo || '';
-        document.getElementById('editAddress').value = address || '';
-        document.getElementById('editIdProofType').value = idType || 'AADHAAR';
-        document.getElementById('editIdProofNumber').value = idNum || '';
-        document.getElementById('editPaymentMode').value = payMode || 'CASH';
-        document.getElementById('editPaidAmount').value = paidAmt || 0;
-        document.getElementById('editNotes').value = notes || '';
+        currentEditingBill = null;
+        
+        // Try reading from pre-rendered safe JSON script
+        const allBillsScript = document.getElementById('allBillsJsonData');
+        if (allBillsScript) {
+            try {
+                const allBills = JSON.parse(allBillsScript.textContent || '{}');
+                if (allBills && (allBills[id] || allBills[String(id)])) {
+                    currentEditingBill = allBills[id] || allBills[String(id)];
+                }
+            } catch (e) {
+                console.error("JSON parse error for allBillsJsonData", e);
+            }
+        }
+
+        // Fallback for legacy individual bill script tag if present
+        if (!currentEditingBill) {
+            const dataScript = document.getElementById(`bill-data-${id}`);
+            if (dataScript) {
+                try {
+                    currentEditingBill = JSON.parse(dataScript.textContent);
+                } catch (e) {
+                    console.error("JSON parse error for bill", id, e);
+                }
+            }
+        }
+
+        if (!currentEditingBill || (currentEditingBill.id !== id && currentEditingBill.id !== String(id))) {
+            currentEditingBill = {
+                id: id,
+                bill_number: id,
+                customer_name: custName || '',
+                customer_phone: custPhone || '',
+                gender: gender || 'MALE',
+                door_no: doorNo || '',
+                address: address || '',
+                id_proof_type: idType || 'AADHAAR',
+                id_proof_number: idNum || '',
+                payment_mode: payMode || 'CASH',
+                paid_amount: paidAmt || 0,
+                notes: notes || '',
+                items: []
+            };
+        }
+
+        document.getElementById('editBillId').value = currentEditingBill.id;
+        document.getElementById('editModalBillNo').textContent = currentEditingBill.bill_number;
+        document.getElementById('editModalDate').textContent = "📅 Billed on: " + (currentEditingBill.created_at || 'Saved Invoice');
+        document.getElementById('editCustName').value = currentEditingBill.customer_name || '';
+        document.getElementById('editCustPhone').value = currentEditingBill.customer_phone || '';
+        document.getElementById('editGender').value = currentEditingBill.gender || 'MALE';
+        document.getElementById('editDoorNo').value = currentEditingBill.door_no || '';
+        document.getElementById('editAddress').value = currentEditingBill.address || '';
+        document.getElementById('editIdProofType').value = currentEditingBill.id_proof_type || 'AADHAAR';
+        document.getElementById('editIdProofNumber').value = currentEditingBill.id_proof_number || '';
+        document.getElementById('editPaymentMode').value = currentEditingBill.payment_mode || 'CASH';
+        document.getElementById('editDiscount').value = parseFloat(currentEditingBill.discount) || 0;
+        document.getElementById('editGstRate').value = String(parseInt(currentEditingBill.gst_rate) || 18);
+        document.getElementById('editPaidAmount').value = parseFloat(currentEditingBill.paid_amount) || 0;
+        document.getElementById('editNotes').value = currentEditingBill.notes || '';
+
+        // Clone line items deep copy
+        editBillItems = (currentEditingBill.items || []).map(it => ({
+            id: it.id,
+            product_id: it.product_id,
+            product_name: it.product_name,
+            category_name: it.category_name,
+            size: it.size,
+            rate: parseFloat(it.rate) || 0,
+            quantity: parseInt(it.quantity) || 1,
+            total: parseFloat(it.total) || 0
+        }));
+
+        // Hide quick add bar on open
+        document.getElementById('editQuickAddBar').style.display = 'none';
+
+        renderEditItemsTable();
+        recalculateEditTotals();
+
         document.getElementById('invoiceModal').classList.add('show');
     }
 
@@ -1929,11 +2260,244 @@
         document.getElementById('invoiceModal').classList.remove('show');
     }
 
+    function renderEditItemsTable() {
+        const tbody = document.getElementById('editItemsTableBody');
+        const countSpan = document.getElementById('editItemsCount');
+        const warning = document.getElementById('noItemsWarning');
+        tbody.innerHTML = '';
+
+        countSpan.textContent = editBillItems.length;
+
+        if (editBillItems.length === 0) {
+            warning.style.display = 'block';
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 24px; color: #94a3b8; font-size: 13px;">
+                        ⚠️ No products in this bill. Use "+ Add Product to Bill" above to add items.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        warning.style.display = 'none';
+
+        editBillItems.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="color: #64748b; font-weight: 700;">${idx + 1}</td>
+                <td>
+                    <strong style="color: #0f172a;">${item.product_name}</strong>
+                    <span style="color: #64748b; font-size: 11.5px; margin-left: 4px;">(${item.size})</span>
+                    <div style="font-size: 11px; color: #94a3b8;">${item.category_name}</div>
+                </td>
+                <td>
+                    <input type="number" step="0.01" min="0" class="edit-rate-input" value="${item.rate.toFixed(2)}"
+                           oninput="updateEditItemRate(${idx}, this.value)" style="width: 95px;">
+                </td>
+                <td style="text-align: center;">
+                    <div style="display: inline-flex; align-items: center; gap: 4px;">
+                        <button type="button" class="btn-qty-step" onclick="stepEditItemQty(${idx}, -1)">−</button>
+                        <input type="number" step="1" min="1" class="edit-qty-input" value="${item.quantity}"
+                               oninput="updateEditItemQty(${idx}, this.value)" style="width: 50px; text-align: center;">
+                        <button type="button" class="btn-qty-step" onclick="stepEditItemQty(${idx}, 1)">+</button>
+                    </div>
+                </td>
+                <td style="text-align: right; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: #0f172a;" id="lineTotalCol-${idx}">
+                    ₹${item.total.toFixed(2)}
+                </td>
+                <td style="text-align: center;">
+                    <button type="button" class="btn-remove-line-item" onclick="removeEditItem(${idx})" title="Remove product from bill">
+                        🗑️ Remove
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function updateEditItemRate(idx, val) {
+        if (!editBillItems[idx]) return;
+        const rate = Math.max(0, parseFloat(val) || 0);
+        editBillItems[idx].rate = rate;
+        editBillItems[idx].total = Math.round(rate * editBillItems[idx].quantity * 100) / 100;
+        
+        const cell = document.getElementById(`lineTotalCol-${idx}`);
+        if (cell) cell.textContent = `₹${editBillItems[idx].total.toFixed(2)}`;
+        recalculateEditTotals();
+    }
+
+    function updateEditItemQty(idx, val) {
+        if (!editBillItems[idx]) return;
+        const qty = Math.max(1, parseInt(val) || 1);
+        editBillItems[idx].quantity = qty;
+        editBillItems[idx].total = Math.round(editBillItems[idx].rate * qty * 100) / 100;
+
+        const cell = document.getElementById(`lineTotalCol-${idx}`);
+        if (cell) cell.textContent = `₹${editBillItems[idx].total.toFixed(2)}`;
+        recalculateEditTotals();
+    }
+
+    function stepEditItemQty(idx, delta) {
+        if (!editBillItems[idx]) return;
+        const newQty = Math.max(1, (editBillItems[idx].quantity || 1) + delta);
+        editBillItems[idx].quantity = newQty;
+        editBillItems[idx].total = Math.round(editBillItems[idx].rate * newQty * 100) / 100;
+        renderEditItemsTable();
+        recalculateEditTotals();
+    }
+
+    function removeEditItem(idx) {
+        if (!editBillItems[idx]) return;
+        const itemName = editBillItems[idx].product_name;
+        if (editBillItems.length === 1) {
+            if (!confirm(`Removing "${itemName}" will leave 0 products in this bill. Are you sure you want to remove it?`)) {
+                return;
+            }
+        }
+        editBillItems.splice(idx, 1);
+        renderEditItemsTable();
+        recalculateEditTotals();
+    }
+
+    function toggleAddProductBar() {
+        const bar = document.getElementById('editQuickAddBar');
+        bar.style.display = (bar.style.display === 'none' || !bar.style.display) ? 'block' : 'none';
+    }
+
+    function onQuickAddProductChange() {
+        const sel = document.getElementById('quickAddProductSelect');
+        const opt = sel.options[sel.selectedIndex];
+        const rateField = document.getElementById('quickAddRate');
+        if (opt && opt.dataset.rate) {
+            rateField.value = parseFloat(opt.dataset.rate).toFixed(2);
+        } else {
+            rateField.value = '0.00';
+        }
+    }
+
+    function addQuickProductToEditList() {
+        const sel = document.getElementById('quickAddProductSelect');
+        const opt = sel.options[sel.selectedIndex];
+        if (!sel.value || !opt) {
+            alert('Please select a product from the list.');
+            return;
+        }
+
+        const prodId = parseInt(sel.value);
+        const name = opt.dataset.name || 'Store Product';
+        const category = opt.dataset.category || 'General';
+        const size = opt.dataset.size || 'Standard';
+        const rate = Math.max(0, parseFloat(document.getElementById('quickAddRate').value) || 0);
+        const qty = Math.max(1, parseInt(document.getElementById('quickAddQty').value) || 1);
+        const total = Math.round(rate * qty * 100) / 100;
+
+        // Check if item with same product_id already in list
+        const existingIdx = editBillItems.findIndex(it => it.product_id === prodId && it.size === size);
+        if (existingIdx >= 0) {
+            editBillItems[existingIdx].quantity += qty;
+            editBillItems[existingIdx].rate = rate;
+            editBillItems[existingIdx].total = Math.round(editBillItems[existingIdx].rate * editBillItems[existingIdx].quantity * 100) / 100;
+        } else {
+            editBillItems.push({
+                id: null,
+                product_id: prodId,
+                product_name: name,
+                category_name: category,
+                size: size,
+                rate: rate,
+                quantity: qty,
+                total: total
+            });
+        }
+
+        // Reset quick add
+        sel.value = '';
+        document.getElementById('quickAddRate').value = '';
+        document.getElementById('quickAddQty').value = '1';
+        document.getElementById('editQuickAddBar').style.display = 'none';
+
+        renderEditItemsTable();
+        recalculateEditTotals();
+    }
+
+    function recalculateEditTotals() {
+        const subtotal = editBillItems.reduce((acc, it) => acc + (it.total || 0), 0);
+        const discount = Math.max(0, parseFloat(document.getElementById('editDiscount').value) || 0);
+        const taxable = Math.max(0, subtotal - discount);
+        const gstRate = parseFloat(document.getElementById('editGstRate').value) || 0;
+        const gstAmount = Math.round(((taxable * gstRate) / 100.0) * 100) / 100;
+        const grandTotal = Math.round((taxable + gstAmount) * 100) / 100;
+
+        const paidInput = document.getElementById('editPaidAmount');
+        let paidAmount = parseFloat(paidInput.value);
+        if (isNaN(paidAmount) || paidAmount < 0) paidAmount = 0;
+
+        const balanceDue = Math.max(0, Math.round((grandTotal - paidAmount) * 100) / 100);
+
+        // Update displays
+        document.getElementById('calcSubtotal').textContent = `₹${subtotal.toFixed(2)}`;
+        document.getElementById('calcDiscount').textContent = `-₹${discount.toFixed(2)}`;
+        document.getElementById('calcGstAmount').textContent = `+₹${gstAmount.toFixed(2)}`;
+        document.getElementById('calcGrandTotal').textContent = `₹${grandTotal.toFixed(2)}`;
+
+        const balanceEl = document.getElementById('calcBalanceDue');
+        balanceEl.textContent = `₹${balanceDue.toFixed(2)}`;
+        balanceEl.style.color = (balanceDue > 0) ? '#dc2626' : '#16a34a';
+
+        // 5-Tier Payment Status Preview
+        let statusBadgeText = '';
+        let statusBadgeClass = '';
+
+        if (grandTotal <= 0) {
+            statusBadgeText = '✓ Completed Paid';
+            statusBadgeClass = 'status-completed';
+        } else {
+            const ratio = paidAmount / grandTotal;
+            if (ratio >= 1.0 || paidAmount >= grandTotal) {
+                statusBadgeText = '✓ Completed Paid (100%)';
+                statusBadgeClass = 'status-completed';
+            } else if (ratio >= 0.8) {
+                statusBadgeText = `● 80%+ High Paid (${Math.round(ratio*100)}%)`;
+                statusBadgeClass = 'status-high80';
+            } else if (ratio >= 0.5) {
+                statusBadgeText = `● 50%+ High Paid (${Math.round(ratio*100)}%)`;
+                statusBadgeClass = 'status-high50';
+            } else if (ratio > 0) {
+                statusBadgeText = `● 50% Down Paid (${Math.round(ratio*100)}%)`;
+                statusBadgeClass = 'status-down50';
+            } else {
+                statusBadgeText = '✕ No Paid (0%)';
+                statusBadgeClass = 'status-nopaid';
+            }
+        }
+
+        const previewPill = document.getElementById('editPreviewPaymentStatus');
+        if (previewPill) {
+            previewPill.className = `status-badge-pill ${statusBadgeClass}`;
+            previewPill.textContent = statusBadgeText;
+        }
+        const topBadge = document.getElementById('editModalStatusBadge');
+        if (topBadge) {
+            topBadge.className = `status-badge-pill ${statusBadgeClass}`;
+            topBadge.textContent = statusBadgeText;
+        }
+    }
+
     async function saveInvoiceEdit(event) {
         event.preventDefault();
         const id = document.getElementById('editBillId').value;
+
+        if (editBillItems.length === 0) {
+            alert('⚠️ An invoice must have at least one product item! Please add items before saving.');
+            return;
+        }
+
+        const btn = document.getElementById('btnSaveInvoiceEdit');
+        if (btn) btn.disabled = true;
+
         const payload = {
-            customer_name: document.getElementById('editCustName').value.trim(),
+            customer_name: document.getElementById('editCustName').value.trim() || 'Walk-in Customer',
             customer_phone: document.getElementById('editCustPhone').value.trim(),
             gender: document.getElementById('editGender').value,
             door_no: document.getElementById('editDoorNo').value.trim(),
@@ -1941,8 +2505,11 @@
             id_proof_type: document.getElementById('editIdProofType').value,
             id_proof_number: document.getElementById('editIdProofNumber').value.trim(),
             payment_mode: document.getElementById('editPaymentMode').value,
+            discount: parseFloat(document.getElementById('editDiscount').value) || 0,
+            gst_rate: parseFloat(document.getElementById('editGstRate').value) || 18,
             paid_amount: parseFloat(document.getElementById('editPaidAmount').value) || 0,
-            notes: document.getElementById('editNotes').value.trim()
+            notes: document.getElementById('editNotes').value.trim(),
+            items: editBillItems
         };
 
         try {
@@ -1954,13 +2521,15 @@
             const data = await resp.json();
 
             if (data.status === 'success') {
-                alert(data.message);
+                alert(`✅ ${data.message}`);
                 window.location.reload();
             } else {
-                alert('Error: ' + data.message);
+                alert('⚠️ Error: ' + (data.message || 'Failed to update invoice.'));
             }
         } catch (err) {
-            alert('Failed to update invoice: ' + err.message);
+            alert('⚠️ Failed to update invoice: ' + err.message);
+        } finally {
+            if (btn) btn.disabled = false;
         }
     }
 
@@ -2053,6 +2622,31 @@
         if (countBadge) {
             countBadge.textContent = `${visibleCount} Product${visibleCount === 1 ? '' : 's'} in ${catName === 'ALL' ? 'All Categories' : catName}`;
         }
+    }
+
+    // Direct Dropdown Selection Handler in Billing Modal
+    function handleModalDropdownSelect(selElem) {
+        const prodId = selElem.value;
+        if (!prodId) return;
+        const opt = selElem.options[selElem.selectedIndex];
+        const id = parseInt(prodId);
+        const name = opt.getAttribute('data-name');
+        const size = opt.getAttribute('data-size');
+        const rate = parseFloat(opt.getAttribute('data-rate')) || 0;
+        const stock = parseInt(opt.getAttribute('data-stock')) || 0;
+        addModalProduct(id, name, size, rate, stock);
+        selElem.value = ''; // Reset dropdown after selection
+    }
+
+    // Direct Card Click Product Selection Handler
+    function selectModalCardProduct(cardElem) {
+        if (!cardElem) return;
+        const id = parseInt(cardElem.getAttribute('data-id'));
+        const name = cardElem.getAttribute('data-name');
+        const size = cardElem.getAttribute('data-size');
+        const rate = parseFloat(cardElem.getAttribute('data-rate')) || 0;
+        const stock = parseInt(cardElem.getAttribute('data-stock')) || 0;
+        addModalProduct(id, name, size, rate, stock);
     }
 
     // CLICK PRODUCT TO ADD TO BILL
