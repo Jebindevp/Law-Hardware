@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -666,7 +667,7 @@
             padding: 100px 24px 60px;
             background:
                 linear-gradient(rgba(9, 13, 22, 0.82), rgba(15, 23, 42, 0.88)),
-                url('https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=1920&q=80') center center / cover no-repeat fixed;
+                url("{% static 'img/aa2.jpg' %}") center center / cover no-repeat fixed;
             color: var(--color-white);
             overflow: hidden;
         }
@@ -903,18 +904,22 @@
         }
 
         .about-shop-img {
+            display: block;
             width: 100%;
-            height: 480px;
+            height: 400px;
             object-fit: cover;
+            object-position: center;
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-lg);
             border: 3px solid #ffffff;
+            background: #090d16;
         }
 
         .about-badge-card {
             position: absolute;
-            bottom: -20px;
-            right: -20px;
+            bottom: 16px;
+            right: 16px;
+            z-index: 2;
             background: linear-gradient(135deg, #090d16 0%, #1e293b 100%);
             color: #ffffff;
             border: 2px solid var(--color-blue);
@@ -1026,7 +1031,7 @@
            image, text, btn, price, discount price, offer date
            ========================================================= */
         .products-bg-wrapper {
-            background: #f1f5f9;
+            background: transparent;
             border-top: 1px solid var(--color-gray-border);
             border-bottom: 1px solid var(--color-gray-border);
         }
@@ -1038,7 +1043,7 @@
         }
 
         .product-offer-card {
-            background: var(--color-white);
+            background: transparent;
             border: 1.5px solid var(--color-gray-border);
             border-radius: var(--radius-lg);
             overflow: hidden;
@@ -1060,14 +1065,16 @@
             position: relative;
             width: 100%;
             height: 200px;
-            background: #e2e8f0;
+            background: transparent;
             overflow: hidden;
         }
 
         .product-img {
+            display: block;
             width: 100%;
             height: 100%;
             object-fit: cover;
+            background: transparent;
             transition: transform 0.3s ease;
         }
 
@@ -1104,6 +1111,7 @@
 
         .product-card-body {
             padding: 18px;
+            background: transparent;
             display: flex;
             flex-direction: column;
             flex: 1;
@@ -2840,8 +2848,12 @@
         <div class="about-grid">
             <!-- Left Side: Shop Image -->
             <div class="about-image-wrap">
-                <img src="https://images.unsplash.com/photo-1581783342308-f792dbdd27c5?auto=format&fit=crop&w=800&q=80"
-                    alt="ZAM ZAM HARDWARE Store Showroom" class="about-shop-img">
+                <img src="{% static 'img/aa1.jpg' %}"
+                    alt="ZAM ZAM HARDWARE Store Showroom"
+                    class="about-shop-img"
+                    loading="lazy"
+                    decoding="async"
+                    onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1581094288338-2314dddb7ece?auto=format&fit=crop&w=900&q=80';">
                 <div class="about-badge-card">
                     <div class="num">15+ Yrs</div>
                     <div class="text">Proven Trust & Industry Leadership in Plumbing Hardware</div>
@@ -2909,10 +2921,7 @@
         </div>
     </section>
 
-    <!-- =========================================================
-         4. PRODUCT SECTION (SINGLE ROW, 4 CARDS)
-         image, text, btn, price, discount price, offer date
-         ========================================================= -->
+
     <!-- =========================================================
          4. PRODUCT SECTION (ROW-WISE 4 CARDS, ADMIN EDIT/DELETE, PUBLIC VIEW DETAILS)
          image, text, view details, booking contact (+91 77086 23440)
@@ -2945,7 +2954,8 @@
                     <!-- Image Box -->
                     <div class="product-img-box">
                         <img src="{{ item.image }}" alt="{{ item.name }}" class="product-img"
-                            onerror="this.src='https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=600&q=80'">
+                            loading="lazy"
+                            onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=600&q=80';">
                         <span class="product-discount-badge">{{ item.discount_percent }}</span>
                         <span class="product-category-chip">{{ item.category }}</span>
                     </div>
@@ -2993,7 +3003,7 @@
                 </div>
                 {% empty %}
                 <div
-                    style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: #ffffff; border-radius: 16px; border: 1.5px dashed #cbd5e1;">
+                    style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: transparent; border-radius: 16px; border: 1.5px dashed #cbd5e1;">
                     <p style="font-size: 16px; font-weight: 700; color: #475569;">No promotional offers currently
                         active.</p>
                     <p style="font-size: 13px; color: #94a3b8; margin-top: 6px;">Admins can add featured offer cards
