@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Category, Product, Bill, BillItem, Supplier, Expense, FeaturedOfferProduct
+from .models import Category, Brand, Product, Bill, BillItem, Supplier, Expense, FeaturedOfferProduct
 
 # Customize Django Admin Header and Branding for Shop Owner Lawrence C
 admin.site.site_header = "ZAM ZAM HARDWARE - Administration"
@@ -20,17 +20,36 @@ class CategoryAdmin(admin.ModelAdmin):
         return format_html('<span style="font-weight: bold; color: #2563eb;">{} items</span>', count)
 
 
+@admin.register(Brand)
+class BrandAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'get_product_count', 'created_at')
+    search_fields = ('name', 'description')
+    ordering = ('name',)
+
+    @admin.display(description="Total Products")
+    def get_product_count(self, obj):
+        count = obj.products.count()
+        return format_html('<span style="font-weight: bold; color: #d97706;">{} items</span>', count)
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'size', 'formatted_rate', 'quantity', 'stock_value', 'stock_status')
-    list_filter = ('category', 'size')
-    search_fields = ('name', 'size', 'category__name')
+    list_display = (
+        'product_code', 'name', 'brand', 'category', 'unit', 'pipe_length_info',
+        'size', 'formatted_rate', 'quantity', 'stock_value', 'stock_status'
+    )
+    list_filter = ('category', 'brand', 'unit', 'size')
+    search_fields = ('product_code', 'name', 'size', 'category__name', 'brand__name')
     list_per_page = 25
     readonly_fields = ('stock_value', 'created_at', 'updated_at')
 
     fieldsets = (
         ("Product Information", {
-            'fields': ('category', 'name', 'size')
+            'fields': (('product_code', 'brand', 'category'), ('name', 'unit', 'size'))
+        }),
+        ("Pipe Length / Meter Specifications", {
+            'fields': ('pipe_length',),
+            'description': "If pricing by meter, specify standard length per pipe (e.g. 6.0m, 3.0m)."
         }),
         ("Pricing & Inventory", {
             'fields': ('rate', 'quantity', 'stock_value')
@@ -41,16 +60,23 @@ class ProductAdmin(admin.ModelAdmin):
         }),
     )
 
+    @admin.display(description="Pipe Length")
+    def pipe_length_info(self, obj):
+        if obj.unit == 'METER' and obj.pipe_length:
+            return f"{obj.pipe_length}m / pipe"
+        return "-"
+
     @admin.display(description="Rate / Unit", ordering='rate')
     def formatted_rate(self, obj):
         if not obj or obj.rate is None:
             return "₹0.00"
-        return f"₹{obj.rate:.2f}"
+        unit_str = "/m" if obj.unit == 'METER' else "/pc"
+        return f"₹{obj.rate:.2f} {unit_str}"
 
     @admin.display(description="Total Stock Value", ordering='rate')
     def stock_value(self, obj):
         if not obj or obj.total is None:
-            return format_html('<strong>₹0.00</strong>')
+            return format_html('<strong>{}</strong>', '₹0.00')
         formatted = f"₹{float(obj.total):,.2f}"
         return format_html('<strong>{}</strong>', formatted)
 
@@ -133,7 +159,7 @@ class BillAdmin(admin.ModelAdmin):
     @admin.display(description="ID Proof")
     def id_proof_summary(self, obj):
         if not obj or not obj.id_proof_number:
-            return format_html('<span style="color: #94a3b8;">None</span>')
+            return format_html('<span style="color: #94a3b8;">{}</span>', 'None')
         return format_html('<span style="font-size: 11px; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 600;">{}: {}</span>', obj.get_id_proof_type_display(), obj.id_proof_number)
 
     @admin.display(description="Grand Total", ordering='grand_total')
@@ -183,6 +209,7 @@ class BillAdmin(admin.ModelAdmin):
         color_map = {
             'CASH': '#16a34a',
             'UPI': '#2563eb',
+            'SPLIT': '#0284c7',
             'CARD': '#9333ea',
             'CREDIT': '#ea580c',
         }

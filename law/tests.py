@@ -4,7 +4,7 @@ from decimal import Decimal
 import json
 import re
 
-from .models import Category, Product, Bill, BillItem
+from .models import Category, Product, Bill, BillItem, Brand, FeaturedOfferProduct
 
 
 class PlumbingBillingTests(TestCase):
@@ -295,3 +295,79 @@ class PlumbingBillingTests(TestCase):
         self.assertNotIn("<span>👨</span>", html)
         self.assertNotIn("<span>👩</span>", html)
         self.assertNotIn("📞 Mobile:", html)
+
+    def test_brand_and_pipe_length_calculation(self):
+        """Verify Brand management, pipe length, 1-meter rate & full pipe price calculation."""
+        # 1. Create Brand
+        brand = Brand.objects.create(
+            name="Finolex",
+            description="Premium PVC and CPVC Pipes"
+        )
+        self.assertEqual(brand.product_count, 0)
+
+        # 2. Create METER product (Length Pipe)
+        pipe = Product.objects.create(
+            category=self.category,
+            brand=brand,
+            product_code="PIPE-110",
+            name="Finolex Pasting Pipe 110mm",
+            size="110mm 6kg/cm",
+            unit="METER",
+            pipe_length=Decimal("6.00"),
+            rate=Decimal("581.00"),
+            quantity=30  # 30 meters = 5 pipes
+        )
+        self.assertEqual(pipe.display_brand, "Finolex")
+        self.assertEqual(pipe.full_pipe_price, Decimal("3486.00"))
+        self.assertEqual(pipe.estimated_pipe_count, 5)
+
+        # 3. Test Brand API endpoints
+        # Add Brand API
+        res_brand = self.client.post(
+            reverse('add_brand_api'),
+            data=json.dumps({'name': 'Ashirvad Pipes', 'description': 'CPVC FlowGuard'}),
+            content_type='application/json'
+        )
+        self.assertEqual(res_brand.status_code, 200)
+        data_b = json.loads(res_brand.content)
+        self.assertEqual(data_b['status'], 'success')
+        new_brand_id = data_b['brand_id']
+
+        # Edit Brand API
+        res_edit_b = self.client.post(
+            reverse('edit_brand_api', kwargs={'brand_id': new_brand_id}),
+            data=json.dumps({'name': 'Ashirvad CPVC', 'description': 'Updated'}),
+            content_type='application/json'
+        )
+        self.assertEqual(res_edit_b.status_code, 200)
+        self.assertEqual(Brand.objects.get(id=new_brand_id).name, 'Ashirvad CPVC')
+
+        # 4. Add Product API with brand and pipe length
+        res_prod = self.client.post(
+            reverse('add_product_api'),
+            data=json.dumps({
+                'category_id': self.category.id,
+                'brand_id': new_brand_id,
+                'product_code': 'ASH-50',
+                'name': 'Ashirvad 50mm Pipe',
+                'size': '50mm',
+                'unit': 'METER',
+                'pipe_length': 3.00,
+                'rate': 250.00,
+                'quantity': 60
+            }),
+            content_type='application/json'
+        )
+        self.assertEqual(res_prod.status_code, 200)
+        data_p = json.loads(res_prod.content)
+        self.assertEqual(data_p['status'], 'success')
+        self.assertEqual(data_p['full_pipe_price'], 750.00)
+
+        # 5. Verify admindashboard and inventory contexts include brands
+        resp_admin = self.client.get(reverse('admindashboard'))
+        self.assertEqual(resp_admin.status_code, 200)
+        self.assertIn('brands', resp_admin.context)
+
+        resp_inv = self.client.get(reverse('inventory'))
+        self.assertEqual(resp_inv.status_code, 200)
+        self.assertIn('brands', resp_inv.context)

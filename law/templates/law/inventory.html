@@ -597,10 +597,19 @@
 
         <!-- Category Dropdown Filter -->
         <select id="categoryFilter" class="select-dropdown" onchange="executeSearch()">
-            <option value="ALL">All Categories ({{ products|length }})</option>
+            <option value="ALL">All Categories ({{ categories|length }})</option>
             {% for cat in categories %}
             <option value="{{ cat.name }}">{{ cat.name }}</option>
             {% endfor %}
+        </select>
+
+        <!-- Brand Dropdown Filter -->
+        <select id="brandFilter" class="select-dropdown" onchange="executeSearch()">
+            <option value="ALL">All Brands ({{ brands|length }})</option>
+            {% for b in brands %}
+            <option value="{{ b.name }}">{{ b.name }}</option>
+            {% endfor %}
+            <option value="GENERIC">Generic / Unbranded</option>
         </select>
 
         <!-- Add New Product Button -->
@@ -634,7 +643,13 @@
     {% for p in products %}
     <div class="inv-card" id="card-{{ p.id }}"
          data-id="{{ p.id }}"
+         data-product-code="{{ p.product_code|default:'' }}"
+         data-display-code="{{ p.display_code }}"
+         data-unit="{{ p.unit }}"
          data-name="{{ p.name }}"
+         data-brand="{{ p.brand.name|default:'' }}"
+         data-brand-id="{{ p.brand.id|default:'' }}"
+         data-pipe-length="{{ p.pipe_length|default:6.00 }}"
          data-category="{{ p.category.name }}"
          data-category-id="{{ p.category.id }}"
          data-size="{{ p.size }}"
@@ -645,20 +660,40 @@
         <div>
             <div class="card-top">
                 <input type="checkbox" class="card-checkbox item-select" value="{{ p.id }}" onchange="handleItemCheckboxChange(this, 'card-{{ p.id }}')">
-                <span class="card-category-badge">{{ p.category.name }}</span>
+                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; background: #0f172a; color: #ffffff; padding: 2px 8px; border-radius: 6px; font-weight: 700;">#{{ p.display_code }}</span>
+                    {% if p.brand %}
+                    <span style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">🏷️ {{ p.brand.name }}</span>
+                    {% endif %}
+                    <span class="card-category-badge">{{ p.category.name }}</span>
+                </div>
             </div>
 
             <div class="card-title">{{ p.name }}</div>
-            <span class="card-size-badge">Size: {{ p.size }}</span>
+            <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
+                <span class="card-size-badge">Size: {{ p.size }}</span>
+                {% if p.unit == 'METER' %}
+                <span style="font-size: 11px; font-weight: 800; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 999px; border: 1px solid #bae6fd;">📏 Length Pipe: {{ p.pipe_length|default:6.00 }}m (1 Pipe = ₹{{ p.full_pipe_price|floatformat:2 }})</span>
+                {% else %}
+                <span style="font-size: 11px; font-weight: 700; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 999px;">📦 Piece / Unit</span>
+                {% endif %}
+            </div>
 
             <div class="card-stats-grid">
                 <div>
                     <span class="card-stat-label">Rate / Unit:</span>
-                    <div class="card-stat-val rate-highlight">₹{{ p.rate|floatformat:2 }}</div>
+                    <div class="card-stat-val rate-highlight">
+                        ₹{{ p.rate|floatformat:2 }}
+                        {% if p.unit == 'METER' %}
+                        <small style="font-size: 11px; color: #0284c7; font-weight: 700;">/m</small>
+                        {% else %}
+                        <small style="font-size: 11px; color: #64748b;">/pc</small>
+                        {% endif %}
+                    </div>
                 </div>
                 <div>
                     <span class="card-stat-label">Stock Qty:</span>
-                    <div class="card-stat-val">{{ p.quantity }} units</div>
+                    <div class="card-stat-val">{{ p.quantity }} {% if p.unit == 'METER' %}meters{% else %}units{% endif %}</div>
                 </div>
                 <div>
                     <span class="card-stat-label">Total Value:</span>
@@ -681,10 +716,10 @@
 
         <!-- Edit & Delete Buttons -->
         <div class="card-actions">
-            <button class="btn-card-edit" onclick="openEditModal({{ p.id }}, '{{ p.name|escapejs }}', '{{ p.category.id }}', '{{ p.size|escapejs }}', {{ p.rate }}, {{ p.quantity }})">
+            <button type="button" class="btn-card-edit" onclick="editProductFromElement(this)">
                 ✏️ Edit
             </button>
-            <button class="btn-card-del" onclick="deleteSingleProduct({{ p.id }}, '{{ p.name|escapejs }}')">
+            <button type="button" class="btn-card-del" onclick="deleteProductFromElement(this)">
                 🗑️ Delete
             </button>
         </div>
@@ -702,9 +737,11 @@
         <thead>
             <tr>
                 <th style="width: 40px;"></th>
+                <th>Item ID</th>
+                <th>Brand</th>
                 <th>Category</th>
                 <th>Product Name</th>
-                <th>Size</th>
+                <th>Size / Length</th>
                 <th>Rate (₹)</th>
                 <th>Stock</th>
                 <th>Total Value (₹)</th>
@@ -714,15 +751,49 @@
         </thead>
         <tbody id="tableBody">
             {% for p in products %}
-            <tr id="row-{{ p.id }}" data-id="{{ p.id }}" data-name="{{ p.name }}" data-category="{{ p.category.name }}" data-size="{{ p.size }}">
+            <tr id="row-{{ p.id }}" 
+                data-id="{{ p.id }}" 
+                data-product-code="{{ p.product_code|default:'' }}"
+                data-display-code="{{ p.display_code }}" 
+                data-unit="{{ p.unit }}" 
+                data-brand="{{ p.brand.name|default:'' }}" 
+                data-brand-id="{{ p.brand.id|default:'' }}"
+                data-pipe-length="{{ p.pipe_length|default:6.00 }}"
+                data-name="{{ p.name }}" 
+                data-category="{{ p.category.name }}" 
+                data-category-id="{{ p.category.id }}"
+                data-size="{{ p.size }}"
+                data-rate="{{ p.rate }}"
+                data-quantity="{{ p.quantity }}"
+                data-total="{{ p.total }}">
                 <td>
                     <input type="checkbox" class="card-checkbox item-select" value="{{ p.id }}" onchange="handleItemCheckboxChange(this, 'row-{{ p.id }}')">
                 </td>
+                <td>
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; background: #0f172a; color: #ffffff; padding: 2px 7px; border-radius: 4px; font-weight: 700;">#{{ p.display_code }}</span>
+                </td>
+                <td>
+                    {% if p.brand %}
+                    <span style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">{{ p.brand.name }}</span>
+                    {% else %}
+                    <span style="color: #94a3b8; font-size: 12px;">--</span>
+                    {% endif %}
+                </td>
                 <td><span class="card-category-badge">{{ p.category.name }}</span></td>
                 <td><strong style="color: #0f172a;">{{ p.name }}</strong></td>
-                <td><span class="card-size-badge">{{ p.size }}</span></td>
-                <td><strong style="color: #0284c7;">₹{{ p.rate|floatformat:2 }}</strong></td>
-                <td><strong>{{ p.quantity }}</strong></td>
+                <td>
+                    <span class="card-size-badge">{{ p.size }}</span>
+                    {% if p.unit == 'METER' %}
+                    <span style="font-size: 10.5px; font-weight: 800; background: #e0f2fe; color: #0369a1; padding: 1px 6px; border-radius: 4px; border: 1px solid #bae6fd; display: block; margin-top: 3px;">{{ p.pipe_length|default:6.00 }}m pipe (₹{{ p.full_pipe_price|floatformat:2 }}/pc)</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <strong style="color: #0284c7;">
+                        ₹{{ p.rate|floatformat:2 }}
+                        {% if p.unit == 'METER' %}<small style="color: #0369a1; font-weight: 700;">/m</small>{% else %}<small style="color: #64748b;">/pc</small>{% endif %}
+                    </strong>
+                </td>
+                <td><strong>{{ p.quantity }} {% if p.unit == 'METER' %}m{% else %}pcs{% endif %}</strong></td>
                 <td><strong style="color: #0f766e;">₹{{ p.total|floatformat:2 }}</strong></td>
                 <td>
                     {% if p.quantity == 0 %}
@@ -733,9 +804,9 @@
                     <span class="status-pill pill-green">In Stock</span>
                     {% endif %}
                 </td>
-                <td style="text-align: right;">
-                    <button class="btn-card-edit" style="display: inline-flex; padding: 5px 10px;" onclick="openEditModal({{ p.id }}, '{{ p.name|escapejs }}', '{{ p.category.id }}', '{{ p.size|escapejs }}', {{ p.rate }}, {{ p.quantity }})">✏️ Edit</button>
-                    <button class="btn-card-del" style="display: inline-flex; padding: 5px 10px;" onclick="deleteSingleProduct({{ p.id }}, '{{ p.name|escapejs }}')">🗑️ Delete</button>
+                <td style="text-align: right; white-space: nowrap;">
+                    <button type="button" class="btn-card-edit" style="display: inline-flex; padding: 5px 10px;" onclick="editProductFromElement(this)">✏️ Edit</button>
+                    <button type="button" class="btn-card-del" style="display: inline-flex; padding: 5px 10px;" onclick="deleteProductFromElement(this)">🗑️ Delete</button>
                 </td>
             </tr>
             {% endfor %}
@@ -745,44 +816,114 @@
 
 <!-- MODAL: ADD / EDIT PRODUCT -->
 <div class="modal-backdrop" id="productModal">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width: 540px;">
         <div class="modal-head">
             <h2 id="modalTitle">Edit Product</h2>
             <button class="btn-close-modal" onclick="closeProductModal()">✕</button>
         </div>
         <form id="productForm" onsubmit="saveProduct(event)">
+            {% csrf_token %}
             <input type="hidden" id="formProductId" value="">
 
             <!-- Duplicate Warning Alert Banner -->
             <div id="productFormWarning" style="display: none; background: #fef2f2; border: 1.5px solid #ef4444; color: #b91c1c; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 14px;"></div>
 
-            <div class="form-group">
-                <label class="form-label">Category</label>
-                <select id="formCategory" class="form-input" required>
-                    {% for cat in categories %}
-                    <option value="{{ cat.id }}">{{ cat.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Product Name</label>
-                <input type="text" id="formName" class="form-input" placeholder="e.g. PVC Elbow 90 Degree" required>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Size / Dimension</label>
-                <input type="text" id="formSize" class="form-input" placeholder="e.g. 1/2 inch, 3/4 inch, 25mm" required>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <div class="form-group">
-                    <label class="form-label">Rate / Unit (₹)</label>
-                    <input type="number" id="formRate" class="form-input" step="0.01" min="0" placeholder="0.00" required>
+            <!-- Category & Brand -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Category *</label>
+                    <select id="formCategory" class="form-input" required>
+                        <option value="">-- Select Category --</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Quantity in Stock</label>
-                    <input type="number" id="formQuantity" class="form-input" min="0" placeholder="0" required>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Brand</label>
+                    <select id="formBrand" class="form-input">
+                        <option value="">-- Generic / No Brand --</option>
+                        {% for b in brands %}
+                        <option value="{{ b.id }}">{{ b.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Item ID / Code & Unit Selection -->
+            <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 12px; margin-bottom: 14px;">
+                <div>
+                    <label class="form-label">Item / Product ID No</label>
+                    <input type="text" id="formProductCode" class="form-input" placeholder="e.g. PIPE-001, ELB-25">
+                    <span style="font-size: 11px; color: #64748b;">Optional barcode / ID</span>
+                </div>
+                <div>
+                    <label class="form-label">Unit of Measure *</label>
+                    <select id="formProductUnit" class="form-input" onchange="handleInvUnitChange()" required>
+                        <option value="PIECE">Piece / Unit (Nos)</option>
+                        <option value="METER">Meter (m) / Length Pipe</option>
+                    </select>
+                    <span style="font-size: 11px; color: #0284c7; font-weight: 600;">Length pipe by meter or piece</span>
+                </div>
+            </div>
+
+            <!-- Product Name * -->
+            <div class="form-group">
+                <label class="form-label">Product Name *</label>
+                <input type="text" id="formName" class="form-input" placeholder="e.g. CPVC Brass Elbow, Brass Ball Valve, PVC Conduit Pipe" required>
+            </div>
+
+            <!-- Size / Dimension * -->
+            <div class="form-group">
+                <label class="form-label">Size / Dimension *</label>
+                <input type="text" id="formSize" class="form-input" placeholder="e.g. 1/2 inch, 3/4 inch, 25mm, 1 inch" required>
+            </div>
+
+            <!-- Rate, Pipe Length & Initial Stock -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" id="formRateLabel">Rate / Unit Price (₹) *</label>
+                    <input type="number" id="formRate" class="form-input" step="0.01" min="0" placeholder="150.00" oninput="calculateInvMeterAmount()" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;" id="formPipeLengthWrap">
+                    <label class="form-label">Pipe Length (Meters per pipe)</label>
+                    <input type="number" id="formPipeLength" class="form-input" step="0.01" min="0.1" value="6.00" oninput="calculateInvMeterAmount()">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" id="formQuantityLabel">Initial Stock Quantity *</label>
+                <input type="number" id="formQuantity" class="form-input" min="0" placeholder="0" required>
+            </div>
+
+            <!-- Interactive Live Meter Calculation Box (Shows for METER items) -->
+            <div id="invMeterCalcBox" style="display: none; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 12px; font-weight: 800; color: #166534;">📏 Length Pipe & Price Calculator:</span>
+                    <span id="invMeterRateTag" style="font-size: 11.5px; font-weight: 700; color: #15803d; font-family: 'JetBrains Mono', monospace;">1 Meter = ₹0.00</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                    <div style="background: #ffffff; padding: 6px 10px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                        <div style="font-size: 10.5px; color: #64748b; font-weight: 700;">1 FULL PIPE PRICE (<span id="invPipeLenText">6.00</span>m)</div>
+                        <div style="font-size: 15px; font-weight: 800; color: #15803d;" id="invFullPipePrice">₹0.00</div>
+                    </div>
+                    <div style="background: #ffffff; padding: 6px 10px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                        <div style="font-size: 10.5px; color: #64748b; font-weight: 700;">CUSTOM METERS TEST</div>
+                        <div style="display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+                            <input type="number" id="invMeterTestQty" value="5" min="0.1" step="any" style="width: 50px; padding: 2px 4px; border-radius: 4px; border: 1px solid #86efac; font-weight: 700; text-align: center; font-size: 12px;" oninput="calculateInvMeterAmount()">
+                            <span style="font-size: 11px;">m =</span>
+                            <strong id="invMeterCalcResult" style="font-size: 13px; font-family: 'JetBrains Mono', monospace; color: #047857; margin-left: auto;">₹0.00</strong>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pipe Bundle Stock Helper -->
+                <div style="background: #ffffff; border: 1px dashed #86efac; border-radius: 6px; padding: 6px 10px;">
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px;">
+                        <span style="font-weight: 700; color: #166534;">⚡ Pipe Bundle:</span>
+                        <input type="number" id="invBundlePipeCount" value="5" min="1" style="width: 50px; padding: 2px 4px; border: 1px solid #86efac; border-radius: 4px; font-weight: 700; text-align: center; font-size: 12px;" oninput="updateInvBundlePreview()">
+                        <span>pipes &times; <span id="invBundlePipeLen">6.00</span>m = <strong id="invBundleTotalMeters" style="color: #0369a1;">30.00</strong>m</span>
+                        <button type="button" class="btn-blue" style="padding: 2px 8px; font-size: 11px; margin-left: auto;" onclick="applyInvPipeBundle()">Apply to Stock</button>
+                    </div>
                 </div>
             </div>
 
@@ -797,6 +938,17 @@
 
 {% block scripts %}
 <script>
+    // CSRF TOKEN HELPER
+    function getCsrfToken() {
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+        if (cookieValue) return cookieValue;
+        const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        return csrfInput ? csrfInput.value : '';
+    }
+
     // VIEW SWITCHER
     function switchView(view) {
         const cards = document.getElementById('cardContainer');
@@ -805,43 +957,54 @@
         const btnTable = document.getElementById('btnViewTable');
 
         if (view === 'cards') {
-            cards.style.display = 'grid';
-            table.style.display = 'none';
-            btnCards.classList.add('active');
-            btnTable.classList.remove('active');
+            if (cards) cards.style.display = 'grid';
+            if (table) table.style.display = 'none';
+            if (btnCards) btnCards.classList.add('active');
+            if (btnTable) btnTable.classList.remove('active');
         } else {
-            cards.style.display = 'none';
-            table.style.display = 'block';
-            btnCards.classList.remove('active');
-            btnTable.classList.add('active');
+            if (cards) cards.style.display = 'none';
+            if (table) table.style.display = 'block';
+            if (btnCards) btnCards.classList.remove('active');
+            if (btnTable) btnTable.classList.add('active');
         }
+        executeSearch();
     }
 
     // JAVASCRIPT SEARCH FUNCTIONALITY
     function handleSearchKey(event) {
-        if (event.key === 'Enter') {
-            executeSearch();
-        } else {
-            executeSearch(); // live as user types
-        }
+        executeSearch();
     }
 
     function executeSearch() {
-        const query = document.getElementById('inventorySearch').value.toLowerCase().trim();
-        const categoryFilter = document.getElementById('categoryFilter').value;
+        const queryElem = document.getElementById('inventorySearch');
+        const query = queryElem ? queryElem.value.toLowerCase().trim() : '';
+        const catFilterElem = document.getElementById('categoryFilter');
+        const categoryFilter = catFilterElem ? catFilterElem.value : 'ALL';
+        const brandFilterElem = document.getElementById('brandFilter');
+        const brandFilter = brandFilterElem ? brandFilterElem.value : 'ALL';
 
         // Filter cards
         const cards = document.querySelectorAll('.inv-card');
+        let visibleCardCount = 0;
         cards.forEach(card => {
             const name = (card.getAttribute('data-name') || '').toLowerCase();
             const cat = card.getAttribute('data-category') || '';
+            const brand = card.getAttribute('data-brand') || '';
             const size = (card.getAttribute('data-size') || '').toLowerCase();
+            const code = (card.getAttribute('data-product-code') || card.getAttribute('data-display-code') || card.getAttribute('data-code') || '').toLowerCase();
 
             const matchCat = (categoryFilter === 'ALL' || cat === categoryFilter);
-            const matchQuery = (!query || name.includes(query) || cat.toLowerCase().includes(query) || size.includes(query));
+            let matchBrand = true;
+            if (brandFilter === 'GENERIC') {
+                matchBrand = (!brand);
+            } else if (brandFilter !== 'ALL') {
+                matchBrand = (brand === brandFilter);
+            }
+            const matchQuery = (!query || name.includes(query) || cat.toLowerCase().includes(query) || size.includes(query) || brand.toLowerCase().includes(query) || code.includes(query));
 
-            if (matchCat && matchQuery) {
+            if (matchCat && matchBrand && matchQuery) {
                 card.style.display = 'flex';
+                visibleCardCount++;
             } else {
                 card.style.display = 'none';
             }
@@ -849,25 +1012,59 @@
 
         // Filter table rows
         const rows = document.querySelectorAll('#tableBody tr');
+        let visibleRowCount = 0;
         rows.forEach(row => {
             const name = (row.getAttribute('data-name') || '').toLowerCase();
             const cat = row.getAttribute('data-category') || '';
+            const brand = row.getAttribute('data-brand') || '';
             const size = (row.getAttribute('data-size') || '').toLowerCase();
+            const code = (row.getAttribute('data-product-code') || row.getAttribute('data-display-code') || row.getAttribute('data-code') || '').toLowerCase();
 
             const matchCat = (categoryFilter === 'ALL' || cat === categoryFilter);
-            const matchQuery = (!query || name.includes(query) || cat.toLowerCase().includes(query) || size.includes(query));
+            let matchBrand = true;
+            if (brandFilter === 'GENERIC') {
+                matchBrand = (!brand);
+            } else if (brandFilter !== 'ALL') {
+                matchBrand = (brand === brandFilter);
+            }
+            const matchQuery = (!query || name.includes(query) || cat.toLowerCase().includes(query) || size.includes(query) || brand.toLowerCase().includes(query) || code.includes(query));
 
-            if (matchCat && matchQuery) {
+            if (matchCat && matchBrand && matchQuery) {
                 row.style.display = '';
+                visibleRowCount++;
             } else {
                 row.style.display = 'none';
             }
         });
+
+        // Search feedback message
+        let noCardMatch = document.getElementById('noCardMatchMsg');
+        const cardContainer = document.getElementById('cardContainer');
+        if (!noCardMatch && cardContainer) {
+            noCardMatch = document.createElement('div');
+            noCardMatch.id = 'noCardMatchMsg';
+            noCardMatch.style.gridColumn = '1/-1';
+            noCardMatch.style.textAlign = 'center';
+            noCardMatch.style.padding = '40px';
+            noCardMatch.style.color = '#64748b';
+            noCardMatch.style.background = '#ffffff';
+            noCardMatch.style.borderRadius = '12px';
+            noCardMatch.style.border = '1.5px dashed #cbd5e1';
+            noCardMatch.innerHTML = '🔍 No matching plumbing products found. Try adjusting your search or category filter.';
+            cardContainer.appendChild(noCardMatch);
+        }
+        if (noCardMatch) {
+            noCardMatch.style.display = (visibleCardCount === 0 && cards.length > 0) ? 'block' : 'none';
+        }
     }
 
     function resetSearch() {
-        document.getElementById('inventorySearch').value = '';
-        document.getElementById('categoryFilter').value = 'ALL';
+        const searchInput = document.getElementById('inventorySearch');
+        if (searchInput) searchInput.value = '';
+        const catFilter = document.getElementById('categoryFilter');
+        if (catFilter) catFilter.value = 'ALL';
+        const brandFilter = document.getElementById('brandFilter');
+        if (brandFilter) brandFilter.value = 'ALL';
         executeSearch();
     }
 
@@ -919,15 +1116,19 @@
         const count = uniqueIds.length;
         const totalProducts = {{ products|length }};
 
-        document.getElementById('selectedCountDisplay').textContent = count;
+        const countDisplay = document.getElementById('selectedCountDisplay');
+        if (countDisplay) countDisplay.textContent = count;
+        
         const bulkBtn = document.getElementById('btnBulkDelete');
         const masterCheck = document.getElementById('selectAllCheckbox');
 
-        if (count > 0) {
-            bulkBtn.style.display = 'inline-flex';
-            bulkBtn.innerHTML = `🗑️ Delete Selected (${count})`;
-        } else {
-            bulkBtn.style.display = 'none';
+        if (bulkBtn) {
+            if (count > 0) {
+                bulkBtn.style.display = 'inline-flex';
+                bulkBtn.innerHTML = `🗑️ Delete Selected (${count})`;
+            } else {
+                bulkBtn.style.display = 'none';
+            }
         }
 
         if (masterCheck) {
@@ -944,11 +1145,49 @@
             return;
         }
 
+        const bulkBtn = document.getElementById('btnBulkDelete');
+        if (bulkBtn) {
+            bulkBtn.disabled = true;
+            bulkBtn.innerHTML = '⏳ Deleting...';
+        }
+
         try {
             const resp = await fetch('{% url "bulk_delete_products_api" %}', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
                 body: JSON.stringify({ product_ids: uniqueIds })
+            });
+            const data = await resp.json();
+
+            if (data.status === 'success') {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (err) {
+            alert('Server error: ' + err.message);
+        } finally {
+            if (bulkBtn) bulkBtn.disabled = false;
+        }
+    }
+
+    // SINGLE PRODUCT DELETE
+    async function deleteSingleProduct(id, name) {
+        if (!confirm(`Are you sure you want to delete "${name}"?`)) {
+            return;
+        }
+
+        try {
+            const resp = await fetch(`/api/product/delete/${id}/`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                }
             });
             const data = await resp.json();
 
@@ -963,30 +1202,98 @@
         }
     }
 
-    async function deleteSingleProduct(id, name) {
-        if (!confirm(`Are you sure you want to delete "${name}"?`)) {
-            return;
+    // ELEMENT-BASED SAFE HANDLERS (Immune to quotes/special character escaping issues)
+    function editProductFromElement(btn) {
+        const el = btn.closest('.inv-card, tr');
+        if (!el) return;
+        const id = el.dataset.id;
+        const name = el.dataset.name || '';
+        const catId = el.dataset.categoryId || '';
+        const brandId = el.dataset.brandId || '';
+        const code = el.dataset.productCode || '';
+        const unit = el.dataset.unit || 'PIECE';
+        const pipeLen = el.dataset.pipeLength || 6.00;
+        const size = el.dataset.size || '';
+        const rate = el.dataset.rate || 0;
+        const qty = el.dataset.quantity || 0;
+        openEditModal(id, name, catId, size, rate, qty, code, unit, brandId, pipeLen);
+    }
+
+    function deleteProductFromElement(btn) {
+        const el = btn.closest('.inv-card, tr');
+        if (!el) return;
+        const id = el.dataset.id;
+        const name = el.dataset.name || 'this product';
+        deleteSingleProduct(id, name);
+    }
+
+    // DYNAMIC PRICING UNIT & METER CALCULATOR
+    function handleInvUnitChange() {
+        const unitElem = document.getElementById('formProductUnit');
+        const unit = unitElem ? unitElem.value : 'PIECE';
+        const rateLabel = document.getElementById('formRateLabel');
+        const qtyLabel = document.getElementById('formQuantityLabel');
+        const calcBox = document.getElementById('invMeterCalcBox');
+        const pipeWrap = document.getElementById('formPipeLengthWrap');
+
+        if (pipeWrap) pipeWrap.style.display = 'block';
+
+        if (unit === 'METER') {
+            if (rateLabel) rateLabel.textContent = 'Rate per 1 Meter (₹/m) *';
+            if (qtyLabel) qtyLabel.textContent = 'Initial Stock Quantity (Total Meters) *';
+            if (calcBox) calcBox.style.display = 'block';
+            calculateInvMeterAmount();
+        } else {
+            if (rateLabel) rateLabel.textContent = 'Rate / Unit Price (₹) *';
+            if (qtyLabel) qtyLabel.textContent = 'Initial Stock Quantity (Pieces) *';
+            if (calcBox) calcBox.style.display = 'none';
         }
+    }
 
-        try {
-            const resp = await fetch(`/api/product/delete/${id}/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            const data = await resp.json();
+    function calculateInvMeterAmount() {
+        const rateElem = document.getElementById('formRate');
+        const lenElem = document.getElementById('formPipeLength');
+        const testMetersElem = document.getElementById('invMeterTestQty');
+        const rate = parseFloat(rateElem ? rateElem.value : 0) || 0;
+        const pipeLen = parseFloat(lenElem ? lenElem.value : 6.00) || 6.00;
+        const meters = parseFloat(testMetersElem ? testMetersElem.value : 1) || 1;
 
-            if (data.status === 'success') {
-                const card = document.getElementById(`card-${id}`);
-                const row = document.getElementById(`row-${id}`);
-                if (card) card.remove();
-                if (row) row.remove();
-                alert(data.message);
-                updateSelectedCounter();
-            } else {
-                alert('Error: ' + data.message);
-            }
-        } catch (err) {
-            alert('Server error: ' + err.message);
+        const tag = document.getElementById('invMeterRateTag');
+        const res = document.getElementById('invMeterCalcResult');
+        const lenText = document.getElementById('invPipeLenText');
+        const fullPrice = document.getElementById('invFullPipePrice');
+
+        if (tag) tag.textContent = `1 Meter = ₹${rate.toFixed(2)}`;
+        if (res) res.textContent = `₹${(rate * meters).toFixed(2)}`;
+        if (lenText) lenText.textContent = pipeLen.toFixed(2);
+        if (fullPrice) fullPrice.textContent = `₹${(rate * pipeLen).toFixed(2)}`;
+
+        updateInvBundlePreview();
+    }
+
+    function updateInvBundlePreview() {
+        const countInput = document.getElementById('invBundlePipeCount');
+        const lenInput = document.getElementById('formPipeLength');
+        const pipeCount = parseInt(countInput ? countInput.value : 0) || 0;
+        const pipeLen = parseFloat(lenInput ? lenInput.value : 6.00) || 6.00;
+
+        const lenElem = document.getElementById('invBundlePipeLen');
+        const totElem = document.getElementById('invBundleTotalMeters');
+        if (lenElem) lenElem.textContent = pipeLen.toFixed(2);
+        if (totElem) totElem.textContent = (pipeCount * pipeLen).toFixed(2);
+    }
+
+    function applyInvPipeBundle() {
+        const countInput = document.getElementById('invBundlePipeCount');
+        const lenInput = document.getElementById('formPipeLength');
+        const pipeCount = parseInt(countInput ? countInput.value : 0) || 0;
+        const pipeLen = parseFloat(lenInput ? lenInput.value : 6.00) || 6.00;
+        const totalMeters = Math.round(pipeCount * pipeLen);
+
+        const qtyInput = document.getElementById('formQuantity');
+        if (qtyInput) {
+            qtyInput.value = totalMeters;
+            alert(`Applied ${pipeCount} pipes (${totalMeters} meters) to initial stock quantity!`);
         }
     }
 
@@ -994,21 +1301,44 @@
     function openAddModal() {
         document.getElementById('modalTitle').textContent = '➕ Add New Plumbing Product';
         document.getElementById('formProductId').value = '';
+        const codeElem = document.getElementById('formProductCode');
+        if (codeElem) codeElem.value = '';
+        const unitElem = document.getElementById('formProductUnit');
+        if (unitElem) unitElem.value = 'PIECE';
+        document.getElementById('formCategory').value = '';
+        const brandElem = document.getElementById('formBrand');
+        if (brandElem) brandElem.value = '';
+        const lenElem = document.getElementById('formPipeLength');
+        if (lenElem) lenElem.value = '6.00';
         document.getElementById('formName').value = '';
         document.getElementById('formSize').value = '';
         document.getElementById('formRate').value = '';
         document.getElementById('formQuantity').value = '0';
+        handleInvUnitChange();
+        const warnBox = document.getElementById('productFormWarning');
+        if (warnBox) warnBox.style.display = 'none';
         document.getElementById('productModal').classList.add('show');
     }
 
-    function openEditModal(id, name, catId, size, rate, qty) {
+    function openEditModal(id, name, catId, size, rate, qty, code = '', unit = 'PIECE', brandId = '', pipeLen = 6.00) {
         document.getElementById('modalTitle').textContent = `✏️ Edit: ${name}`;
         document.getElementById('formProductId').value = id;
         document.getElementById('formCategory').value = catId;
+        const brandElem = document.getElementById('formBrand');
+        if (brandElem) brandElem.value = brandId || '';
+        const codeElem = document.getElementById('formProductCode');
+        if (codeElem) codeElem.value = code || '';
+        const unitElem = document.getElementById('formProductUnit');
+        if (unitElem) unitElem.value = unit || 'PIECE';
+        const lenElem = document.getElementById('formPipeLength');
+        if (lenElem) lenElem.value = parseFloat(pipeLen) || 6.00;
         document.getElementById('formName').value = name;
         document.getElementById('formSize').value = size;
         document.getElementById('formRate').value = rate;
         document.getElementById('formQuantity').value = qty;
+        handleInvUnitChange();
+        const warnBox = document.getElementById('productFormWarning');
+        if (warnBox) warnBox.style.display = 'none';
         document.getElementById('productModal').classList.add('show');
     }
 
@@ -1016,15 +1346,59 @@
         document.getElementById('productModal').classList.remove('show');
     }
 
+    // Close modal on outside click or Escape key
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('productModal');
+        if (event.target === modal) {
+            closeProductModal();
+        }
+    });
+
+    window.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeProductModal();
+        }
+    });
+
+    // SAVE PRODUCT (ADD OR UPDATE)
     async function saveProduct(event) {
         event.preventDefault();
         const id = document.getElementById('formProductId').value;
+        const catVal = document.getElementById('formCategory').value;
+        if (!catVal) {
+            alert('Please select a plumbing category.');
+            return;
+        }
+
+        const brandElem = document.getElementById('formBrand');
+        const codeElem = document.getElementById('formProductCode');
+        const unitElem = document.getElementById('formProductUnit');
+        const lenElem = document.getElementById('formPipeLength');
+        const nameVal = document.getElementById('formName').value.trim();
+        const sizeVal = document.getElementById('formSize').value.trim();
+
+        if (!nameVal || !sizeVal) {
+            alert('Please enter both product name and size/dimension.');
+            return;
+        }
+
+        const saveBtn = document.getElementById('btnSaveProduct');
+        const originalBtnText = saveBtn ? saveBtn.innerHTML : '💾 Save Product';
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '⏳ Saving...';
+        }
+
         const payload = {
-            category_id: parseInt(document.getElementById('formCategory').value),
-            name: document.getElementById('formName').value.trim(),
-            size: document.getElementById('formSize').value.trim(),
-            rate: parseFloat(document.getElementById('formRate').value),
-            quantity: parseInt(document.getElementById('formQuantity').value)
+            category_id: parseInt(catVal),
+            brand_id: brandElem && brandElem.value ? parseInt(brandElem.value) : null,
+            product_code: codeElem ? codeElem.value.trim() : '',
+            unit: unitElem ? unitElem.value : 'PIECE',
+            pipe_length: lenElem ? parseFloat(lenElem.value) || 6.00 : 6.00,
+            name: nameVal,
+            size: sizeVal,
+            rate: parseFloat(document.getElementById('formRate').value) || 0,
+            quantity: parseInt(document.getElementById('formQuantity').value) || 0
         };
 
         const isEdit = Boolean(id);
@@ -1036,7 +1410,10 @@
         try {
             const resp = await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
                 body: JSON.stringify(payload)
             });
             const data = await resp.json();
@@ -1053,6 +1430,11 @@
             }
         } catch (err) {
             alert('Failed to save product: ' + err.message);
+        } finally {
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalBtnText;
+            }
         }
     }
 </script>

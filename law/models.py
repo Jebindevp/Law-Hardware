@@ -40,30 +40,102 @@ class Category(models.Model):
         return self.products.count()
 
 
+class Brand(models.Model):
+    """
+    Brand / Manufacturer for plumbing items (e.g., Finolex, Ashirvad, Astral, Supreme, Prince, Jaquar, Watertec).
+    Managed dynamically by Admin.
+    """
+    name = models.CharField(max_length=120, unique=True, help_text="Brand name (e.g., Finolex, Ashirvad, Astral, Supreme)")
+    description = models.TextField(blank=True, null=True, help_text="Brief description or brand details")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Brand"
+        verbose_name_plural = "Brands"
+        ordering = ['name']
+
+    def clean(self):
+        super().clean()
+        if self.name:
+            stripped = self.name.strip()
+            existing = Brand.objects.filter(name__iexact=stripped)
+            if self.pk:
+                existing = existing.exclude(pk=self.pk)
+            if existing.exists():
+                from django.core.exceptions import ValidationError
+                raise ValidationError({
+                    'name': f'This brand "{stripped}" is already added! Duplicate brand is not allowed.'
+                })
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def product_count(self):
+        return self.products.count()
+
+
 class Product(models.Model):
     """
-    Product details: category, name, size, rate, quantity, and total stock value.
+    Product details: category, brand, ID number, name, unit (Piece vs Meter for pipes),
+    pipe length (meters per pipe piece), size, rate, quantity, and total stock value.
     """
+    UNIT_CHOICES = [
+        ('PIECE', 'Piece / Unit (Nos)'),
+        ('METER', 'Meter (m) / Length Pipe'),
+    ]
+
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
         related_name='products',
         help_text="Select product category"
     )
-    name = models.CharField(max_length=200, help_text="Product name (e.g., PVC Elbow 90 Degree, Ball Valve)")
+    brand = models.ForeignKey(
+        Brand,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='products',
+        help_text="Select product brand (e.g., Finolex, Ashirvad, Astral, Supreme)"
+    )
+    product_code = models.CharField(
+        max_length=50,
+        blank=True,
+        default='',
+        verbose_name="Item ID / Code No",
+        help_text="Unique Product/Item ID No (e.g. P-101, PIPE-25M, D00281103)"
+    )
+    name = models.CharField(max_length=200, help_text="Product name (e.g., CPVC Brass Elbow, Brass Ball Valve, PVC Pasting Pipe)")
+    unit = models.CharField(
+        max_length=20,
+        choices=UNIT_CHOICES,
+        default='PIECE',
+        verbose_name="Pricing Unit",
+        help_text="Piece / Unit or Length by Meter"
+    )
+    pipe_length = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=6.00,
+        blank=True,
+        null=True,
+        verbose_name="Standard Pipe Length (Meters)",
+        help_text="Standard length per pipe piece in meters (e.g., 6.0m, 3.0m)"
+    )
     size = models.CharField(
         max_length=80,
-        help_text="Size or dimension (e.g., 1/2\", 3/4\", 1\", 25mm, 100m, Standard)"
+        help_text="Size or dimension (e.g., 1/2\", 3/4\", 1\", 25mm, 110mm, 100m, Standard)"
     )
     rate = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0.00,
-        help_text="Rate / Unit price in Currency (e.g. 45.00)"
+        help_text="Rate / Unit price or 1 Meter price in ₹ (e.g. 150.00, 581.00)"
     )
     quantity = models.PositiveIntegerField(
         default=0,
-        help_text="Stock quantity available in store"
+        help_text="Stock quantity available in store (Pieces or Total Meters)"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -72,12 +144,6 @@ class Product(models.Model):
         verbose_name = "Product"
         verbose_name_plural = "Products"
         ordering = ['category', 'name', 'size']
-        constraints = [
-            models.UniqueConstraint(
-                fields=['category', 'name', 'size'],
-                name='unique_product_per_category_and_size'
-            )
-        ]
 
     def clean(self):
         super().clean()
@@ -86,6 +152,7 @@ class Product(models.Model):
             prod_size = self.size.strip()
             existing = Product.objects.filter(
                 category=self.category,
+                brand=self.brand,
                 name__iexact=prod_name,
                 size__iexact=prod_size
             )
@@ -93,19 +160,59 @@ class Product(models.Model):
                 existing = existing.exclude(pk=self.pk)
             if existing.exists():
                 from django.core.exceptions import ValidationError
+                brand_label = f" [{self.brand.name}]" if self.brand else ""
                 raise ValidationError({
-                    'name': f'This item "{prod_name} ({prod_size})" is already added in category "{self.category.name}"! Duplicate product is not allowed.'
+                    'name': f'This item "{prod_name}{brand_label} ({prod_size})" is already added in category "{self.category.name}"! Duplicate product is not allowed.'
                 })
 
     def __str__(self):
-        return f"{self.name} - {self.size} ({self.category.name})"
+        brand_str = f" [{self.brand.name}]" if self.brand else ""
+        return f"{self.name}{brand_str} - {self.size} ({self.category.name})"
+
+    @property
+    def display_code(self):
+        if self.product_code and self.product_code.strip():
+            return self.product_code.strip()
+        return f"P-{self.id:04d}" if self.id else "P-NEW"
+
+    @property
+    def display_brand(self):
+        return self.brand.name if self.brand else "Generic / Standard"
+
+    @property
+    def is_meter(self):
+        return self.unit == 'METER'
+
+    @property
+    def unit_label(self):
+        return "meter" if self.unit == 'METER' else "pcs"
+
+    @property
+    def rate_display(self):
+        if self.unit == 'METER':
+            return f"₹{self.rate:.2f} / meter"
+        return f"₹{self.rate:.2f} / pc"
+
+    @property
+    def full_pipe_price(self):
+        """Price for 1 full standard length pipe (rate * pipe_length)"""
+        if self.unit == 'METER' and self.pipe_length and self.pipe_length > 0:
+            return round(float(self.rate) * float(self.pipe_length), 2)
+        return float(self.rate)
+
+    @property
+    def estimated_pipe_count(self):
+        """Estimated number of full pipes based on total stock meters / pipe_length"""
+        if self.unit == 'METER' and self.pipe_length and self.pipe_length > 0 and self.quantity:
+            return round(self.quantity / float(self.pipe_length), 1)
+        return self.quantity
 
     @property
     def total(self):
         """Total inventory value = rate * quantity"""
         if self.rate is None or self.quantity is None:
             return 0.00
-        return round(self.rate * self.quantity, 2)
+        return round(float(self.rate) * float(self.quantity), 2)
 
     @property
     def is_low_stock(self):
@@ -136,7 +243,8 @@ class Bill(models.Model):
 
     PAYMENT_CHOICES = [
         ('CASH', 'Cash'),
-        ('UPI', 'UPI / GPay / PhonePe'),
+        ('UPI', 'UPI / GPay / PhonePe / Paytm'),
+        ('SPLIT', 'Split (Cash + UPI)'),
         ('CARD', 'Debit / Credit Card'),
         ('CREDIT', 'Credit / Due'),
     ]
@@ -253,7 +361,7 @@ class BillItem(models.Model):
     category_name = models.CharField(max_length=120, blank=True, default='')
     size = models.CharField(max_length=80)
     rate = models.DecimalField(max_digits=10, decimal_places=2)
-    quantity = models.PositiveIntegerField(default=1)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1.00, verbose_name="Quantity / Meters")
     total = models.DecimalField(max_digits=12, decimal_places=2)
 
     class Meta:
@@ -265,7 +373,7 @@ class BillItem(models.Model):
 
     def save(self, *args, **kwargs):
         if self.rate is not None and self.quantity is not None:
-            self.total = round(self.rate * self.quantity, 2)
+            self.total = round(float(self.rate) * float(self.quantity), 2)
         else:
             self.total = 0.00
         super().save(*args, **kwargs)

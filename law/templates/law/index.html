@@ -2993,7 +2993,7 @@
                                 <button type="button" class="btn-card-edit" onclick="openEditOfferModal({{ forloop.counter0 }})" title="Edit offer card">
                                     ✏️ Edit
                                 </button>
-                                <button type="button" class="btn-card-delete" onclick="deleteFeaturedOfferDirect('{{ item.id }}', '{{ item.name|escapejs }}')" title="Delete offer card">
+                                <button type="button" class="btn-card-delete" data-id="{{ item.id }}" data-name="{{ item.name|escape }}" onclick="deleteFeaturedOfferFromBtn(this)" title="Delete offer card">
                                     🗑️ Delete
                                 </button>
                             </div>
@@ -4018,6 +4018,11 @@
             } finally {
                 if (btn) btn.disabled = false;
             }
+        }
+
+        function deleteFeaturedOfferFromBtn(btn) {
+            if (!btn) return;
+            deleteFeaturedOfferDirect(btn.dataset.id, btn.dataset.name);
         }
 
         async function deleteFeaturedOfferDirect(offerId, offerName) {

@@ -897,6 +897,288 @@
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     }
 
+    /* ==========================================================================
+       PIPE LENGTH & METER QUICK-ADDER STYLES
+       ========================================================================== */
+    .pipe-quick-adder-box {
+        background: #f0f9ff;
+        border: 1.5px solid #bae6fd;
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+    }
+    .pipe-quick-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        user-select: none;
+    }
+    .pipe-mode-toggle-group {
+        display: flex;
+        gap: 4px;
+        background: #e0f2fe;
+        padding: 3px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+    }
+    .pipe-mode-pill {
+        flex: 1;
+        padding: 5px 8px;
+        font-size: 11px;
+        font-weight: 700;
+        border: none;
+        background: transparent;
+        color: #0369a1;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .pipe-mode-pill.active {
+        background: #0284c7;
+        color: #ffffff;
+        box-shadow: 0 1px 4px rgba(2, 132, 199, 0.3);
+    }
+    .pipe-inputs-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+    .pipe-num-input {
+        width: 100%;
+        height: 34px;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 6px;
+        text-align: center;
+        font-size: 13.5px;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+        background: #ffffff;
+        color: #0f172a;
+    }
+    .pipe-num-input:focus {
+        outline: none;
+        border-color: #0284c7;
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+    .btn-mini-step {
+        width: 28px;
+        height: 34px;
+        background: #e2e8f0;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-weight: 800;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #334155;
+    }
+    .btn-mini-step:hover {
+        background: #cbd5e1;
+    }
+    .pipe-calc-result-badge {
+        background: #ffffff;
+        border: 1px solid #bae6fd;
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 11.5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    .btn-add-pipe-submit {
+        width: 100%;
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        padding: 8px;
+        font-size: 12.5px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.15s;
+        box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+    }
+    .btn-add-pipe-submit:hover {
+        background: #0369a1;
+        transform: translateY(-1px);
+    }
+    .btn-step-pipe {
+        background: #e0f2fe;
+        color: #0284c7;
+        border: 1px solid #bae6fd;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 800;
+        padding: 2px 6px;
+        cursor: pointer;
+        margin-top: 3px;
+        display: inline-block;
+    }
+    .btn-step-pipe:hover {
+        background: #0284c7;
+        color: #ffffff;
+    }
+
+    /* ==========================================================================
+       MULTI-PAYMENT SPLIT BREAKDOWN (CASH + GPAY / PHONEPE / PAYTM / CARD)
+       ========================================================================== */
+    .payment-split-box {
+        background: #f8fafc;
+        border: 1.5px solid var(--color-gray-border);
+        border-radius: 10px;
+        padding: 12px;
+        margin-top: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .payment-split-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 6px;
+        border-bottom: 1px dashed #cbd5e1;
+    }
+    .split-preset-pills {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+    .split-preset-btn {
+        flex: 1;
+        min-width: 65px;
+        padding: 5px 6px;
+        font-size: 10.5px;
+        font-weight: 800;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 6px;
+        background: #ffffff;
+        color: #475569;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.15s;
+    }
+    .split-preset-btn.active, .split-preset-btn:hover {
+        background: #0f172a;
+        color: #ffffff;
+        border-color: #0f172a;
+    }
+    .split-inputs-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .split-input-row {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 6px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+    .split-row-label {
+        display: flex;
+        flex-direction: column;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: #334155;
+    }
+    .upi-apps-icons {
+        font-size: 9.5px;
+        color: #0284c7;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+    }
+    .split-row-field {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .currency-prefix {
+        font-size: 12px;
+        font-weight: 800;
+        color: #64748b;
+    }
+    .split-val-input {
+        width: 84px;
+        height: 32px;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 0 6px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 13px;
+        font-weight: 800;
+        text-align: right;
+        background: #f8fafc;
+        color: #0f172a;
+    }
+    .split-val-input:focus {
+        outline: none;
+        border-color: #0284c7;
+        background: #ffffff;
+    }
+    .btn-split-action {
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 4px 6px;
+        border-radius: 4px;
+        cursor: pointer;
+        color: #475569;
+        white-space: nowrap;
+    }
+    .btn-split-action:hover {
+        background: #0284c7;
+        color: #ffffff;
+        border-color: #0284c7;
+    }
+    .split-summary-bar {
+        background: #f1f5f9;
+        border-radius: 6px;
+        padding: 6px 10px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        border: 1px dashed #cbd5e1;
+    }
+    .split-sum-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+    }
+    .split-sum-label {
+        color: #64748b;
+        font-weight: 600;
+    }
+    .split-sum-val {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 13.5px;
+    }
+    .split-sum-sep {
+        color: #cbd5e1;
+    }
+    .split-breakdown-tag {
+        font-size: 11px;
+        font-weight: 700;
+        background: #e0f2fe;
+        color: #0369a1;
+        border: 1px solid #bae6fd;
+        border-radius: 6px;
+        padding: 4px 8px;
+        text-align: center;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
     /* Action Buttons in Checkout Panel */
     .checkout-actions-row {
         display: grid;
@@ -1189,6 +1471,7 @@
 
 {% block content %}
 <div class="pos-main-wrapper">
+    {% csrf_token %}
     <!-- Top Hero Banner Card with Embedded Real-Time Live Clock -->
     <div class="pos-banner-card">
         <div class="pos-banner-title">
@@ -1272,8 +1555,8 @@
                     <select id="quickProductSelect" class="pos-search-input" onchange="handleProductDropdownSelect(this)">
                         <option value="">-- Select Product to Add to Bill --</option>
                         {% for p in products %}
-                        <option value="{{ p.id }}" data-name="{{ p.name }}" data-category="{{ p.category.name }}" data-size="{{ p.size }}" data-rate="{{ p.rate }}" data-stock="{{ p.quantity }}">
-                            {{ p.category.name }} • {{ p.name }} ({{ p.size }}) — ₹{{ p.rate|floatformat:2 }}
+                        <option value="{{ p.id }}" data-name="{{ p.name }}" data-code="{{ p.display_code }}" data-unit="{{ p.unit }}" data-brand="{{ p.brand.name|default:'' }}" data-pipe-length="{{ p.pipe_length|default:6.00 }}" data-category="{{ p.category.name }}" data-size="{{ p.size }}" data-rate="{{ p.rate }}" data-stock="{{ p.quantity }}">
+                            #{{ p.display_code }} • {% if p.brand %}[{{ p.brand.name }}] {% endif %}{{ p.category.name }} • {{ p.name }} ({{ p.size }}) — ₹{{ p.rate|floatformat:2 }}{% if p.unit == 'METER' %}/m ({{ p.pipe_length|default:6.00 }}m pipe = ₹{{ p.full_pipe_price|floatformat:2 }}){% else %}/pc{% endif %}
                         </option>
                         {% endfor %}
                     </select>
@@ -1313,6 +1596,10 @@
                 <div class="pos-product-card" 
                      id="pos-prod-{{ p.id }}"
                      data-id="{{ p.id }}"
+                     data-code="{{ p.display_code }}"
+                     data-unit="{{ p.unit }}"
+                     data-brand="{{ p.brand.name|default:'' }}"
+                     data-pipe-length="{{ p.pipe_length|default:6.00 }}"
                      data-name="{{ p.name }}"
                      data-category="{{ p.category.name }}"
                      data-size="{{ p.size }}"
@@ -1321,20 +1608,38 @@
                      onclick="selectCardProduct(this)">
                     
                     <div>
-                        <span class="pos-card-cat-badge">{{ p.category.name }}</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 4px;">
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <span class="pos-card-cat-badge">{{ p.category.name }}</span>
+                                {% if p.brand %}
+                                <span style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 4px;">{{ p.brand.name }}</span>
+                                {% endif %}
+                            </div>
+                            <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; background: #0f172a; color: #ffffff; padding: 2px 6px; border-radius: 4px; font-weight: 700;">#{{ p.display_code }}</span>
+                        </div>
                         <div class="pos-card-name">{{ p.name }}</div>
-                        <span class="pos-card-size">⚙️ {{ p.size }}</span>
+                        <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-top: 2px;">
+                            <span class="pos-card-size">⚙️ {{ p.size }}</span>
+                            {% if p.unit == 'METER' %}
+                            <span style="font-size: 10px; font-weight: 800; background: #e0f2fe; color: #0284c7; padding: 1px 6px; border-radius: 4px;">📏 {{ p.pipe_length|default:6.00 }}m Pipe (₹{{ p.full_pipe_price|floatformat:2 }}/pc)</span>
+                            {% endif %}
+                        </div>
                     </div>
 
                     <div class="pos-card-footer">
                         <div>
-                            <div class="pos-card-rate">₹{{ p.rate|floatformat:2 }}</div>
+                            <div class="pos-card-rate">
+                                ₹{{ p.rate|floatformat:2 }}
+                                {% if p.unit == 'METER' %}
+                                <small style="font-size: 11px; color: #0284c7; font-weight: 700;">/m</small>
+                                {% endif %}
+                            </div>
                             {% if p.quantity == 0 %}
                             <span class="pos-stock-tag stock-zero">Out of Stock</span>
                             {% elif p.quantity <= 10 %}
-                            <span class="pos-stock-tag stock-low">Low: {{ p.quantity }}</span>
+                            <span class="pos-stock-tag stock-low">Low: {{ p.quantity }}{% if p.unit == 'METER' %}m{% endif %}</span>
                             {% else %}
-                            <span class="pos-stock-tag stock-in">Stock: {{ p.quantity }}</span>
+                            <span class="pos-stock-tag stock-in">Stock: {{ p.quantity }}{% if p.unit == 'METER' %}m{% endif %}</span>
                             {% endif %}
                         </div>
 
@@ -1423,6 +1728,86 @@
                 </div>
             </div>
 
+            <!-- Pipe Length & Meter Quick-Adder & Calculator -->
+            <div class="pipe-quick-adder-box">
+                <div class="pipe-quick-head" onclick="togglePipeQuickAdder()">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 16px;">📏</span>
+                        <div>
+                            <strong style="font-size: 13px; color: #0f172a;">Pipe Length & Meter Quick-Adder</strong>
+                            <div style="font-size: 11px; color: #64748b;">Convert & add by Full Pipes (Pieces) or Exact Meters</div>
+                        </div>
+                    </div>
+                    <span id="pipeToggleIcon" style="font-size: 11px; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 3px 8px; border-radius: 6px;">▼ Open Calculator</span>
+                </div>
+
+                <div id="pipeQuickBody" style="display: none; margin-top: 10px;">
+                    <!-- Product Selector -->
+                    <div style="margin-bottom: 8px;">
+                        <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 3px;">Select Plumbing Pipe:</label>
+                        <select id="pipeQuickSelect" class="cust-select-field" onchange="onPipeQuickProductChanged()" style="font-size: 12px; height: 36px; padding: 4px 8px;">
+                            <option value="">-- Choose Pipe / Fitting Product --</option>
+                            {% for p in products %}
+                                <option value="{{ p.id }}" 
+                                        data-id="{{ p.id }}"
+                                        data-name="{{ p.name }}"
+                                        data-code="{{ p.display_code }}"
+                                        data-unit="{{ p.unit }}"
+                                        data-brand="{{ p.display_brand }}"
+                                        data-pipe-length="{{ p.pipe_length|default:6.00 }}"
+                                        data-category="{{ p.category.name }}"
+                                        data-size="{{ p.size }}"
+                                        data-rate="{{ p.rate }}"
+                                        data-stock="{{ p.quantity }}">
+                                    {% if p.unit == 'METER' %}📏{% else %}📦{% endif %} {{ p.name }} ({{ p.size }}) — ₹{{ p.rate }}{% if p.unit == 'METER' %}/m{% else %}/pc{% endif %} [Std: {{ p.pipe_length|default:6.00 }}m]
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Mode Switch: By Full Pipes (Lengths) vs By Exact Meters -->
+                    <div class="pipe-mode-toggle-group">
+                        <button type="button" id="btnPipeModePieces" class="pipe-mode-pill active" onclick="switchPipeMode('PIECES')">
+                            🏗️ By Full Pipes (Pieces)
+                        </button>
+                        <button type="button" id="btnPipeModeMeters" class="pipe-mode-pill" onclick="switchPipeMode('METERS')">
+                            📏 By Exact Meters (m)
+                        </button>
+                    </div>
+
+                    <!-- Two-way sync inputs: Pipes count <-> Total meters -->
+                    <div class="pipe-inputs-grid">
+                        <div>
+                            <label style="font-size: 10.5px; font-weight: 700; color: #475569; display: block;">Full Pipes (Pcs):</label>
+                            <div style="display: flex; align-items: center; gap: 4px; margin-top: 3px;">
+                                <button type="button" class="btn-mini-step" onclick="stepPipePcs(-1)">−</button>
+                                <input type="number" id="pipeQuickPcs" class="pipe-num-input" value="1" min="1" step="1" oninput="syncPipeCalc('FROM_PCS')">
+                                <button type="button" class="btn-mini-step" onclick="stepPipePcs(1)">+</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="font-size: 10.5px; font-weight: 700; color: #475569; display: block;">Total Meters (m):</label>
+                            <div style="display: flex; align-items: center; gap: 4px; margin-top: 3px;">
+                                <button type="button" class="btn-mini-step" onclick="stepPipeMeters(-1)">−</button>
+                                <input type="number" id="pipeQuickMeters" class="pipe-num-input" value="6.00" min="0.1" step="0.5" oninput="syncPipeCalc('FROM_METERS')" style="color: #0284c7; font-weight: 800;">
+                                <button type="button" class="btn-mini-step" onclick="stepPipeMeters(1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Computation Breakdown Badge -->
+                    <div class="pipe-calc-result-badge">
+                        <div id="pipeCalcFormulaDesc">1 pipe × 6.00m = <strong>6.00 meters</strong></div>
+                        <div id="pipeCalcPriceDesc" style="font-weight: 800; color: #0284c7; font-size: 13.5px;">₹0.00</div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <button type="button" id="btnAddPipeQuick" class="btn-add-pipe-submit" onclick="addPipeQuickToBill()">
+                        ➕ Add Pipe (<span id="pipeBtnMeterLabel">6.0m</span>) to Bill
+                    </button>
+                </div>
+            </div>
+
             <!-- Scrollable Cart Items Table -->
             <div class="cart-items-scroll">
                 <table class="cart-items-table" id="cartItemsTable">
@@ -1476,36 +1861,103 @@
                     <span class="grand-total-highlight" id="calcGrandTotal">₹0.00</span>
                 </div>
 
-                <!-- Paid Amount Input and Live Balance -->
-                <div class="calc-row" style="border-top: 1.5px dashed #cbd5e1; padding-top: 8px; margin-top: 4px; align-items: center;">
-                    <span style="font-weight: 700; color: #15803d;">Paid Amount (₹):</span>
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <input type="number" id="paidAmountField" class="discount-input-field" style="color: #15803d; border-color: #86efac; width: 100px;" value="0" min="0" step="1" oninput="handlePaidAmountInput()">
-                        <button type="button" onclick="setFullPaid()" style="background: #dcfce7; border: 1px solid #86efac; color: #15803d; font-size: 11px; font-weight: 800; padding: 5px 8px; border-radius: 6px; cursor: pointer;">Full</button>
+                <!-- Multi-Payment Mode & Split Breakdown (Cash + GPay / PhonePe / Paytm / Card) -->
+                <div class="payment-split-box">
+                    <div class="payment-split-head">
+                        <span style="font-weight: 800; font-size: 11.5px; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">
+                            💳 Payment Breakdown & Amounts
+                        </span>
+                        <span style="font-size: 11px; font-weight: 700; color: #0284c7;" id="paymentSplitStateLabel">100% Cash</span>
+                    </div>
+
+                    <!-- Quick Preset Pills -->
+                    <div class="split-preset-pills">
+                        <button type="button" class="split-preset-btn active" id="btnPresetCash" onclick="applyPaymentPreset('CASH')">
+                            💵 100% Cash
+                        </button>
+                        <button type="button" class="split-preset-btn" id="btnPresetUpi" onclick="applyPaymentPreset('UPI')">
+                            📱 100% GPay / PhonePe
+                        </button>
+                        <button type="button" class="split-preset-btn" id="btnPresetSplit" onclick="applyPaymentPreset('SPLIT_HALF')">
+                            ⚡ 50-50 Split
+                        </button>
+                        <button type="button" class="split-preset-btn" id="btnPresetCard" onclick="applyPaymentPreset('CARD')">
+                            💳 Card
+                        </button>
+                        <button type="button" class="split-preset-btn" id="btnPresetCredit" onclick="applyPaymentPreset('CREDIT')">
+                            📝 Full Due
+                        </button>
+                    </div>
+
+                    <!-- Split Amount Inputs -->
+                    <div class="split-inputs-wrap">
+                        <!-- Cash Row -->
+                        <div class="split-input-row">
+                            <div class="split-row-label">
+                                <span>💵 Cash Amount:</span>
+                            </div>
+                            <div class="split-row-field">
+                                <span class="currency-prefix">₹</span>
+                                <input type="number" id="payCashAmount" class="split-val-input" value="0" min="0" step="1" oninput="onSplitAmountChanged('CASH')">
+                                <button type="button" class="btn-split-action" onclick="fillRemainingAmount('CASH')">Remaining</button>
+                            </div>
+                        </div>
+
+                        <!-- UPI / GPay / PhonePe / Paytm Row -->
+                        <div class="split-input-row">
+                            <div class="split-row-label">
+                                <span>📱 GPay / PhonePe / Paytm:</span>
+                                <span class="upi-apps-icons">GPay • PhonePe • Paytm</span>
+                            </div>
+                            <div class="split-row-field">
+                                <span class="currency-prefix">₹</span>
+                                <input type="number" id="payUpiAmount" class="split-val-input" value="0" min="0" step="1" oninput="onSplitAmountChanged('UPI')" style="color: #0284c7; font-weight: 800;">
+                                <button type="button" class="btn-split-action" onclick="fillRemainingAmount('UPI')">Remaining</button>
+                            </div>
+                        </div>
+
+                        <!-- Card / POS Machine Row -->
+                        <div class="split-input-row">
+                            <div class="split-row-label">
+                                <span>💳 Card / POS Machine:</span>
+                            </div>
+                            <div class="split-row-field">
+                                <span class="currency-prefix">₹</span>
+                                <input type="number" id="payCardAmount" class="split-val-input" value="0" min="0" step="1" oninput="onSplitAmountChanged('CARD')">
+                                <button type="button" class="btn-split-action" onclick="fillRemainingAmount('CARD')">Remaining</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden synced total paid input -->
+                    <input type="hidden" id="paidAmountField" value="0">
+
+                    <!-- Live Total Paid & Remaining Balance Row -->
+                    <div class="split-summary-bar">
+                        <div class="split-sum-item">
+                            <span class="split-sum-label">Total Paid:</span>
+                            <strong class="split-sum-val" id="displayTotalPaid" style="color: #15803d;">₹0.00</strong>
+                        </div>
+                        <div class="split-sum-sep">|</div>
+                        <div class="split-sum-item">
+                            <span class="split-sum-label">Balance Due:</span>
+                            <strong class="split-sum-val" id="calcBalanceAmount" style="color: #16a34a;">₹0.00</strong>
+                        </div>
+                    </div>
+
+                    <!-- Active Split Badges Pill -->
+                    <div id="splitBreakdownTag" class="split-breakdown-tag">
+                        💵 Cash: ₹0.00 | 📱 UPI: ₹0.00
+                    </div>
+
+                    <!-- Live Payment Status Badge Preview -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 12px;">
+                        <span style="font-weight: 700; color: #64748b;">Payment Status:</span>
+                        <div id="paymentStatusBadgePreview" class="status-badge-completed">
+                            ✓ Completed Paid
+                        </div>
                     </div>
                 </div>
-
-                <div class="calc-row" style="align-items: center;">
-                    <span style="font-weight: 800;">Balance Amount:</span>
-                    <strong id="calcBalanceAmount" style="font-size: 15px; color: #16a34a;">₹0.00</strong>
-                </div>
-
-                <!-- Live Payment Status Badge Preview -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 12px;">
-                    <span style="font-weight: 700; color: #64748b;">Payment Status:</span>
-                    <div id="paymentStatusBadgePreview" class="status-badge-completed">
-                        ✓ Completed Paid
-                    </div>
-                </div>
-            </div>
-
-            <!-- Payment Mode Selector -->
-            <div style="font-size: 11px; font-weight: 800; color: #64748b; margin-bottom: 6px; text-transform: uppercase;">Payment Mode:</div>
-            <div class="payment-options-grid">
-                <div class="pay-btn-pill selected" onclick="setPosPayment('CASH', this)">💵 Cash</div>
-                <div class="pay-btn-pill" onclick="setPosPayment('UPI', this)">📱 UPI / GPay</div>
-                <div class="pay-btn-pill" onclick="setPosPayment('CARD', this)">💳 Card</div>
-                <div class="pay-btn-pill" onclick="setPosPayment('CREDIT', this)">📝 Due</div>
             </div>
 
             <!-- Checkout Buttons -->
@@ -1570,6 +2022,10 @@
                 <span style="color: #16a34a; font-weight: 700;">Paid Amount:</span>
                 <strong style="color: #16a34a;" id="resPaidAmount">₹0.00</strong>
             </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;" id="resPaymentBreakdownRow">
+                <span style="color: #64748b; font-size: 12px;">Split Breakdown:</span>
+                <strong style="color: #0284c7; font-size: 12px; font-family: 'JetBrains Mono', monospace;" id="resPaymentBreakdown">-</strong>
+            </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                 <span style="color: #64748b; font-weight: 700;">Balance Due:</span>
                 <strong style="color: #dc2626;" id="resBalanceAmount">₹0.00</strong>
@@ -1594,6 +2050,13 @@
 
 {% block scripts %}
 <script>
+    function getCsrfToken() {
+        const input = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (input && input.value) return input.value;
+        const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+        return cookie ? cookie.split('=')[1] : '';
+    }
+
     let posCart = [];
     let currentCategory = 'ALL';
     let currentPaymentMode = 'CASH';
@@ -1601,6 +2064,16 @@
     let currentGstRate = 18.0;
     let manualPaidModified = false;
     let generatedBillId = null;
+
+    // Multi-Payment Mode & Split Variables
+    let paySplitCash = 0;
+    let paySplitUpi = 0;
+    let paySplitCard = 0;
+    let paymentPreset = 'CASH';
+
+    // Pipe Length & Meter Quick-Adder Variables
+    let pipeQuickMode = 'PIECES'; // 'PIECES' or 'METERS'
+    let currentPipeStandardLen = 6.00;
 
     // REAL-TIME CLOCK FUNCTION FOR POS TERMINAL
     function updatePosClock() {
@@ -1704,12 +2177,23 @@
         const opt = selElem.options[selElem.selectedIndex];
         const id = parseInt(prodId);
         const name = opt.getAttribute('data-name');
+        const code = opt.getAttribute('data-code') || '';
+        const unit = opt.getAttribute('data-unit') || 'PIECE';
+        const brand = opt.getAttribute('data-brand') || '';
+        const pipeLen = parseFloat(opt.getAttribute('data-pipe-length')) || 6.00;
         const category = opt.getAttribute('data-category');
         const size = opt.getAttribute('data-size');
         const rate = parseFloat(opt.getAttribute('data-rate')) || 0;
         const stock = parseInt(opt.getAttribute('data-stock')) || 0;
-        addToCart(id, name, category, size, rate, stock);
+        addToCart(id, name, category, size, rate, stock, code, unit, brand, pipeLen);
         selElem.value = ''; // Reset dropdown after selection
+
+        // Sync Pipe Quick-Adder
+        const pipeSel = document.getElementById('pipeQuickSelect');
+        if (pipeSel) {
+            pipeSel.value = id;
+            onPipeQuickProductChanged();
+        }
     }
 
     // Card Click Product Selection Handler
@@ -1717,21 +2201,187 @@
         if (!cardElem) return;
         const id = parseInt(cardElem.getAttribute('data-id'));
         const name = cardElem.getAttribute('data-name');
+        const code = cardElem.getAttribute('data-code') || '';
+        const unit = cardElem.getAttribute('data-unit') || 'PIECE';
+        const brand = cardElem.getAttribute('data-brand') || '';
+        const pipeLen = parseFloat(cardElem.getAttribute('data-pipe-length')) || 6.00;
         const category = cardElem.getAttribute('data-category');
         const size = cardElem.getAttribute('data-size');
         const rate = parseFloat(cardElem.getAttribute('data-rate')) || 0;
         const stock = parseInt(cardElem.getAttribute('data-stock')) || 0;
-        addToCart(id, name, category, size, rate, stock);
+        addToCart(id, name, category, size, rate, stock, code, unit, brand, pipeLen);
+
+        // Sync Pipe Quick-Adder dropdown
+        const pipeSel = document.getElementById('pipeQuickSelect');
+        if (pipeSel) {
+            pipeSel.value = id;
+            onPipeQuickProductChanged();
+        }
     }
 
+    // ==========================================
+    // PIPE LENGTH & METER QUICK-ADDER FUNCTIONS
+    // ==========================================
+    function togglePipeQuickAdder() {
+        const body = document.getElementById('pipeQuickBody');
+        const icon = document.getElementById('pipeToggleIcon');
+        if (!body) return;
+        const isHidden = (body.style.display === 'none' || !body.style.display);
+        body.style.display = isHidden ? 'block' : 'none';
+        if (icon) icon.textContent = isHidden ? '▲ Close Calculator' : '▼ Open Calculator';
+    }
+
+    function onPipeQuickProductChanged() {
+        const sel = document.getElementById('pipeQuickSelect');
+        if (!sel || !sel.value) return;
+        const opt = sel.options[sel.selectedIndex];
+        currentPipeStandardLen = parseFloat(opt.getAttribute('data-pipe-length')) || 6.00;
+        syncPipeCalc('FROM_PCS');
+    }
+
+    function switchPipeMode(mode) {
+        pipeQuickMode = mode;
+        const btnPcs = document.getElementById('btnPipeModePieces');
+        const btnMeters = document.getElementById('btnPipeModeMeters');
+        if (btnPcs) btnPcs.classList.toggle('active', mode === 'PIECES');
+        if (btnMeters) btnMeters.classList.toggle('active', mode === 'METERS');
+        if (mode === 'PIECES') {
+            syncPipeCalc('FROM_PCS');
+        } else {
+            syncPipeCalc('FROM_METERS');
+        }
+    }
+
+    function stepPipePcs(delta) {
+        const inp = document.getElementById('pipeQuickPcs');
+        if (!inp) return;
+        let v = parseInt(inp.value) || 1;
+        v = Math.max(1, v + delta);
+        inp.value = v;
+        syncPipeCalc('FROM_PCS');
+    }
+
+    function stepPipeMeters(delta) {
+        const inp = document.getElementById('pipeQuickMeters');
+        if (!inp) return;
+        let v = parseFloat(inp.value) || 0;
+        v = Math.max(0.5, v + delta);
+        inp.value = v.toFixed(1);
+        syncPipeCalc('FROM_METERS');
+    }
+
+    function syncPipeCalc(source) {
+        const sel = document.getElementById('pipeQuickSelect');
+        const pcsInput = document.getElementById('pipeQuickPcs');
+        const metersInput = document.getElementById('pipeQuickMeters');
+        const formulaElem = document.getElementById('pipeCalcFormulaDesc');
+        const priceElem = document.getElementById('pipeCalcPriceDesc');
+        const btnLabel = document.getElementById('pipeBtnMeterLabel');
+
+        const stdLen = currentPipeStandardLen > 0 ? currentPipeStandardLen : 6.00;
+
+        let pcs = parseInt(pcsInput.value) || 1;
+        let meters = parseFloat(metersInput.value) || stdLen;
+
+        if (source === 'FROM_PCS') {
+            meters = parseFloat((pcs * stdLen).toFixed(2));
+            metersInput.value = meters;
+        } else if (source === 'FROM_METERS') {
+            pcs = Math.max(1, Math.round(meters / stdLen));
+            pcsInput.value = pcs;
+        }
+
+        if (btnLabel) {
+            btnLabel.textContent = `${meters}m`;
+        }
+
+        let rate = 0;
+        let isMeter = true;
+        if (sel && sel.selectedIndex > 0) {
+            const opt = sel.options[sel.selectedIndex];
+            rate = parseFloat(opt.getAttribute('data-rate')) || 0;
+            isMeter = (opt.getAttribute('data-unit') === 'METER');
+        }
+
+        const totalCost = isMeter ? (meters * rate) : (pcs * rate);
+        if (formulaElem) {
+            formulaElem.innerHTML = `${pcs} pipe${pcs > 1 ? 's' : ''} × ${stdLen}m = <strong>${meters} meters</strong>`;
+        }
+        if (priceElem) {
+            priceElem.textContent = `₹${totalCost.toFixed(2)}`;
+        }
+    }
+
+    function addPipeQuickToBill() {
+        const sel = document.getElementById('pipeQuickSelect');
+        if (!sel || !sel.value) {
+            alert('Please select a plumbing pipe from the dropdown first.');
+            return;
+        }
+        const opt = sel.options[sel.selectedIndex];
+        const id = parseInt(opt.getAttribute('data-id'));
+        const name = opt.getAttribute('data-name');
+        const code = opt.getAttribute('data-code') || '';
+        const unit = opt.getAttribute('data-unit') || 'METER';
+        const brand = opt.getAttribute('data-brand') || '';
+        const pipeLen = parseFloat(opt.getAttribute('data-pipe-length')) || 6.00;
+        const category = opt.getAttribute('data-category');
+        const size = opt.getAttribute('data-size');
+        const rate = parseFloat(opt.getAttribute('data-rate')) || 0;
+        const stock = parseInt(opt.getAttribute('data-stock')) || 0;
+
+        const meters = parseFloat(document.getElementById('pipeQuickMeters').value) || pipeLen;
+        const pcs = parseInt(document.getElementById('pipeQuickPcs').value) || 1;
+        const qtyToAdd = (unit === 'METER') ? meters : pcs;
+
+        const existing = posCart.find(i => i.id === id);
+        if (existing) {
+            existing.qty += qtyToAdd;
+        } else {
+            posCart.push({
+                id: id,
+                code: code,
+                unit: unit,
+                brand: brand,
+                pipeLength: pipeLen,
+                name: name,
+                category: category,
+                size: size,
+                rate: rate,
+                qty: qtyToAdd,
+                stock: stock
+            });
+        }
+        renderPosCart();
+    }
+
+    function stepPipeItemLength(id, stdLen, deltaPipes) {
+        const item = posCart.find(i => i.id === id);
+        if (!item) return;
+        const len = (stdLen > 0 ? stdLen : 6.00);
+        item.qty += (deltaPipes * len);
+        if (item.qty <= 0) {
+            posCart = posCart.filter(i => i.id !== id);
+        } else {
+            item.qty = parseFloat(item.qty.toFixed(2));
+        }
+        renderPosCart();
+    }
+
+    // ==========================================
     // CART OPERATIONS
-    function addToCart(id, name, category, size, rate, stock) {
+    // ==========================================
+    function addToCart(id, name, category, size, rate, stock, code = '', unit = 'PIECE', brand = '', pipeLen = 6.00) {
         const existing = posCart.find(i => i.id === id);
         if (existing) {
             existing.qty += 1;
         } else {
             posCart.push({
                 id: id,
+                code: code,
+                unit: unit,
+                brand: brand,
+                pipeLength: pipeLen,
                 name: name,
                 category: category,
                 size: size,
@@ -1742,7 +2392,6 @@
         }
         renderPosCart();
 
-        // Show brief visual feedback on mobile bottom bar
         const mobileBar = document.getElementById('posMobileBottomBar');
         if (window.innerWidth <= 992 && mobileBar) {
             mobileBar.style.display = 'flex';
@@ -1755,6 +2404,8 @@
         item.qty += delta;
         if (item.qty <= 0) {
             posCart = posCart.filter(i => i.id !== id);
+        } else {
+            item.qty = parseFloat(item.qty.toFixed(2));
         }
         renderPosCart();
     }
@@ -1762,7 +2413,7 @@
     function setDirectQty(id, val) {
         const item = posCart.find(i => i.id === id);
         if (!item) return;
-        const parsed = parseInt(val) || 0;
+        const parsed = parseFloat(val) || 0;
         if (parsed <= 0) {
             posCart = posCart.filter(i => i.id !== id);
         } else {
@@ -1781,6 +2432,10 @@
         if (confirm('Are you sure you want to clear all items from the current bill?')) {
             posCart = [];
             manualPaidModified = false;
+            paySplitCash = 0;
+            paySplitUpi = 0;
+            paySplitCard = 0;
+            paymentPreset = 'CASH';
             renderPosCart();
         }
     }
@@ -1788,7 +2443,8 @@
     function setPosPayment(mode, pillElem) {
         currentPaymentMode = mode;
         document.querySelectorAll('.pay-btn-pill').forEach(p => p.classList.remove('selected'));
-        pillElem.classList.add('selected');
+        if (pillElem) pillElem.classList.add('selected');
+        applyPaymentPreset(mode);
     }
 
     function renderPosCart() {
@@ -1822,19 +2478,33 @@
 
         posCart.forEach(item => {
             const lineTotal = (item.rate * item.qty).toFixed(2);
+            const isMeter = (item.unit === 'METER');
+            const stdLen = item.pipeLength || 6.00;
+            const fullPipesCount = (item.qty / stdLen).toFixed(1);
+            const codeBadge = item.code ? `<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; background: #0f172a; color: #ffffff; padding: 1px 5px; border-radius: 4px; font-weight: 700; margin-right: 4px;">#${item.code}</span>` : '';
+            const brandBadge = item.brand ? `<span style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 4px; margin-right: 4px;">${item.brand}</span>` : '';
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>
-                    <div class="cart-item-title">${item.name}</div>
-                    <div class="cart-item-meta">${item.size} • ${item.category}</div>
+                    <div class="cart-item-title">${codeBadge}${brandBadge}${item.name}</div>
+                    <div class="cart-item-meta">
+                        ${item.size} • ${item.category}
+                        ${isMeter ? `<span style="color: #0284c7; font-weight: 700; display: block; margin-top: 2px;">📏 ${item.qty}m (${fullPipesCount} pipes of ${stdLen}m) × ₹${item.rate.toFixed(2)}/m</span>` : ''}
+                    </div>
                 </td>
-                <td style="font-weight: 700; color: #0284c7;">₹${item.rate.toFixed(2)}</td>
+                <td style="font-weight: 700; color: #0284c7;">
+                    ₹${item.rate.toFixed(2)}${isMeter ? '<small style="font-size: 10px; color: #0369a1;">/m</small>' : ''}
+                </td>
                 <td style="text-align: center;">
                     <div class="qty-stepper">
-                        <button type="button" class="btn-step" onclick="updateItemQty(${item.id}, -1)">−</button>
-                        <input type="text" class="step-input" value="${item.qty}" onchange="setDirectQty(${item.id}, this.value)">
-                        <button type="button" class="btn-step" onclick="updateItemQty(${item.id}, 1)">+</button>
+                        <button type="button" class="btn-step" onclick="updateItemQty(${item.id}, ${isMeter ? -0.5 : -1})">−</button>
+                        <input type="number" class="step-input" step="${isMeter ? '0.5' : '1'}" min="0.1" value="${item.qty}" onchange="setDirectQty(${item.id}, this.value)" style="width: 44px;">
+                        <button type="button" class="btn-step" onclick="updateItemQty(${item.id}, ${isMeter ? 0.5 : 1})">+</button>
                     </div>
+                    ${isMeter ? `
+                    <div style="margin-top: 3px; display: flex; gap: 3px; justify-content: center;">
+                        <button type="button" class="btn-step-pipe" onclick="stepPipeItemLength(${item.id}, ${stdLen}, 1)" title="Add 1 full pipe length (+${stdLen}m)">+1 Pipe</button>
+                    </div>` : ''}
                 </td>
                 <td style="text-align: right; font-weight: 800; color: #0f172a;">₹${lineTotal}</td>
                 <td style="text-align: center;">
@@ -1847,14 +2517,160 @@
         calculatePosTotals();
     }
 
-    function handlePaidAmountInput() {
-        manualPaidModified = true;
-        calculatePosTotals();
+    // ==========================================
+    // MULTI-PAYMENT MODE & SPLIT CALCULATIONS
+    // ==========================================
+    function getGrandTotalNumber() {
+        const subtotal = posCart.reduce((sum, item) => sum + (item.rate * item.qty), 0);
+        const discountInput = document.getElementById('discountField');
+        const discount = Math.max(0, parseFloat(discountInput.value) || 0);
+        const taxableAmount = Math.max(0, subtotal - discount);
+        const gstAmount = (taxableAmount * currentGstRate) / 100.0;
+        return Math.round((taxableAmount + gstAmount) * 100) / 100;
     }
 
-    function setFullPaid() {
-        manualPaidModified = false;
-        calculatePosTotals();
+    function applyPaymentPreset(preset) {
+        paymentPreset = preset;
+        const grandTotal = getGrandTotalNumber();
+
+        document.querySelectorAll('.split-preset-btn').forEach(b => b.classList.remove('active'));
+        const activeBtn = document.getElementById('btnPreset' + preset.charAt(0).toUpperCase() + preset.slice(1).toLowerCase());
+        if (activeBtn) activeBtn.classList.add('active');
+
+        if (preset === 'CASH') {
+            paySplitCash = grandTotal;
+            paySplitUpi = 0;
+            paySplitCard = 0;
+            currentPaymentMode = 'CASH';
+        } else if (preset === 'UPI') {
+            paySplitCash = 0;
+            paySplitUpi = grandTotal;
+            paySplitCard = 0;
+            currentPaymentMode = 'UPI';
+        } else if (preset === 'SPLIT_HALF') {
+            const half = Math.round((grandTotal / 2) * 100) / 100;
+            paySplitCash = half;
+            paySplitUpi = Math.max(0, Math.round((grandTotal - half) * 100) / 100);
+            paySplitCard = 0;
+            currentPaymentMode = 'SPLIT';
+        } else if (preset === 'CARD') {
+            paySplitCash = 0;
+            paySplitUpi = 0;
+            paySplitCard = grandTotal;
+            currentPaymentMode = 'CARD';
+        } else if (preset === 'CREDIT') {
+            paySplitCash = 0;
+            paySplitUpi = 0;
+            paySplitCard = 0;
+            currentPaymentMode = 'CREDIT';
+        }
+
+        syncSplitInputs();
+    }
+
+    function onSplitAmountChanged(source) {
+        manualPaidModified = true;
+        const cashVal = Math.max(0, parseFloat(document.getElementById('payCashAmount').value) || 0);
+        const upiVal = Math.max(0, parseFloat(document.getElementById('payUpiAmount').value) || 0);
+        const cardVal = Math.max(0, parseFloat(document.getElementById('payCardAmount').value) || 0);
+
+        paySplitCash = cashVal;
+        paySplitUpi = upiVal;
+        paySplitCard = cardVal;
+
+        if (paySplitCash > 0 && (paySplitUpi > 0 || paySplitCard > 0)) {
+            currentPaymentMode = 'SPLIT';
+        } else if (paySplitCash > 0) {
+            currentPaymentMode = 'CASH';
+        } else if (paySplitUpi > 0) {
+            currentPaymentMode = 'UPI';
+        } else if (paySplitCard > 0) {
+            currentPaymentMode = 'CARD';
+        } else {
+            currentPaymentMode = 'CREDIT';
+        }
+
+        updateSplitSummaryUI();
+    }
+
+    function fillRemainingAmount(target) {
+        manualPaidModified = true;
+        const grandTotal = getGrandTotalNumber();
+        const cashVal = Math.max(0, parseFloat(document.getElementById('payCashAmount').value) || 0);
+        const upiVal = Math.max(0, parseFloat(document.getElementById('payUpiAmount').value) || 0);
+        const cardVal = Math.max(0, parseFloat(document.getElementById('payCardAmount').value) || 0);
+
+        if (target === 'CASH') {
+            const remainder = Math.max(0, grandTotal - (upiVal + cardVal));
+            paySplitCash = Math.round(remainder * 100) / 100;
+        } else if (target === 'UPI') {
+            const remainder = Math.max(0, grandTotal - (cashVal + cardVal));
+            paySplitUpi = Math.round(remainder * 100) / 100;
+        } else if (target === 'CARD') {
+            const remainder = Math.max(0, grandTotal - (cashVal + upiVal));
+            paySplitCard = Math.round(remainder * 100) / 100;
+        }
+
+        syncSplitInputs();
+    }
+
+    function syncSplitInputs() {
+        const cashInp = document.getElementById('payCashAmount');
+        const upiInp = document.getElementById('payUpiAmount');
+        const cardInp = document.getElementById('payCardAmount');
+
+        if (cashInp) cashInp.value = paySplitCash > 0 ? paySplitCash.toFixed(2) : '0';
+        if (upiInp) upiInp.value = paySplitUpi > 0 ? paySplitUpi.toFixed(2) : '0';
+        if (cardInp) cardInp.value = paySplitCard > 0 ? paySplitCard.toFixed(2) : '0';
+
+        updateSplitSummaryUI();
+    }
+
+    function updateSplitSummaryUI() {
+        const grandTotal = getGrandTotalNumber();
+        const totalPaid = paySplitCash + paySplitUpi + paySplitCard;
+        const balance = Math.max(0, Math.round((grandTotal - totalPaid) * 100) / 100);
+
+        const paidField = document.getElementById('paidAmountField');
+        if (paidField) paidField.value = totalPaid.toFixed(2);
+
+        const dispPaid = document.getElementById('displayTotalPaid');
+        if (dispPaid) dispPaid.textContent = `₹${totalPaid.toFixed(2)}`;
+
+        const balElem = document.getElementById('calcBalanceAmount');
+        if (balElem) {
+            balElem.textContent = `₹${balance.toFixed(2)}`;
+            balElem.style.color = balance > 0 ? '#dc2626' : '#16a34a';
+        }
+
+        const tag = document.getElementById('splitBreakdownTag');
+        const stateLabel = document.getElementById('paymentSplitStateLabel');
+        if (tag) {
+            let parts = [];
+            if (paySplitCash > 0) parts.push(`💵 Cash: ₹${paySplitCash.toFixed(2)}`);
+            if (paySplitUpi > 0) parts.push(`📱 GPay/UPI: ₹${paySplitUpi.toFixed(2)}`);
+            if (paySplitCard > 0) parts.push(`💳 Card: ₹${paySplitCard.toFixed(2)}`);
+            if (parts.length === 0) {
+                tag.textContent = '📝 Due / Unpaid (₹0.00 Paid)';
+            } else {
+                tag.textContent = parts.join(' | ');
+            }
+        }
+        if (stateLabel) {
+            if (currentPaymentMode === 'SPLIT') {
+                stateLabel.textContent = '⚡ Split Payment';
+            } else if (currentPaymentMode === 'CASH') {
+                stateLabel.textContent = '💵 100% Cash';
+            } else if (currentPaymentMode === 'UPI') {
+                stateLabel.textContent = '📱 100% GPay / PhonePe';
+            } else if (currentPaymentMode === 'CARD') {
+                stateLabel.textContent = '💳 Card';
+            } else {
+                stateLabel.textContent = '📝 Credit / Due';
+            }
+        }
+
+        updateStatusBadgePreview(grandTotal, totalPaid);
     }
 
     function calculatePosTotals() {
@@ -1866,31 +2682,21 @@
         const gstAmount = (taxableAmount * currentGstRate) / 100.0;
         const grandTotal = taxableAmount + gstAmount;
 
-        const paidInput = document.getElementById('paidAmountField');
-        if (!manualPaidModified) {
-            paidInput.value = grandTotal > 0 ? grandTotal.toFixed(2) : '0';
-        }
-
-        const paidAmount = Math.max(0, parseFloat(paidInput.value) || 0);
-        const balanceAmount = Math.max(0, grandTotal - paidAmount);
-
         document.getElementById('calcSubtotal').textContent = `₹${subtotal.toFixed(2)}`;
         document.getElementById('calcGstAmount').textContent = `+₹${gstAmount.toFixed(2)}`;
         document.getElementById('calcGrandTotal').textContent = `₹${grandTotal.toFixed(2)}`;
 
-        const balElem = document.getElementById('calcBalanceAmount');
-        balElem.textContent = `₹${balanceAmount.toFixed(2)}`;
-        balElem.style.color = balanceAmount > 0 ? '#dc2626' : '#16a34a';
+        if (!manualPaidModified) {
+            applyPaymentPreset(paymentPreset || 'CASH');
+        } else {
+            updateSplitSummaryUI();
+        }
 
-        // Update mobile bottom bar values
         const totalItemsCount = posCart.reduce((sum, item) => sum + item.qty, 0);
         const mobileBarCount = document.getElementById('mobileBarItemCount');
         const mobileBarTotal = document.getElementById('mobileBarTotal');
         if (mobileBarCount) mobileBarCount.textContent = `${totalItemsCount} Item${totalItemsCount > 1 ? 's' : ''}`;
         if (mobileBarTotal) mobileBarTotal.textContent = `₹${grandTotal.toFixed(2)}`;
-
-        // Update payment status badge
-        updateStatusBadgePreview(grandTotal, paidAmount);
     }
 
     function updateStatusBadgePreview(total, paid) {
@@ -1924,6 +2730,9 @@
         }
     }
 
+    // ==========================================
+    // CHECKOUT PROCESSOR WITH SPLIT DETAILS
+    // ==========================================
     async function processCheckout() {
         if (posCart.length === 0) return;
 
@@ -1935,7 +2744,30 @@
         const idNumber = document.getElementById('custIdNumberField').value.trim();
 
         const discount = parseFloat(document.getElementById('discountField').value) || 0;
-        const paidAmount = parseFloat(document.getElementById('paidAmountField').value) || 0;
+
+        const cashAmt = Math.max(0, parseFloat(document.getElementById('payCashAmount').value) || 0);
+        const upiAmt = Math.max(0, parseFloat(document.getElementById('payUpiAmount').value) || 0);
+        const cardAmt = Math.max(0, parseFloat(document.getElementById('payCardAmount').value) || 0);
+        const totalPaid = cashAmt + upiAmt + cardAmt;
+
+        let detectedMode = 'CASH';
+        if (cashAmt > 0 && (upiAmt > 0 || cardAmt > 0)) {
+            detectedMode = 'SPLIT';
+        } else if (upiAmt > 0) {
+            detectedMode = 'UPI';
+        } else if (cardAmt > 0) {
+            detectedMode = 'CARD';
+        } else if (cashAmt > 0) {
+            detectedMode = 'CASH';
+        } else {
+            detectedMode = 'CREDIT';
+        }
+
+        let splitNotes = [];
+        if (cashAmt > 0) splitNotes.push(`Cash: ₹${cashAmt.toFixed(2)}`);
+        if (upiAmt > 0) splitNotes.push(`UPI (GPay/PhonePe/Paytm): ₹${upiAmt.toFixed(2)}`);
+        if (cardAmt > 0) splitNotes.push(`Card: ₹${cardAmt.toFixed(2)}`);
+        const paymentNotes = splitNotes.length > 0 ? `Split Payment: ${splitNotes.join(' | ')}` : 'Full Due (Credit)';
 
         const payload = {
             customer_name: custName,
@@ -1945,10 +2777,11 @@
             address: address,
             id_proof_type: idType,
             id_proof_number: idNumber,
-            payment_mode: currentPaymentMode,
+            payment_mode: detectedMode,
             discount: discount,
             gst_rate: currentGstRate,
-            paid_amount: paidAmount,
+            paid_amount: totalPaid,
+            notes: paymentNotes,
             items: posCart.map(item => ({
                 product_id: item.id,
                 quantity: item.qty
@@ -1962,7 +2795,10 @@
         try {
             const resp = await fetch('{% url "create_bill_api" %}', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
                 body: JSON.stringify(payload)
             });
 
@@ -1986,6 +2822,13 @@
                 document.getElementById('resGstAmount').textContent = `₹${result.gst_amount.toFixed(2)}`;
                 document.getElementById('resGrandTotal').textContent = `₹${result.grand_total.toFixed(2)}`;
                 document.getElementById('resPaidAmount').textContent = `₹${result.paid_amount.toFixed(2)}`;
+
+                const splitRow = document.getElementById('resPaymentBreakdownRow');
+                const splitVal = document.getElementById('resPaymentBreakdown');
+                if (splitRow && splitVal) {
+                    splitRow.style.display = 'flex';
+                    splitVal.textContent = splitNotes.length > 0 ? splitNotes.join(' | ') : 'Due / Unpaid';
+                }
                 
                 const resBal = document.getElementById('resBalanceAmount');
                 resBal.textContent = `₹${result.balance_amount.toFixed(2)}`;
@@ -2023,6 +2866,10 @@
         document.getElementById('billSuccessModal').classList.remove('active');
         posCart = [];
         manualPaidModified = false;
+        paySplitCash = 0;
+        paySplitUpi = 0;
+        paySplitCard = 0;
+        paymentPreset = 'CASH';
         document.getElementById('custNameField').value = 'Walk-in Customer';
         document.getElementById('custPhoneField').value = '';
         document.getElementById('custDoorNoField').value = '';
@@ -2030,6 +2877,12 @@
         document.getElementById('custIdNumberField').value = '';
         document.getElementById('discountField').value = '0';
         document.getElementById('paidAmountField').value = '0';
+        const cInp = document.getElementById('payCashAmount');
+        const uInp = document.getElementById('payUpiAmount');
+        const kInp = document.getElementById('payCardAmount');
+        if (cInp) cInp.value = '0';
+        if (uInp) uInp.value = '0';
+        if (kInp) kInp.value = '0';
         renderPosCart();
         window.location.reload();
     }

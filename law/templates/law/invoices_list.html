@@ -1196,7 +1196,8 @@
         <div class="search-input-wrap">
             <input type="text" id="invoiceSearch" class="search-input-field" 
                    placeholder="Search invoice by Bill #, Customer name, Phone, Door No, ID proof, or Payment mode..." 
-                   onkeyup="handleInvoiceSearchKey(event)">
+                   onkeyup="handleInvoiceSearchKey(event)"
+                   oninput="executeInvoiceSearch()">
         </div>
 
         <!-- Explicit JavaScript Search Button -->
@@ -1381,10 +1382,10 @@
             <a href="{% url 'invoice_detail' b.id %}" target="_blank" class="btn-act-print">
                 🖨️ Print
             </a>
-            <button class="btn-act-edit" onclick="openEditInvoiceModal({{ b.id }})">
+            <button type="button" class="btn-act-edit" onclick="editInvoiceFromElement(this)">
                 ✏️ Edit
             </button>
-            <button class="btn-act-del" onclick="deleteSingleInvoice({{ b.id }}, '{{ b.bill_number|escapejs }}')" title="Delete invoice">
+            <button type="button" class="btn-act-del" onclick="deleteInvoiceFromElement(this)" title="Delete invoice">
                 🗑️
             </button>
         </div>
@@ -1477,10 +1478,10 @@
                     {% endif %}
                 </td>
                 <td style="font-size: 12px; color: #64748b;">{{ b.created_at|date:"d M Y, h:i A" }}</td>
-                <td style="text-align: right;">
+                <td style="text-align: right; white-space: nowrap;">
                     <a href="{% url 'invoice_detail' b.id %}" target="_blank" class="btn-act-print" style="display: inline-flex; padding: 4px 10px; font-size: 12px;">🖨️ Print</a>
-                    <button class="btn-act-edit" style="display: inline-flex; padding: 4px 10px; font-size: 12px;" onclick="openEditInvoiceModal({{ b.id }})">✏️ Edit</button>
-                    <button class="btn-act-del" style="display: inline-flex; padding: 4px 8px; font-size: 12px;" onclick="deleteSingleInvoice({{ b.id }}, '{{ b.bill_number|escapejs }}')">🗑️</button>
+                    <button type="button" class="btn-act-edit" style="display: inline-flex; padding: 4px 10px; font-size: 12px;" onclick="editInvoiceFromElement(this)">✏️ Edit</button>
+                    <button type="button" class="btn-act-del" style="display: inline-flex; padding: 4px 8px; font-size: 12px;" onclick="deleteInvoiceFromElement(this)" title="Delete invoice">🗑️</button>
                 </td>
             </tr>
             {% endfor %}
@@ -1610,8 +1611,8 @@
                     <select id="modalProductSelectDropdown" class="modal-form-input" onchange="handleModalDropdownSelect(this)">
                         <option value="">-- Choose Hardware Product to Add to Bill --</option>
                         {% for p in products %}
-                        <option value="{{ p.id }}" data-name="{{ p.name }}" data-size="{{ p.size }}" data-rate="{{ p.rate }}" data-stock="{{ p.quantity }}">
-                            {{ p.category.name }} • {{ p.name }} ({{ p.size }}) — ₹{{ p.rate|floatformat:2 }} [Stock: {{ p.quantity }}]
+                        <option value="{{ p.id }}" data-name="{{ p.name }}" data-code="{{ p.display_code }}" data-unit="{{ p.unit }}" data-brand="{{ p.brand.name|default:'' }}" data-pipe-length="{{ p.pipe_length|default:6.00 }}" data-size="{{ p.size }}" data-rate="{{ p.rate }}" data-stock="{{ p.quantity }}">
+                            #{{ p.display_code }} • {% if p.brand %}[{{ p.brand.name }}] {% endif %}{{ p.category.name }} • {{ p.name }} ({{ p.size }}) — ₹{{ p.rate|floatformat:2 }}{% if p.unit == 'METER' %}/m ({{ p.pipe_length|default:6.00 }}m pipe){% else %}/pc{% endif %} [Stock: {{ p.quantity }}]
                         </option>
                         {% endfor %}
                     </select>
@@ -1622,6 +1623,10 @@
                     <div class="modal-prod-item-card"
                          id="modal-prod-{{ p.id }}"
                          data-id="{{ p.id }}"
+                         data-code="{{ p.display_code }}"
+                         data-unit="{{ p.unit }}"
+                         data-brand="{{ p.brand.name|default:'' }}"
+                         data-pipe-length="{{ p.pipe_length|default:6.00 }}"
                          data-category="{{ p.category.name }}"
                          data-name="{{ p.name }}"
                          data-size="{{ p.size }}"
@@ -1629,11 +1634,25 @@
                          data-stock="{{ p.quantity }}"
                          onclick="selectModalCardProduct(this)">
                         <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; flex-wrap: wrap; gap: 4px;">
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; background: #0f172a; color: #ffffff; padding: 1px 5px; border-radius: 4px; font-weight: 700;">#{{ p.display_code }}</span>
+                                    {% if p.brand %}
+                                    <span style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-size: 9.5px; font-weight: 800; padding: 1px 4px; border-radius: 3px;">{{ p.brand.name }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if p.unit == 'METER' %}
+                                <span style="font-size: 9.5px; font-weight: 800; background: #e0f2fe; color: #0284c7; padding: 1px 5px; border-radius: 4px;">📏 {{ p.pipe_length|default:6.00 }}m Pipe</span>
+                                {% endif %}
+                            </div>
                             <div class="modal-prod-name">{{ p.name }}</div>
                             <span class="modal-prod-size">Size: {{ p.size }}</span>
                         </div>
                         <div class="modal-prod-footer">
-                            <span class="modal-prod-rate">₹{{ p.rate|floatformat:2 }}</span>
+                            <span class="modal-prod-rate">
+                                ₹{{ p.rate|floatformat:2 }}
+                                {% if p.unit == 'METER' %}<small style="font-size: 10.5px; color: #0284c7;">/m</small>{% endif %}
+                            </span>
                             <button type="button" class="btn-add-pill" onclick="event.stopPropagation(); selectModalCardProduct(this.closest('.modal-prod-item-card'))">
                                 + Add to Bill
                             </button>
@@ -1749,6 +1768,7 @@
         </div>
 
         <form id="editInvoiceForm" onsubmit="saveInvoiceEdit(event)">
+            {% csrf_token %}
             <input type="hidden" id="editBillId" value="">
 
             <!-- 1. Customer Information Section -->
@@ -1953,6 +1973,17 @@
 
 {% block scripts %}
 <script>
+    // CSRF TOKEN HELPER
+    function getCsrfToken() {
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+        if (cookieValue) return cookieValue;
+        const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        return csrfInput ? csrfInput.value : '';
+    }
+
     let currentStatusFilter = 'ALL';
     let currentModalGender = 'MALE';
     let currentModalGstRate = 18.0;
@@ -1984,16 +2015,17 @@
         const btnTable = document.getElementById('btnViewTable');
 
         if (view === 'cards') {
-            cards.style.display = 'grid';
-            table.style.display = 'none';
-            btnCards.classList.add('active');
-            btnTable.classList.remove('active');
+            if (cards) cards.style.display = 'grid';
+            if (table) table.style.display = 'none';
+            if (btnCards) btnCards.classList.add('active');
+            if (btnTable) btnTable.classList.remove('active');
         } else {
-            cards.style.display = 'none';
-            table.style.display = 'block';
-            btnCards.classList.remove('active');
-            btnTable.classList.add('active');
+            if (cards) cards.style.display = 'none';
+            if (table) table.style.display = 'block';
+            if (btnCards) btnCards.classList.remove('active');
+            if (btnTable) btnTable.classList.add('active');
         }
+        executeInvoiceSearch();
     }
 
     // 5-TIER PAYMENT STATUS FILTER
@@ -2006,34 +2038,39 @@
 
     // JAVASCRIPT SEARCH FUNCTIONALITY
     function handleInvoiceSearchKey(event) {
-        if (event.key === 'Enter') {
-            executeInvoiceSearch();
-        } else {
-            executeInvoiceSearch();
-        }
+        executeInvoiceSearch();
     }
 
     function executeInvoiceSearch() {
-        const query = document.getElementById('invoiceSearch').value.toLowerCase().trim();
-        const payFilter = document.getElementById('paymentFilter').value;
+        const searchInput = document.getElementById('invoiceSearch');
+        const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const cleanQuery = query.replace(/^#/, '');
+        const payFilterElem = document.getElementById('paymentFilter');
+        const payFilter = payFilterElem ? payFilterElem.value : 'ALL';
 
         // Filter cards (keep Add Bill Launcher Card always visible)
         const cards = document.querySelectorAll('.bill-card');
+        let visibleCards = 0;
         cards.forEach(card => {
-            const billNum = card.getAttribute('data-number') || '';
-            const cust = card.getAttribute('data-customer') || '';
-            const phone = card.getAttribute('data-phone') || '';
-            const address = card.getAttribute('data-address') || '';
-            const idproof = card.getAttribute('data-idproof') || '';
+            const billNum = (card.getAttribute('data-number') || '').toLowerCase();
+            const cust = (card.getAttribute('data-customer') || '').toLowerCase();
+            const phone = (card.getAttribute('data-phone') || '').toLowerCase();
+            const address = (card.getAttribute('data-address') || '').toLowerCase();
+            const idproof = (card.getAttribute('data-idproof') || '').toLowerCase();
             const mode = card.getAttribute('data-mode') || '';
             const status = card.getAttribute('data-status') || '';
 
             const matchPay = (payFilter === 'ALL' || mode === payFilter);
             const matchStatus = (currentStatusFilter === 'ALL' || status === currentStatusFilter);
-            const matchQuery = (!query || billNum.includes(query) || cust.includes(query) || phone.includes(query) || address.includes(query) || idproof.includes(query) || mode.toLowerCase().includes(query));
+            const matchQuery = (!query || 
+                billNum.includes(query) || billNum.includes(cleanQuery) || 
+                cust.includes(query) || phone.includes(query) || 
+                address.includes(query) || idproof.includes(query) || 
+                mode.toLowerCase().includes(query));
 
             if (matchPay && matchStatus && matchQuery) {
                 card.style.display = 'flex';
+                visibleCards++;
             } else {
                 card.style.display = 'none';
             }
@@ -2041,30 +2078,58 @@
 
         // Filter table rows
         const rows = document.querySelectorAll('#invoiceTableBody tr');
+        let visibleRows = 0;
         rows.forEach(row => {
-            const billNum = row.getAttribute('data-number') || '';
-            const cust = row.getAttribute('data-customer') || '';
-            const phone = row.getAttribute('data-phone') || '';
-            const address = row.getAttribute('data-address') || '';
-            const idproof = row.getAttribute('data-idproof') || '';
+            const billNum = (row.getAttribute('data-number') || '').toLowerCase();
+            const cust = (row.getAttribute('data-customer') || '').toLowerCase();
+            const phone = (row.getAttribute('data-phone') || '').toLowerCase();
+            const address = (row.getAttribute('data-address') || '').toLowerCase();
+            const idproof = (row.getAttribute('data-idproof') || '').toLowerCase();
             const mode = row.getAttribute('data-mode') || '';
             const status = row.getAttribute('data-status') || '';
 
             const matchPay = (payFilter === 'ALL' || mode === payFilter);
             const matchStatus = (currentStatusFilter === 'ALL' || status === currentStatusFilter);
-            const matchQuery = (!query || billNum.includes(query) || cust.includes(query) || phone.includes(query) || address.includes(query) || idproof.includes(query) || mode.toLowerCase().includes(query));
+            const matchQuery = (!query || 
+                billNum.includes(query) || billNum.includes(cleanQuery) || 
+                cust.includes(query) || phone.includes(query) || 
+                address.includes(query) || idproof.includes(query) || 
+                mode.toLowerCase().includes(query));
 
             if (matchPay && matchStatus && matchQuery) {
                 row.style.display = '';
+                visibleRows++;
             } else {
                 row.style.display = 'none';
             }
         });
+
+        // Search feedback message
+        let noCardMatch = document.getElementById('noInvoiceMatchMsg');
+        const cardContainer = document.getElementById('invoiceCardContainer');
+        if (!noCardMatch && cardContainer) {
+            noCardMatch = document.createElement('div');
+            noCardMatch.id = 'noInvoiceMatchMsg';
+            noCardMatch.style.gridColumn = '1/-1';
+            noCardMatch.style.textAlign = 'center';
+            noCardMatch.style.padding = '40px';
+            noCardMatch.style.color = '#64748b';
+            noCardMatch.style.background = '#ffffff';
+            noCardMatch.style.borderRadius = '12px';
+            noCardMatch.style.border = '1.5px dashed #cbd5e1';
+            noCardMatch.innerHTML = '🔍 No matching invoices found. Try adjusting your search or filters.';
+            cardContainer.appendChild(noCardMatch);
+        }
+        if (noCardMatch) {
+            noCardMatch.style.display = (visibleCards === 0 && cards.length > 0) ? 'block' : 'none';
+        }
     }
 
     function resetInvoiceSearch() {
-        document.getElementById('invoiceSearch').value = '';
-        document.getElementById('paymentFilter').value = 'ALL';
+        const searchInput = document.getElementById('invoiceSearch');
+        if (searchInput) searchInput.value = '';
+        const payFilter = document.getElementById('paymentFilter');
+        if (payFilter) payFilter.value = 'ALL';
         currentStatusFilter = 'ALL';
         document.querySelectorAll('.status-filter-btn').forEach((b, idx) => {
             if (idx === 0) b.classList.add('active');
@@ -2085,47 +2150,112 @@
                 if (isChecked) parentCard.classList.add('selected-card');
                 else parentCard.classList.remove('selected-card');
             }
+            const parentRow = cb.closest('tr');
+            if (parentRow) {
+                if (isChecked) parentRow.style.backgroundColor = '#f0f9ff';
+                else parentRow.style.backgroundColor = '';
+            }
         });
         updateSelectedInvoiceCounter();
     }
 
     function handleInvoiceCheckboxChange(cb, elemId) {
-        const parentCard = cb.closest('.bill-card');
-        if (parentCard) {
-            if (cb.checked) parentCard.classList.add('selected-card');
-            else parentCard.classList.remove('selected-card');
-        }
+        const billId = cb.value;
+        const isChecked = cb.checked;
+
+        document.querySelectorAll(`.invoice-select[value="${billId}"]`).forEach(c => {
+            c.checked = isChecked;
+            const card = c.closest('.bill-card');
+            if (card) {
+                if (isChecked) card.classList.add('selected-card');
+                else card.classList.remove('selected-card');
+            }
+            const row = c.closest('tr');
+            if (row) {
+                if (isChecked) row.style.backgroundColor = '#f0f9ff';
+                else row.style.backgroundColor = '';
+            }
+        });
         updateSelectedInvoiceCounter();
     }
 
     function updateSelectedInvoiceCounter() {
-        const checked = document.querySelectorAll('.invoice-select:checked');
-        const count = checked.length;
-        document.getElementById('selectedInvoiceCount').textContent = count;
-        const bulkBtn = document.getElementById('btnBulkDeleteInvoices');
+        const checkedBoxes = Array.from(document.querySelectorAll('.invoice-select:checked'));
+        const uniqueIds = Array.from(new Set(checkedBoxes.map(cb => parseInt(cb.value))));
+        const count = uniqueIds.length;
+        const totalBills = {{ bills|length }};
 
-        if (count > 0) {
-            bulkBtn.style.display = 'inline-flex';
-            bulkBtn.innerHTML = `🗑️ Delete Selected (${count})`;
-        } else {
-            bulkBtn.style.display = 'none';
-            document.getElementById('selectAllInvoices').checked = false;
+        const countDisplay = document.getElementById('selectedInvoiceCount');
+        if (countDisplay) countDisplay.textContent = count;
+
+        const bulkBtn = document.getElementById('btnBulkDeleteInvoices');
+        const masterCheck = document.getElementById('selectAllInvoices');
+
+        if (bulkBtn) {
+            if (count > 0) {
+                bulkBtn.style.display = 'inline-flex';
+                bulkBtn.innerHTML = `🗑️ Delete Selected (${count})`;
+            } else {
+                bulkBtn.style.display = 'none';
+            }
+        }
+
+        if (masterCheck) {
+            masterCheck.checked = (count > 0 && count === totalBills);
         }
     }
 
     async function deleteSelectedInvoices() {
         const checked = Array.from(document.querySelectorAll('.invoice-select:checked')).map(cb => parseInt(cb.value));
-        if (checked.length === 0) return;
+        const uniqueIds = Array.from(new Set(checked));
+        if (uniqueIds.length === 0) return;
 
-        if (!confirm(`Are you sure you want to delete ${checked.length} selected invoice(s)? This will permanently remove them.`)) {
+        if (!confirm(`Are you sure you want to delete ${uniqueIds.length} selected invoice(s)? This will permanently remove them.`)) {
             return;
+        }
+
+        const bulkBtn = document.getElementById('btnBulkDeleteInvoices');
+        if (bulkBtn) {
+            bulkBtn.disabled = true;
+            bulkBtn.innerHTML = '⏳ Deleting...';
         }
 
         try {
             const resp = await fetch('{% url "bulk_delete_invoices_api" %}', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ bill_ids: checked })
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({ bill_ids: uniqueIds })
+            });
+            const data = await resp.json();
+
+            if (data.status === 'success') {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (err) {
+            alert('Server error: ' + err.message);
+        } finally {
+            if (bulkBtn) bulkBtn.disabled = false;
+        }
+    }
+
+    async function deleteSingleInvoice(id, billNum) {
+        if (!confirm(`Are you sure you want to delete invoice #${billNum}? This will permanently remove it.`)) {
+            return;
+        }
+
+        try {
+            const resp = await fetch(`/api/invoice/delete/${id}/`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                }
             });
             const data = await resp.json();
 
@@ -2140,31 +2270,19 @@
         }
     }
 
-    async function deleteSingleInvoice(id, billNum) {
-        if (!confirm(`Are you sure you want to delete invoice #${billNum}?`)) {
-            return;
-        }
+    function deleteInvoiceFromElement(btn) {
+        const el = btn.closest('.bill-card, tr');
+        if (!el) return;
+        const id = el.dataset.id;
+        const num = el.dataset.number || id;
+        deleteSingleInvoice(id, num);
+    }
 
-        try {
-            const resp = await fetch(`/api/invoice/delete/${id}/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            const data = await resp.json();
-
-            if (data.status === 'success') {
-                const card = document.getElementById(`bill-card-${id}`);
-                const row = document.getElementById(`table-row-${id}`);
-                if (card) card.remove();
-                if (row) row.remove();
-                alert(data.message);
-                updateSelectedInvoiceCounter();
-            } else {
-                alert('Error: ' + data.message);
-            }
-        } catch (err) {
-            alert('Server error: ' + err.message);
-        }
+    function editInvoiceFromElement(btn) {
+        const el = btn.closest('.bill-card, tr');
+        if (!el) return;
+        const id = el.dataset.id;
+        openEditInvoiceModal(id);
     }
 
     // ==========================================================
@@ -2494,7 +2612,11 @@
         }
 
         const btn = document.getElementById('btnSaveInvoiceEdit');
-        if (btn) btn.disabled = true;
+        const origText = btn ? btn.innerHTML : '💾 Save Changes';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Saving...';
+        }
 
         const payload = {
             customer_name: document.getElementById('editCustName').value.trim() || 'Walk-in Customer',
@@ -2515,7 +2637,10 @@
         try {
             const resp = await fetch(`/api/invoice/edit/${id}/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
                 body: JSON.stringify(payload)
             });
             const data = await resp.json();
@@ -2529,7 +2654,10 @@
         } catch (err) {
             alert('⚠️ Failed to update invoice: ' + err.message);
         } finally {
-            if (btn) btn.disabled = false;
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = origText;
+            }
         }
     }
 
@@ -2631,10 +2759,14 @@
         const opt = selElem.options[selElem.selectedIndex];
         const id = parseInt(prodId);
         const name = opt.getAttribute('data-name');
+        const code = opt.getAttribute('data-code') || '';
+        const unit = opt.getAttribute('data-unit') || 'PIECE';
+        const brand = opt.getAttribute('data-brand') || '';
+        const pipeLen = parseFloat(opt.getAttribute('data-pipe-length')) || 6.00;
         const size = opt.getAttribute('data-size');
         const rate = parseFloat(opt.getAttribute('data-rate')) || 0;
         const stock = parseInt(opt.getAttribute('data-stock')) || 0;
-        addModalProduct(id, name, size, rate, stock);
+        addModalProduct(id, name, size, rate, stock, code, unit, brand, pipeLen);
         selElem.value = ''; // Reset dropdown after selection
     }
 
@@ -2643,20 +2775,28 @@
         if (!cardElem) return;
         const id = parseInt(cardElem.getAttribute('data-id'));
         const name = cardElem.getAttribute('data-name');
+        const code = cardElem.getAttribute('data-code') || '';
+        const unit = cardElem.getAttribute('data-unit') || 'PIECE';
+        const brand = cardElem.getAttribute('data-brand') || '';
+        const pipeLen = parseFloat(cardElem.getAttribute('data-pipe-length')) || 6.00;
         const size = cardElem.getAttribute('data-size');
         const rate = parseFloat(cardElem.getAttribute('data-rate')) || 0;
         const stock = parseInt(cardElem.getAttribute('data-stock')) || 0;
-        addModalProduct(id, name, size, rate, stock);
+        addModalProduct(id, name, size, rate, stock, code, unit, brand, pipeLen);
     }
 
     // CLICK PRODUCT TO ADD TO BILL
-    function addModalProduct(id, name, size, rate, stock) {
+    function addModalProduct(id, name, size, rate, stock, code = '', unit = 'PIECE', brand = '', pipeLen = 6.00) {
         const existing = categoryModalCart.find(i => i.id === id);
         if (existing) {
             existing.qty += 1;
         } else {
             categoryModalCart.push({
                 id: id,
+                code: code,
+                unit: unit,
+                brand: brand,
+                pipeLength: pipeLen,
                 name: name,
                 size: size,
                 rate: parseFloat(rate),
@@ -2680,7 +2820,7 @@
     function setModalItemQty(id, val) {
         const item = categoryModalCart.find(i => i.id === id);
         if (!item) return;
-        const parsed = parseInt(val) || 0;
+        const parsed = parseFloat(val) || 0;
         if (parsed <= 0) {
             categoryModalCart = categoryModalCart.filter(i => i.id !== id);
         } else {
@@ -2713,19 +2853,28 @@
 
         categoryModalCart.forEach(item => {
             const lineTotal = (item.rate * item.qty).toFixed(2);
+            const isMeter = (item.unit === 'METER');
+            const codeBadge = item.code ? `<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; background: #0f172a; color: #ffffff; padding: 1px 5px; border-radius: 4px; font-weight: 700; margin-right: 4px;">#${item.code}</span>` : '';
+            const brandBadge = item.brand ? `<span style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-size: 9.5px; font-weight: 800; padding: 1px 4px; border-radius: 3px; margin-right: 4px;">${item.brand}</span>` : '';
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>
-                    <div style="font-weight: 800; color: #0f172a;">${item.name}</div>
-                    <span style="font-size: 11px; color: #64748b; background: #f1f5f9; padding: 1px 6px; border-radius: 4px;">Size: ${item.size}</span>
+                    <div style="font-weight: 800; color: #0f172a;">${codeBadge}${brandBadge}${item.name}</div>
+                    <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                        Size: ${item.size}
+                        ${isMeter ? `<span style="color: #0284c7; font-weight: 700; display: block; margin-top: 1px;">📏 ${item.qty}m × ₹${item.rate.toFixed(2)}/m (${(item.qty / (item.pipeLength || 6.00)).toFixed(1)} pipes)</span>` : ''}
+                    </div>
                 </td>
-                <td style="font-weight: 700; color: #0284c7;">₹${item.rate.toFixed(2)}</td>
+                <td style="font-weight: 700; color: #0284c7;">
+                    ₹${item.rate.toFixed(2)}${isMeter ? '<small style="font-size: 10px; color: #0369a1;">/m</small>' : ''}
+                </td>
                 <td style="text-align: center;">
                     <div class="qty-stepper-sm">
                         <button type="button" onclick="updateModalItemQty(${item.id}, -1)">−</button>
-                        <input type="text" value="${item.qty}" onchange="setModalItemQty(${item.id}, this.value)">
+                        <input type="number" step="${isMeter ? '0.5' : '1'}" min="0.1" value="${item.qty}" onchange="setModalItemQty(${item.id}, this.value)" style="width: 42px;">
                         <button type="button" onclick="updateModalItemQty(${item.id}, 1)">+</button>
                     </div>
+                    ${isMeter ? '<span style="font-size: 10px; color: #64748b; display: block;">meters</span>' : ''}
                 </td>
                 <td style="text-align: right; font-weight: 800; color: #0f172a;">₹${lineTotal}</td>
                 <td style="text-align: center;">
@@ -2827,13 +2976,19 @@
         };
 
         const btn = document.getElementById('btnSubmitCategoryBill');
-        btn.disabled = true;
-        btn.textContent = 'Generating Bill...';
+        const origText = btn ? btn.innerHTML : '⚡ Complete & Save Bill';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Generating Bill...';
+        }
 
         try {
             const resp = await fetch('{% url "create_bill_api" %}', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
                 body: JSON.stringify(payload)
             });
             const data = await resp.json();
@@ -2847,10 +3002,31 @@
         } catch (err) {
             alert('Server error: ' + err.message);
         } finally {
-            btn.disabled = false;
-            btn.innerHTML = '⚡ Complete & Save Bill';
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = origText;
+            }
         }
     }
+
+    // Close modals on outside click or Escape key
+    window.addEventListener('click', function(event) {
+        const editModal = document.getElementById('invoiceModal');
+        if (event.target === editModal) {
+            closeInvoiceModal();
+        }
+        const billModal = document.getElementById('categoryBillModal');
+        if (event.target === billModal) {
+            closeCategoryBillModal();
+        }
+    });
+
+    window.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeInvoiceModal();
+            closeCategoryBillModal();
+        }
+    });
 </script>
 {% endblock %}
 

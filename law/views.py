@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
-from .models import Category, Product, Bill, BillItem, Supplier, Expense, FeaturedOfferProduct
+from .models import Category, Brand, Product, Bill, BillItem, Supplier, Expense, FeaturedOfferProduct
 
 
 def index_view(request):
@@ -113,7 +113,8 @@ def billing_pos(request):
     Main Point-of-Sale (POS) and Billing Terminal for ZAM ZAM HARDWARE.
     """
     categories = Category.objects.prefetch_related('products').all()
-    products = Product.objects.select_related('category').all()
+    brands = Brand.objects.all()
+    products = Product.objects.select_related('category', 'brand').all()
     recent_bills = Bill.objects.prefetch_related('items').all()[:8]
     total_sales = sum(b.grand_total for b in Bill.objects.all())
     total_invoices = Bill.objects.count()
@@ -125,6 +126,7 @@ def billing_pos(request):
         'shop_phone': "+91 98765 43210",
         'shop_address': "Main Road, Near Old Bus Stand, Hardware Market",
         'categories': categories,
+        'brands': brands,
         'products': products,
         'recent_bills': recent_bills,
         'total_sales': total_sales,
@@ -140,7 +142,8 @@ def inventory_view(request):
     Inventory management view with live stock, rates, sizes, and total values for ZAM ZAM HARDWARE.
     """
     categories = Category.objects.all()
-    products = Product.objects.select_related('category').all()
+    brands = Brand.objects.all()
+    products = Product.objects.select_related('category', 'brand').all()
     total_inventory_value = sum(p.total for p in products)
     low_stock_count = products.filter(quantity__lte=10).count()
 
@@ -148,6 +151,7 @@ def inventory_view(request):
         'shop_name': "ZAM ZAM HARDWARE",
         'shop_owner': "Lawrence C",
         'categories': categories,
+        'brands': brands,
         'products': products,
         'total_inventory_value': total_inventory_value,
         'total_items_count': products.count(),
@@ -161,7 +165,8 @@ def invoices_list(request):
     List of all historical bills and invoices with stats and category-wise product selection.
     """
     bills = Bill.objects.prefetch_related('items').all()
-    products = Product.objects.select_related('category').all()
+    brands = Brand.objects.all()
+    products = Product.objects.select_related('category', 'brand').all()
     categories = Category.objects.prefetch_related('products').all()
 
     total_revenue = sum(b.grand_total for b in bills)
@@ -219,6 +224,7 @@ def invoices_list(request):
         'bills_dict': bills_dict,
         'products': products,
         'categories': categories,
+        'brands': brands,
         'total_bills_count': bills.count(),
         'total_revenue': total_revenue,
         'total_paid': total_paid,
@@ -286,7 +292,10 @@ def create_bill_api(request):
 
             for item in items:
                 product_id = item.get('product_id')
-                qty = int(item.get('quantity', 1))
+                try:
+                    qty = float(item.get('quantity', 1))
+                except (ValueError, TypeError):
+                    qty = 1.0
                 if qty <= 0:
                     continue
 
@@ -296,8 +305,9 @@ def create_bill_api(request):
                 subtotal += line_total
 
                 # Deduct stock safely
-                if prod.quantity >= qty:
-                    prod.quantity -= qty
+                curr_stock = float(prod.quantity or 0)
+                if curr_stock >= qty:
+                    prod.quantity = max(0, int(round(curr_stock - qty)))
                 else:
                     prod.quantity = 0
                 prod.save(update_fields=['quantity', 'updated_at'])
@@ -308,7 +318,7 @@ def create_bill_api(request):
                     'category_name': prod.category.name,
                     'size': prod.size,
                     'rate': rate,
-                    'quantity': qty,
+                    'quantity': int(round(qty)) if qty.is_integer() else qty,
                     'total': line_total,
                 })
 
@@ -386,7 +396,20 @@ def add_product_api(request):
     try:
         data = json.loads(request.body)
         cat_id = data.get('category_id')
+        brand_id = data.get('brand_id')
+        product_code = (data.get('product_code') or '').strip()
         name = (data.get('name') or '').strip()
+        unit = data.get('unit', 'PIECE')
+        if unit not in ['PIECE', 'METER']:
+            unit = 'PIECE'
+        
+        pipe_length = 6.00
+        if 'pipe_length' in data and data['pipe_length'] is not None and str(data['pipe_length']).strip() != '':
+            try:
+                pipe_length = round(float(data['pipe_length']), 2)
+            except (ValueError, TypeError):
+                pipe_length = 6.00
+
         size = (data.get('size') or '').strip()
         rate = float(data.get('rate', 0))
         quantity = int(data.get('quantity', 0))
@@ -395,18 +418,36 @@ def add_product_api(request):
             return JsonResponse({'status': 'error', 'message': 'Product name and size are required.'}, status=400)
 
         category = get_object_or_404(Category, id=cat_id)
+        
+        brand = None
+        if brand_id:
+            try:
+                brand = Brand.objects.get(id=brand_id)
+            except (Brand.DoesNotExist, ValueError):
+                brand = None
 
-        # Check for duplicate product under this category
-        if Product.objects.filter(category=category, name__iexact=name, size__iexact=size).exists():
+        # Check for duplicate product under this category and brand
+        dup_filter = {'category': category, 'name__iexact': name, 'size__iexact': size}
+        if brand:
+            dup_filter['brand'] = brand
+        else:
+            dup_filter['brand__isnull'] = True
+
+        if Product.objects.filter(**dup_filter).exists():
+            brand_txt = f" under brand '{brand.name}'" if brand else ""
             return JsonResponse({
                 'status': 'error',
                 'is_duplicate': True,
-                'message': f'This item "{name} ({size})" is already added in category "{category.name}"! Duplicate product is not allowed.'
+                'message': f'This item "{name} ({size})"{brand_txt} is already added in category "{category.name}"! Duplicate product is not allowed.'
             }, status=400)
 
         prod = Product.objects.create(
             category=category,
+            brand=brand,
+            product_code=product_code,
             name=name,
+            unit=unit,
+            pipe_length=pipe_length,
             size=size,
             rate=rate,
             quantity=max(0, quantity)
@@ -414,7 +455,15 @@ def add_product_api(request):
         return JsonResponse({
             'status': 'success',
             'message': f'Product "{prod.name}" added successfully!',
-            'product_id': prod.id
+            'product_id': prod.id,
+            'product_code': prod.display_code,
+            'brand_id': prod.brand.id if prod.brand else None,
+            'brand_name': prod.brand.name if prod.brand else '',
+            'pipe_length': float(prod.pipe_length or 0.0),
+            'full_pipe_price': float(prod.full_pipe_price),
+            'unit': prod.unit,
+            'rate': float(prod.rate),
+            'quantity': prod.quantity
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
@@ -432,20 +481,53 @@ def edit_product_api(request, product_id):
         new_category = prod.category
         if 'category_id' in data and data['category_id']:
             new_category = get_object_or_404(Category, id=data['category_id'])
+        
+        new_brand = prod.brand
+        if 'brand_id' in data:
+            b_val = data['brand_id']
+            if b_val:
+                try:
+                    new_brand = Brand.objects.get(id=b_val)
+                except (Brand.DoesNotExist, ValueError):
+                    new_brand = None
+            else:
+                new_brand = None
+
         new_name = str(data.get('name', prod.name)).strip()
         new_size = str(data.get('size', prod.size)).strip()
 
         # Check for duplicate product when editing
-        if Product.objects.filter(category=new_category, name__iexact=new_name, size__iexact=new_size).exclude(id=prod.id).exists():
+        dup_query = Product.objects.filter(
+            category=new_category,
+            name__iexact=new_name,
+            size__iexact=new_size
+        ).exclude(id=prod.id)
+        if new_brand:
+            dup_query = dup_query.filter(brand=new_brand)
+        else:
+            dup_query = dup_query.filter(brand__isnull=True)
+
+        if dup_query.exists():
+            brand_txt = f" under brand '{new_brand.name}'" if new_brand else ""
             return JsonResponse({
                 'status': 'error',
                 'is_duplicate': True,
-                'message': f'This item "{new_name} ({new_size})" is already added in category "{new_category.name}"! Duplicate product is not allowed.'
+                'message': f'This item "{new_name} ({new_size})"{brand_txt} is already added in category "{new_category.name}"! Duplicate product is not allowed.'
             }, status=400)
 
         prod.category = new_category
+        prod.brand = new_brand
         prod.name = new_name
         prod.size = new_size
+        if 'product_code' in data:
+            prod.product_code = str(data['product_code']).strip()
+        if 'unit' in data and data['unit'] in ['PIECE', 'METER']:
+            prod.unit = data['unit']
+        if 'pipe_length' in data and data['pipe_length'] is not None and str(data['pipe_length']).strip() != '':
+            try:
+                prod.pipe_length = round(float(data['pipe_length']), 2)
+            except (ValueError, TypeError):
+                prod.pipe_length = 6.00
         if 'rate' in data:
             prod.rate = float(data['rate'])
         if 'quantity' in data:
@@ -456,6 +538,12 @@ def edit_product_api(request, product_id):
             'status': 'success',
             'message': f'Product "{prod.name}" updated successfully!',
             'product_id': prod.id,
+            'product_code': prod.display_code,
+            'brand_id': prod.brand.id if prod.brand else None,
+            'brand_name': prod.brand.name if prod.brand else '',
+            'pipe_length': float(prod.pipe_length or 0.0),
+            'full_pipe_price': float(prod.full_pipe_price),
+            'unit': prod.unit,
             'rate': float(prod.rate),
             'quantity': prod.quantity,
             'total': float(prod.total)
@@ -548,9 +636,9 @@ def edit_invoice_api(request, bill_id):
                 for it in new_items_data:
                     item_id = it.get('id')
                     try:
-                        qty = max(1, int(it.get('quantity', 1)))
+                        qty = max(0.1, float(it.get('quantity', 1)))
                     except (ValueError, TypeError):
-                        qty = 1
+                        qty = 1.0
                     try:
                         rate = max(0.0, float(it.get('rate', 0)))
                     except (ValueError, TypeError):
@@ -562,17 +650,21 @@ def edit_invoice_api(request, bill_id):
                     if item_id and int(item_id) in existing_items:
                         b_item = existing_items[int(item_id)]
                         kept_item_ids.add(b_item.id)
-                        old_qty = b_item.quantity
+                        old_qty = float(b_item.quantity)
 
                         # Stock adjustment
                         if b_item.product:
                             prod = b_item.product
                             diff = qty - old_qty
+                            curr_stock = float(prod.quantity or 0)
                             if diff > 0:
-                                if prod.quantity >= diff:
-                                    prod.quantity -= diff
+                                if curr_stock >= diff:
+                                    prod.quantity = max(0, int(round(curr_stock - diff)))
                                 else:
                                     prod.quantity = 0
+                                prod.save(update_fields=['quantity', 'updated_at'])
+                            elif diff < 0:
+                                prod.quantity = int(round(curr_stock + abs(diff)))
                                 prod.save(update_fields=['quantity', 'updated_at'])
                             elif diff < 0:
                                 prod.quantity += abs(diff)
@@ -707,11 +799,12 @@ def bulk_delete_invoices_api(request):
 def admin_dashboard(request):
     """
     Comprehensive Executive Admin Dashboard for ZAM ZAM HARDWARE (Owner: Lawrence C).
-    Shows key business analytics, stock alerts, financial overview, categories,
+    Shows key business analytics, stock alerts, financial overview, categories, brands,
     quick creation modals, recent bills, expenses, and supplier status.
     """
-    products = Product.objects.select_related('category').all()
+    products = Product.objects.select_related('category', 'brand').all()
     categories = Category.objects.prefetch_related('products').all()
+    brands = Brand.objects.prefetch_related('products').all()
     bills = Bill.objects.prefetch_related('items').all()
     expenses = Expense.objects.all()[:20]
     suppliers = Supplier.objects.all()
@@ -764,9 +857,10 @@ def admin_dashboard(request):
     # 10. Separate Cash & Net Banking / Online Model Payments
     cash_total = sum(float(b.grand_total or 0) for b in bills if b.payment_mode == 'CASH')
     upi_total = sum(float(b.grand_total or 0) for b in bills if b.payment_mode == 'UPI')
+    split_total = sum(float(b.grand_total or 0) for b in bills if b.payment_mode == 'SPLIT')
     card_total = sum(float(b.grand_total or 0) for b in bills if b.payment_mode == 'CARD')
     credit_total = sum(float(b.grand_total or 0) for b in bills if b.payment_mode == 'CREDIT')
-    net_banking_online_total = upi_total + card_total
+    net_banking_online_total = upi_total + card_total + split_total
 
     # 11. Offers Card Show Count
     featured_offers = FeaturedOfferProduct.objects.all().order_by('order', '-created_at')
@@ -804,6 +898,21 @@ def admin_dashboard(request):
             'total_value': round(cat_val, 2),
         })
 
+    # Brand analytics
+    brand_analytics = []
+    for b in brands:
+        b_prods = b.products.all()
+        b_val = sum(float(p.total or 0) for p in b_prods)
+        b_units = sum(int(p.quantity or 0) for p in b_prods)
+        brand_analytics.append({
+            'id': b.id,
+            'name': b.name,
+            'description': b.description or '',
+            'product_count': b_prods.count(),
+            'stock_units': b_units,
+            'total_value': round(b_val, 2),
+        })
+
     recent_bills = bills[:12]
 
     context = {
@@ -813,6 +922,8 @@ def admin_dashboard(request):
         'shop_address': "Main Road, Near Old Bus Stand, Hardware Market",
         'categories': categories,
         'category_analytics': category_analytics,
+        'brands': brands,
+        'brand_analytics': brand_analytics,
         'products': products,
         'recent_bills': recent_bills,
         'expenses': expenses,
@@ -921,6 +1032,89 @@ def edit_category_api(request, category_id):
             'message': f'Category "{cat.name}" updated successfully!',
             'category_id': cat.id,
             'name': cat.name
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+def add_brand_api(request):
+    """API to create a new Brand directly from the Admin Dashboard."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Only POST allowed'}, status=405)
+    try:
+        data = json.loads(request.body)
+        name = (data.get('name') or '').strip()
+        description = (data.get('description') or '').strip()
+
+        if not name:
+            return JsonResponse({'status': 'error', 'message': 'Brand name is required.'}, status=400)
+
+        if Brand.objects.filter(name__iexact=name).exists():
+            return JsonResponse({
+                'status': 'error',
+                'is_duplicate': True,
+                'message': f'This brand "{name}" is already added! Duplicate brand is not allowed.'
+            }, status=400)
+
+        brand = Brand.objects.create(name=name, description=description)
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Brand "{brand.name}" created successfully!',
+            'brand_id': brand.id,
+            'name': brand.name
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+def edit_brand_api(request, brand_id):
+    """API to edit an existing brand."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Only POST allowed'}, status=405)
+    try:
+        data = json.loads(request.body)
+        brand = get_object_or_404(Brand, id=brand_id)
+        name = (data.get('name') or brand.name).strip()
+        description = (data.get('description') or '').strip()
+
+        if not name:
+            return JsonResponse({'status': 'error', 'message': 'Brand name cannot be empty.'}, status=400)
+
+        if Brand.objects.filter(name__iexact=name).exclude(id=brand_id).exists():
+            return JsonResponse({
+                'status': 'error',
+                'is_duplicate': True,
+                'message': f'Another brand named "{name}" already exists!'
+            }, status=400)
+
+        brand.name = name
+        brand.description = description
+        brand.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Brand "{brand.name}" updated successfully!',
+            'brand_id': brand.id,
+            'name': brand.name
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+def delete_brand_api(request, brand_id):
+    """API to delete an existing brand."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Only POST allowed'}, status=405)
+    try:
+        brand = get_object_or_404(Brand, id=brand_id)
+        name = brand.name
+        brand.delete()
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Brand "{name}" deleted successfully!'
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

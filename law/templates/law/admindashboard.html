@@ -1149,6 +1149,10 @@
             🏷️ Categories & Catalog
             <span class="tab-counter">{{ categories|length }}</span>
         </button>
+        <button class="dash-tab-btn" onclick="switchDashTab('tab-brands', this)">
+            🏢 Brands & Makes
+            <span class="tab-counter">{{ brands|length }}</span>
+        </button>
         <button class="dash-tab-btn" onclick="switchDashTab('tab-expenses', this)">
             💸 Shop Expenses
             <span class="tab-counter">{{ expenses|length }}</span>
@@ -1187,6 +1191,8 @@
                 <table class="custom-table" id="lowStockTable">
                     <thead>
                         <tr>
+                            <th>Item ID</th>
+                            <th>Brand</th>
                             <th>Category</th>
                             <th>Product Name</th>
                             <th>Size / Spec</th>
@@ -1198,15 +1204,49 @@
                     </thead>
                     <tbody>
                         {% for p in low_stock_products %}
-                        <tr>
+                        <tr data-id="{{ p.id }}"
+                            data-category-id="{{ p.category.id }}"
+                            data-name="{{ p.name }}"
+                            data-size="{{ p.size }}"
+                            data-rate="{{ p.rate }}"
+                            data-quantity="{{ p.quantity }}"
+                            data-product-code="{{ p.product_code|default:'' }}"
+                            data-unit="{{ p.unit|default:'PIECE' }}"
+                            data-brand-id="{{ p.brand.id|default:'' }}"
+                            data-pipe-length="{{ p.pipe_length|default:6.00 }}">
+                            <td>
+                                <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; background: #f1f5f9; padding: 2px 7px; border-radius: 4px; color: #475569; font-weight: 700;">#{{ p.display_code }}</span>
+                            </td>
+                            <td>
+                                {% if p.brand %}
+                                <span class="status-pill pill-amber" style="font-weight: 800;">{{ p.brand.name }}</span>
+                                {% else %}
+                                <span style="color: #94a3b8; font-size: 11px;">Standard</span>
+                                {% endif %}
+                            </td>
                             <td><span class="status-pill pill-blue">{{ p.category.name }}</span></td>
                             <td><strong>{{ p.name }}</strong></td>
-                            <td><span style="font-family: 'JetBrains Mono', monospace;">{{ p.size }}</span></td>
-                            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">₹{{ p.rate|floatformat:2 }}</td>
                             <td>
-                                <strong style="color: {% if p.quantity == 0 %}#dc2626{% else %}#d97706{% endif %}; font-size: 15px;">
-                                    {{ p.quantity }} units
+                                <span style="font-family: 'JetBrains Mono', monospace;">{{ p.size }}</span>
+                                {% if p.unit == 'METER' and p.pipe_length %}
+                                <span style="font-size: 10.5px; color: #0284c7; display: block; font-weight: 700;">📏 {{ p.pipe_length }}m length</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">
+                                ₹{{ p.rate|floatformat:2 }}
+                                {% if p.unit == 'METER' %}
+                                <span style="font-size: 11px; color: #0284c7; font-weight: 700;">/m</span>
+                                {% else %}
+                                <span style="font-size: 11px; color: #64748b;">/pc</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong style="color: {% if p.quantity == 0 %}#dc2626{% else %}#d97706{% endif %}; font-size: 14px;">
+                                    {{ p.quantity }} {% if p.unit == 'METER' %}meters{% else %}units{% endif %}
                                 </strong>
+                                {% if p.unit == 'METER' and p.pipe_length and p.pipe_length > 0 %}
+                                <div style="font-size: 10px; color: #64748b;">≈ {{ p.estimated_pipe_count }} pipes</div>
+                                {% endif %}
                             </td>
                             <td>
                                 {% if p.quantity == 0 %}
@@ -1217,10 +1257,10 @@
                             </td>
                             <td>
                                 <div style="display: flex; gap: 6px; align-items: center;">
-                                    <button class="btn-white" style="padding: 4px 8px; font-size: 11px;" onclick="openQuickRestockModal({{ p.id }}, '{{ p.name|escapejs }}', '{{ p.size|escapejs }}', {{ p.rate }}, {{ p.quantity }})">
+                                    <button type="button" class="btn-white" style="padding: 4px 8px; font-size: 11px;" onclick="restockProductFromRow(this)">
                                         ⚡ Restock +
                                     </button>
-                                    <button class="btn-blue" style="padding: 4px 8px; font-size: 11px;" onclick="openEditProductModal({{ p.id }}, {{ p.category.id }}, '{{ p.name|escapejs }}', '{{ p.size|escapejs }}', {{ p.rate }}, {{ p.quantity }})">
+                                    <button type="button" class="btn-blue" style="padding: 4px 8px; font-size: 11px;" onclick="editProductFromRow(this)">
                                         ✏️ Edit
                                     </button>
                                 </div>
@@ -1228,7 +1268,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="7" style="text-align: center; padding: 30px; color: #10b981; font-weight: 700;">
+                            <td colspan="9" style="text-align: center; padding: 30px; color: #10b981; font-weight: 700;">
                                 🎉 All products have sufficient stock levels! No critical alerts right now.
                             </td>
                         </tr>
@@ -1302,7 +1342,7 @@
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <div class="search-input-wrap">
                         <span class="search-icon">🔍</span>
-                        <input type="text" class="search-input" id="invoiceSearchInput" placeholder="Search bill # or customer..." onkeyup="filterInvoicesTable()">
+                        <input type="text" class="search-input" id="invoiceSearchInput" placeholder="Search bill # or customer..." onkeyup="filterInvoicesTable()" oninput="filterInvoicesTable()">
                     </div>
                     <a href="{% url 'invoices_list' %}" class="btn-black" style="text-decoration: none;">
                         Open All Invoices List
@@ -1419,6 +1459,74 @@
                                     </a>
                                 </div>
                             </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         TAB: BRANDS & MANUFACTURERS
+         ========================================== -->
+    <div id="tab-brands" class="tab-content-pane">
+        <div class="table-container">
+            <div class="table-toolbar">
+                <div class="table-toolbar-title">
+                    <span>🏢 Plumbing Brands & Manufacturers</span>
+                    <span class="status-pill pill-amber">{{ brands|length }} Registered Brands</span>
+                </div>
+                <button class="btn-black" onclick="openModal('modalBrand')">
+                    ➕ Create New Brand
+                </button>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="custom-table" id="brandsTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Brand / Make</th>
+                            <th>Description</th>
+                            <th>Products Count</th>
+                            <th>Stock Units</th>
+                            <th>Total Valuation</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in brand_analytics %}
+                        <tr id="brand-row-{{ b.id }}">
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <strong style="color: #d97706; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;">
+                                    🏢 {{ b.name }}
+                                </strong>
+                            </td>
+                            <td style="color: #64748b; font-size: 12.5px;">{{ b.description|default:"Plumbing hardware manufacturer." }}</td>
+                            <td><span class="status-pill pill-blue">{{ b.product_count }} items</span></td>
+                            <td><strong style="font-family: 'JetBrains Mono', monospace;">{{ b.stock_units }} units</strong></td>
+                            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 800; color: #0284c7;">
+                                ₹{{ b.total_value|floatformat:2 }}
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button class="btn-blue" style="padding: 4px 8px; font-size: 11px;" onclick="openEditBrandModal({{ b.id }}, '{{ b.name|escapejs }}', '{{ b.description|default:''|escapejs }}')">
+                                        ✏️ Edit
+                                    </button>
+                                    <button class="btn-red" style="padding: 4px 8px; font-size: 11px;" onclick="deleteBrand({{ b.id }}, '{{ b.name|escapejs }}')">
+                                        🗑️ Delete
+                                    </button>
+                                    <a href="{% url 'inventory' %}?brand={{ b.name|urlencode }}" class="btn-white" style="padding: 4px 8px; font-size: 11px; text-decoration: none;">
+                                        Items →
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 24px; color: #64748b;">No brands registered yet. Click "+ Create New Brand" above.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -1564,7 +1672,7 @@
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     <div class="search-input-wrap">
                         <span class="search-icon">🔍</span>
-                        <input type="text" class="search-input" id="productSearchInput" placeholder="Filter product or size..." onkeyup="filterProductsTable()">
+                        <input type="text" class="search-input" id="productSearchInput" placeholder="Filter product or size..." onkeyup="filterProductsTable()" oninput="filterProductsTable()">
                     </div>
                     <button class="btn-black" onclick="openRestockModalEmpty()">
                         ⚡ Select Product to Restock
@@ -1579,6 +1687,8 @@
                 <table class="custom-table" id="productsCatalogTable">
                     <thead>
                         <tr>
+                            <th>Item ID</th>
+                            <th>Brand</th>
                             <th>Category</th>
                             <th>Product Name</th>
                             <th>Size / Dimensions</th>
@@ -1590,34 +1700,69 @@
                     </thead>
                     <tbody>
                         {% for p in products %}
-                        <tr id="prod-row-{{ p.id }}">
+                        <tr id="prod-row-{{ p.id }}"
+                            data-id="{{ p.id }}"
+                            data-category-id="{{ p.category.id }}"
+                            data-name="{{ p.name }}"
+                            data-size="{{ p.size }}"
+                            data-rate="{{ p.rate }}"
+                            data-quantity="{{ p.quantity }}"
+                            data-product-code="{{ p.product_code|default:'' }}"
+                            data-unit="{{ p.unit|default:'PIECE' }}"
+                            data-brand-id="{{ p.brand.id|default:'' }}"
+                            data-pipe-length="{{ p.pipe_length|default:6.00 }}">
+                            <td>
+                                <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; background: #f1f5f9; padding: 2px 7px; border-radius: 4px; color: #475569; font-weight: 700;">#{{ p.display_code }}</span>
+                            </td>
+                            <td>
+                                {% if p.brand %}
+                                <span class="status-pill pill-amber" style="font-weight: 800;">{{ p.brand.name }}</span>
+                                {% else %}
+                                <span style="color: #94a3b8; font-size: 11px;">Standard</span>
+                                {% endif %}
+                            </td>
                             <td><span class="status-pill pill-blue">{{ p.category.name }}</span></td>
                             <td><strong>{{ p.name }}</strong></td>
-                            <td><span style="font-family: 'JetBrains Mono', monospace;">{{ p.size }}</span></td>
-                            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">₹{{ p.rate|floatformat:2 }}</td>
+                            <td>
+                                <span style="font-family: 'JetBrains Mono', monospace;">{{ p.size }}</span>
+                                {% if p.unit == 'METER' and p.pipe_length %}
+                                <span style="font-size: 10.5px; color: #0284c7; display: block; font-weight: 700;">📏 {{ p.pipe_length }}m length</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">
+                                ₹{{ p.rate|floatformat:2 }}
+                                {% if p.unit == 'METER' %}
+                                <span style="font-size: 11px; color: #0284c7; font-weight: 700;">/m</span>
+                                {% else %}
+                                <span style="font-size: 11px; color: #64748b;">/pc</span>
+                                {% endif %}
+                            </td>
                             <td>
                                 <span id="prod-stock-badge-{{ p.id }}" class="status-pill {% if p.quantity == 0 %}pill-red{% elif p.quantity <= 10 %}pill-amber{% else %}pill-green{% endif %}">
-                                    {{ p.quantity }} units
+                                    {{ p.quantity }} {% if p.unit == 'METER' %}meters{% else %}units{% endif %}
                                 </span>
+                                {% if p.unit == 'METER' and p.pipe_length and p.pipe_length > 0 %}
+                                <div style="font-size: 10px; color: #64748b; margin-top: 2px;">≈ {{ p.estimated_pipe_count }} pipes</div>
+                                {% endif %}
                             </td>
                             <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">
                                 ₹{{ p.total|floatformat:2 }}
                             </td>
                             <td>
                                 <div style="display: flex; gap: 5px; align-items: center; flex-wrap: wrap;">
-                                    <button class="btn-white" style="padding: 2px 7px; font-size: 11px;" onclick="applyQuickStockAdd({{ p.id }}, 10)">
+                                    <button type="button" class="btn-white" style="padding: 2px 7px; font-size: 11px;" onclick="applyQuickStockAdd({{ p.id }}, 10)">
                                         +10
                                     </button>
-                                    <button class="btn-white" style="padding: 2px 7px; font-size: 11px;" onclick="applyQuickStockAdd({{ p.id }}, 25)">
+                                    <button type="button" class="btn-white" style="padding: 2px 7px; font-size: 11px;" onclick="applyQuickStockAdd({{ p.id }}, 25)">
                                         +25
                                     </button>
-                                    <button class="btn-white" style="padding: 2px 7px; font-size: 11px;" onclick="applyQuickStockAdd({{ p.id }}, 50)">
+                                    <button type="button" class="btn-white" style="padding: 2px 7px; font-size: 11px;" onclick="applyQuickStockAdd({{ p.id }}, 50)">
                                         +50
                                     </button>
-                                    <button class="btn-white" style="padding: 2px 8px; font-size: 11px;" onclick="openQuickRestockModal({{ p.id }}, '{{ p.name|escapejs }}', '{{ p.size|escapejs }}', {{ p.rate }}, {{ p.quantity }})">
+                                    <button type="button" class="btn-white" style="padding: 2px 8px; font-size: 11px;" onclick="restockProductFromRow(this)">
                                         Restock
                                     </button>
-                                    <button class="btn-blue" style="padding: 2px 8px; font-size: 11px;" onclick="openEditProductModal({{ p.id }}, {{ p.category.id }}, '{{ p.name|escapejs }}', '{{ p.size|escapejs }}', {{ p.rate }}, {{ p.quantity }})">
+                                    <button type="button" class="btn-blue" style="padding: 2px 8px; font-size: 11px;" onclick="editProductFromRow(this)">
                                         ✏️ Edit
                                     </button>
                                 </div>
@@ -1669,7 +1814,7 @@
                     </thead>
                     <tbody>
                         {% for item in featured_offers %}
-                        <tr id="offer-row-{{ item.id }}">
+                        <tr id="offer-row-{{ item.id }}" data-id="{{ item.id }}" data-name="{{ item.name|escape }}" data-category-name="{{ item.category_name|escape }}" data-size="{{ item.size|escape }}" data-original-price="{{ item.original_price }}" data-discount-price="{{ item.discount_price }}" data-offer-date="{{ item.offer_date }}" data-order="{{ item.order }}" data-image-url="{{ item.image_url|escape }}" data-description="{{ item.description|escape }}" data-button-text="{{ item.button_text|escape }}" data-button-link="{{ item.button_link|escape }}">
                             <td style="font-weight: 800; text-align: center;">#{{ item.order }}</td>
                             <td>
                                 <img src="{{ item.image_url }}" alt="{{ item.name }}" style="width: 44px; height: 44px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0;" onerror="this.src='https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=600&q=80'">
@@ -1686,10 +1831,10 @@
                             <td><span style="font-size: 12px; font-weight: 700; color: #0f172a;">⏳ {{ item.offer_date }}</span></td>
                             <td>
                                 <div style="display: flex; gap: 6px; align-items: center;">
-                                    <button type="button" class="btn-blue" style="padding: 4px 10px; font-size: 12px;" onclick="openEditFeaturedOfferModal({{ item.id }}, '{{ item.name|escapejs }}', '{{ item.category_name|escapejs }}', '{{ item.size|escapejs }}', {{ item.original_price }}, {{ item.discount_price }}, '{{ item.offer_date|escapejs }}', {{ item.order }}, '{{ item.image_url|escapejs }}', '{{ item.description|escapejs }}', '{{ item.button_text|escapejs }}', '{{ item.button_link|escapejs }}')">
+                                    <button type="button" class="btn-blue" style="padding: 4px 10px; font-size: 12px;" onclick="editOfferFromRow(this)">
                                         ✏️ Edit
                                     </button>
-                                    <button type="button" class="btn-red" style="padding: 4px 10px; font-size: 12px;" onclick="deleteFeaturedOffer({{ item.id }}, '{{ item.name|escapejs }}')">
+                                    <button type="button" class="btn-red" style="padding: 4px 10px; font-size: 12px;" onclick="deleteOfferFromRow(this)">
                                         🗑️ Delete
                                     </button>
                                 </div>
@@ -1717,7 +1862,7 @@
 
 <!-- 1. CREATE NEW PRODUCT MODAL -->
 <div class="modal-overlay" id="modalProduct">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width: 650px;">
         <div class="modal-header">
             <div class="modal-title">
                 <span>➕ Create New Hardware Product</span>
@@ -1725,36 +1870,105 @@
             <button class="modal-close-btn" onclick="closeModal('modalProduct')">&times;</button>
         </div>
         <form id="formAddProduct" onsubmit="submitAddProduct(event)">
+            {% csrf_token %}
             <div class="modal-body">
                 <!-- Duplicate Item Warning Banner -->
                 <div id="newProdWarning" style="display: none; background: #fef2f2; border: 1.5px solid #ef4444; color: #b91c1c; padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 16px;"></div>
 
-                <div class="form-group">
-                    <label class="form-label">Category *</label>
-                    <select class="form-control" id="newProdCategory" required>
-                        <option value="">-- Select Plumbing Category --</option>
-                        {% for cat in categories %}
-                        <option value="{{ cat.id }}">{{ cat.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Product Name *</label>
-                    <input type="text" class="form-control" id="newProdName" placeholder="e.g. CPVC Brass Elbow, Brass Ball Valve" required>
-                </div>
                 <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Size / Dimension *</label>
-                        <input type="text" class="form-control" id="newProdSize" placeholder="e.g. 1/2 inch, 3/4 inch, 25mm" required>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Category *</label>
+                        <select class="form-control" id="newProdCategory" required>
+                            <option value="">-- Select Plumbing Category --</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Rate / Unit Price (₹) *</label>
-                        <input type="number" step="0.01" min="0" class="form-control" id="newProdRate" placeholder="e.g. 150.00" required>
+                    <div class="form-group" style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label class="form-label" style="margin-bottom: 0;">Brand</label>
+                            <button type="button" onclick="openModal('modalBrand')" style="background: none; border: none; color: var(--color-blue); font-size: 11.5px; font-weight: 700; cursor: pointer; padding: 0;">+ New Brand</button>
+                        </div>
+                        <select class="form-control" id="newProdBrand">
+                            <option value="">-- Generic / No Brand --</option>
+                            {% for b in brands %}
+                            <option value="{{ b.id }}">{{ b.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1.5;">
+                        <label class="form-label">Product Name *</label>
+                        <input type="text" class="form-control" id="newProdName" placeholder="e.g. Pasting Pipe, Brass Ball Valve" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Product Code (ID NO)</label>
+                        <input type="text" class="form-control" id="newProdCode" placeholder="Auto-generated e.g. PROD-001">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Size / Dimension *</label>
+                        <input type="text" class="form-control" id="newProdSize" placeholder="e.g. 110mm, 1/2 inch, 25mm" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Unit of Measure *</label>
+                        <select class="form-control" id="newProdUnit" onchange="handleProductUnitChange('new')">
+                            <option value="PIECE">Piece / Nos (Fittings, Valves)</option>
+                            <option value="METER">Meter / Length (Pipes, Coils)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label" id="newProdRateLabel">Rate / Price (₹) *</label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="newProdRate" placeholder="e.g. 581.00" required oninput="calculateMeterAmount('new')">
+                        <small id="newProdRateHelp" style="color: #64748b; font-size: 11px;">Price per single unit.</small>
+                    </div>
+                    <div class="form-group" style="flex: 1;" id="newProdPipeLengthWrap">
+                        <label class="form-label">Pipe Length (Meters per pipe)</label>
+                        <input type="number" step="0.01" min="0.1" class="form-control" id="newProdPipeLength" value="6.00" placeholder="e.g. 6.00" oninput="calculateMeterAmount('new')">
+                        <small style="color: #64748b; font-size: 11px;">Standard length (e.g. 6.00m or 3.00m).</small>
+                    </div>
+                </div>
+
+                <!-- Live Meter & Pipe Set Calculation Card -->
+                <div class="pipe-calc-card" id="newPipeCalcCard" style="display: none; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 800; color: #166534; font-size: 13px;">📏 Pipe Length & Rate Calculator</span>
+                        <span style="font-size: 11px; font-weight: 700; color: #15803d; background: #dcfce7; padding: 2px 8px; border-radius: 999px;">Live Formula</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                        <div style="background: #ffffff; padding: 8px 12px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                            <div style="font-size: 11px; color: #64748b; font-weight: 700;">1 METER RATE</div>
+                            <div style="font-size: 16px; font-weight: 800; color: #0f172a;" id="newCalc1MeterRate">₹0.00</div>
+                        </div>
+                        <div style="background: #ffffff; padding: 8px 12px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                            <div style="font-size: 11px; color: #64748b; font-weight: 700;">1 FULL PIPE PRICE (<span id="newCalcPipeLenText">6.00</span>m)</div>
+                            <div style="font-size: 16px; font-weight: 800; color: #166534;" id="newCalcFullPipePrice">₹0.00</div>
+                        </div>
+                    </div>
+                    <!-- Pipe Bundle / Set Stock Helper -->
+                    <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 8px 12px;">
+                        <div style="font-size: 11.5px; font-weight: 700; color: #334155; margin-bottom: 4px;">⚡ Pipe Bundle / Set Stock Helper:</div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span style="font-size: 12px;">How many full pipes?</span>
+                            <input type="number" min="1" id="newBundlePipeCount" value="5" style="width: 70px; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: 700;" oninput="updateBundlePreview('new')">
+                            <span style="font-size: 12px;">pipes &times; <span id="newBundlePipeLen">6.00</span>m = <strong id="newBundleTotalMeters" style="color: #0369a1;">30.00</strong> meters</span>
+                            <button type="button" class="btn-blue" style="padding: 3px 10px; font-size: 11px;" onclick="applyPipeBundleToStock('new')">Set as Stock Qty</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label class="form-label">Initial Stock Quantity</label>
+                    <label class="form-label" id="newProdQtyLabel">Initial Stock Quantity (Pieces / Meters) *</label>
                     <input type="number" min="0" class="form-control" id="newProdQty" value="50" required>
+                    <small style="color: #64748b; font-size: 11px;">For length pipes, enter stock in total meters (or use bundle helper above).</small>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1775,6 +1989,7 @@
             <button class="modal-close-btn" onclick="closeModal('modalCategory')">&times;</button>
         </div>
         <form id="formAddCategory" onsubmit="submitAddCategory(event)">
+            {% csrf_token %}
             <div class="modal-body">
                 <!-- Duplicate Category Warning Banner -->
                 <div id="newCatWarning" style="display: none; background: #fef2f2; border: 1.5px solid #ef4444; color: #b91c1c; padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 16px;"></div>
@@ -1796,6 +2011,37 @@
     </div>
 </div>
 
+<!-- 2B. CREATE NEW BRAND MODAL -->
+<div class="modal-overlay" id="modalBrand">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">
+                <span>🏷️ Add New Plumbing Brand</span>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('modalBrand')">&times;</button>
+        </div>
+        <form id="formAddBrand" onsubmit="submitAddBrand(event)">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div id="newBrandWarning" style="display: none; background: #fef2f2; border: 1.5px solid #ef4444; color: #b91c1c; padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 16px;"></div>
+
+                <div class="form-group">
+                    <label class="form-label">Brand Name *</label>
+                    <input type="text" class="form-control" id="newBrandName" placeholder="e.g. Finolex, Ashirvad, Astral, Supreme" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description (Optional)</label>
+                    <textarea class="form-control" id="newBrandDesc" rows="3" placeholder="Authorized dealership, premium CPVC/PVC manufacturer details"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-white" onclick="closeModal('modalBrand')">Cancel</button>
+                <button type="submit" class="btn-black" id="btnSaveBrand">Create Brand</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- 3. RECORD NEW EXPENSE MODAL -->
 <div class="modal-overlay" id="modalExpense">
     <div class="modal-box">
@@ -1806,6 +2052,7 @@
             <button class="modal-close-btn" onclick="closeModal('modalExpense')">&times;</button>
         </div>
         <form id="formAddExpense" onsubmit="submitAddExpense(event)">
+            {% csrf_token %}
             <div class="modal-body">
                 <div class="form-group">
                     <label class="form-label">Expense Description / Title *</label>
@@ -1866,6 +2113,7 @@
             <button class="modal-close-btn" onclick="closeModal('modalSupplier')">&times;</button>
         </div>
         <form id="formAddSupplier" onsubmit="submitAddSupplier(event)">
+            {% csrf_token %}
             <div class="modal-body">
                 <div class="form-row">
                     <div class="form-group">
@@ -1920,6 +2168,7 @@
             <button class="modal-close-btn" onclick="closeModal('modalRestock')">&times;</button>
         </div>
         <form id="formQuickRestock" onsubmit="submitQuickRestock(event)">
+            {% csrf_token %}
             <input type="hidden" id="restockProdId">
             <div class="modal-body">
                 <div class="form-group">
@@ -1971,6 +2220,7 @@
             <button class="modal-close-btn" onclick="closeModal('modalFeaturedOffer')">&times;</button>
         </div>
         <form id="formAddFeaturedOffer" onsubmit="submitAddFeaturedOffer(event)">
+            {% csrf_token %}
             <div class="modal-body">
                 <!-- Duplicate Item Warning Banner -->
                 <div id="newOfferWarning" style="display: none; background: #fef2f2; border: 1.5px solid #ef4444; color: #b91c1c; padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 16px;"></div>
@@ -2107,7 +2357,7 @@
 
 <!-- EDIT PRODUCT MODAL -->
 <div class="modal-overlay" id="modalEditProduct">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width: 650px;">
         <div class="modal-header">
             <div class="modal-title">
                 <span>✏️ Edit Hardware Product</span>
@@ -2115,36 +2365,102 @@
             <button class="modal-close-btn" onclick="closeModal('modalEditProduct')">&times;</button>
         </div>
         <form id="formEditProduct" onsubmit="submitEditProduct(event)">
+            {% csrf_token %}
             <input type="hidden" id="editProdId">
             <div class="modal-body">
                 <div id="editProdWarning" style="display: none; background: #fef2f2; border: 1.5px solid #ef4444; color: #b91c1c; padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 16px;"></div>
 
-                <div class="form-group">
-                    <label class="form-label">Category *</label>
-                    <select class="form-control" id="editProdCategory" required>
-                        <option value="">-- Select Category --</option>
-                        {% for cat in categories %}
-                        <option value="{{ cat.id }}">{{ cat.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Product Name *</label>
-                    <input type="text" class="form-control" id="editProdName" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Size / Spec *</label>
-                    <input type="text" class="form-control" id="editProdSize" required>
-                </div>
                 <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Unit Rate (₹) *</label>
-                        <input type="number" step="0.01" min="0" class="form-control" id="editProdRate" required>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Category *</label>
+                        <select class="form-control" id="editProdCategory" required>
+                            <option value="">-- Select Category --</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Stock Quantity (Units) *</label>
-                        <input type="number" min="0" class="form-control" id="editProdQty" required>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Brand</label>
+                        <select class="form-control" id="editProdBrand">
+                            <option value="">-- Generic / No Brand --</option>
+                            {% for b in brands %}
+                            <option value="{{ b.id }}">{{ b.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1.5;">
+                        <label class="form-label">Product Name *</label>
+                        <input type="text" class="form-control" id="editProdName" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Product Code (ID NO)</label>
+                        <input type="text" class="form-control" id="editProdCode" placeholder="e.g. PROD-001">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Size / Dimension *</label>
+                        <input type="text" class="form-control" id="editProdSize" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Unit of Measure *</label>
+                        <select class="form-control" id="editProdUnit" onchange="handleProductUnitChange('edit')">
+                            <option value="PIECE">Piece / Nos (Fittings, Valves)</option>
+                            <option value="METER">Meter / Length (Pipes, Coils)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label" id="editProdRateLabel">Rate / Price (₹) *</label>
+                        <input type="number" step="0.01" min="0" class="form-control" id="editProdRate" required oninput="calculateMeterAmount('edit')">
+                        <small id="editProdRateHelp" style="color: #64748b; font-size: 11px;">Price per single unit.</small>
+                    </div>
+                    <div class="form-group" style="flex: 1;" id="editProdPipeLengthWrap">
+                        <label class="form-label">Pipe Length (Meters per pipe)</label>
+                        <input type="number" step="0.01" min="0.1" class="form-control" id="editProdPipeLength" value="6.00" oninput="calculateMeterAmount('edit')">
+                        <small style="color: #64748b; font-size: 11px;">Standard length (e.g. 6.00m or 3.00m).</small>
+                    </div>
+                </div>
+
+                <!-- Live Meter & Pipe Set Calculation Card -->
+                <div class="pipe-calc-card" id="editPipeCalcCard" style="display: none; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 800; color: #166534; font-size: 13px;">📏 Pipe Length & Rate Calculator</span>
+                        <span style="font-size: 11px; font-weight: 700; color: #15803d; background: #dcfce7; padding: 2px 8px; border-radius: 999px;">Live Formula</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                        <div style="background: #ffffff; padding: 8px 12px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                            <div style="font-size: 11px; color: #64748b; font-weight: 700;">1 METER RATE</div>
+                            <div style="font-size: 16px; font-weight: 800; color: #0f172a;" id="editCalc1MeterRate">₹0.00</div>
+                        </div>
+                        <div style="background: #ffffff; padding: 8px 12px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                            <div style="font-size: 11px; color: #64748b; font-weight: 700;">1 FULL PIPE PRICE (<span id="editCalcPipeLenText">6.00</span>m)</div>
+                            <div style="font-size: 16px; font-weight: 800; color: #166534;" id="editCalcFullPipePrice">₹0.00</div>
+                        </div>
+                    </div>
+                    <!-- Pipe Bundle / Set Stock Helper -->
+                    <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 8px 12px;">
+                        <div style="font-size: 11.5px; font-weight: 700; color: #334155; margin-bottom: 4px;">⚡ Pipe Bundle / Set Stock Helper:</div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span style="font-size: 12px;">How many full pipes?</span>
+                            <input type="number" min="1" id="editBundlePipeCount" value="5" style="width: 70px; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: 700;" oninput="updateBundlePreview('edit')">
+                            <span style="font-size: 12px;">pipes &times; <span id="editBundlePipeLen">6.00</span>m = <strong id="editBundleTotalMeters" style="color: #0369a1;">30.00</strong> meters</span>
+                            <button type="button" class="btn-blue" style="padding: 3px 10px; font-size: 11px;" onclick="applyPipeBundleToStock('edit')">Set as Stock Qty</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" id="editProdQtyLabel">Stock Quantity (Units / Meters) *</label>
+                    <input type="number" min="0" class="form-control" id="editProdQty" required>
+                    <small style="color: #64748b; font-size: 11px;">For length pipes, enter total meters in stock.</small>
                 </div>
             </div>
             <div class="modal-footer">
@@ -2165,6 +2481,7 @@
             <button class="modal-close-btn" onclick="closeModal('modalEditCategory')">&times;</button>
         </div>
         <form id="formEditCategory" onsubmit="submitEditCategory(event)">
+            {% csrf_token %}
             <input type="hidden" id="editCatId">
             <div class="modal-body">
                 <div id="editCatWarning" style="display: none; background: #fef2f2; border: 1.5px solid #ef4444; color: #b91c1c; padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 16px;"></div>
@@ -2186,6 +2503,38 @@
     </div>
 </div>
 
+<!-- EDIT BRAND MODAL -->
+<div class="modal-overlay" id="modalEditBrand">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">
+                <span>✏️ Edit Plumbing Brand</span>
+            </div>
+            <button class="modal-close-btn" onclick="closeModal('modalEditBrand')">&times;</button>
+        </div>
+        <form id="formEditBrand" onsubmit="submitEditBrand(event)">
+            {% csrf_token %}
+            <input type="hidden" id="editBrandId">
+            <div class="modal-body">
+                <div id="editBrandWarning" style="display: none; background: #fef2f2; border: 1.5px solid #ef4444; color: #b91c1c; padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 16px;"></div>
+
+                <div class="form-group">
+                    <label class="form-label">Brand Name *</label>
+                    <input type="text" class="form-control" id="editBrandName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" id="editBrandDesc" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-white" onclick="closeModal('modalEditBrand')">Cancel</button>
+                <button type="submit" class="btn-blue" id="btnUpdateBrand">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- EDIT EXPENSE MODAL -->
 <div class="modal-overlay" id="modalEditExpense">
     <div class="modal-box">
@@ -2196,6 +2545,7 @@
             <button class="modal-close-btn" onclick="closeModal('modalEditExpense')">&times;</button>
         </div>
         <form id="formEditExpense" onsubmit="submitEditExpense(event)">
+            {% csrf_token %}
             <input type="hidden" id="editExpId">
             <div class="modal-body">
                 <div class="form-group">
@@ -2264,6 +2614,7 @@
             <button class="modal-close-btn" onclick="closeModal('modalEditSupplier')">&times;</button>
         </div>
         <form id="formEditSupplier" onsubmit="submitEditSupplier(event)">
+            {% csrf_token %}
             <input type="hidden" id="editSuppId">
             <div class="modal-body">
                 <div class="form-row">
@@ -2323,6 +2674,7 @@
             <button class="modal-close-btn" onclick="closeModal('modalEditFeaturedOffer')">&times;</button>
         </div>
         <form id="formEditFeaturedOffer" onsubmit="submitEditFeaturedOffer(event)">
+            {% csrf_token %}
             <input type="hidden" id="editOfferId">
             <div class="modal-body">
                 <div id="editOfferWarning" style="display: none; background: #fef2f2; border: 1.5px solid #ef4444; color: #b91c1c; padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; margin-bottom: 16px;"></div>
@@ -2469,6 +2821,140 @@
         }, 4000);
     }
 
+    // CSRF Token Helper for AJAX POST Requests
+    function getCsrfToken() {
+        const input = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (input && input.value) return input.value;
+        const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+        return cookie ? cookie.split('=')[1] : '';
+    }
+
+    // Safe Row Action Handlers (Prevents quote issues with inch sizes like 1/2", 3/4")
+    function editProductFromRow(btn) {
+        const tr = btn.closest('tr');
+        if (!tr) return;
+        const d = tr.dataset;
+        openEditProductModal(
+            d.id,
+            d.categoryId,
+            d.name,
+            d.size,
+            parseFloat(d.rate) || 0,
+            d.quantity,
+            d.productCode || '',
+            d.unit || 'PIECE',
+            d.brandId || '',
+            parseFloat(d.pipeLength) || 6.00
+        );
+    }
+
+    function restockProductFromRow(btn) {
+        const tr = btn.closest('tr');
+        if (!tr) return;
+        const d = tr.dataset;
+        openQuickRestockModal(d.id, d.name, d.size, parseFloat(d.rate) || 0, d.quantity);
+    }
+
+    function editOfferFromRow(btn) {
+        const tr = btn.closest('tr');
+        if (!tr) return;
+        const d = tr.dataset;
+        openEditFeaturedOfferModal(
+            d.id,
+            d.name,
+            d.categoryName,
+            d.size,
+            parseFloat(d.originalPrice) || 0,
+            parseFloat(d.discountPrice) || 0,
+            d.offerDate,
+            parseInt(d.order) || 1,
+            d.imageUrl,
+            d.description,
+            d.buttonText,
+            d.buttonLink
+        );
+    }
+
+    function deleteOfferFromRow(btn) {
+        const tr = btn.closest('tr');
+        if (!tr) return;
+        deleteFeaturedOffer(tr.dataset.id, tr.dataset.name);
+    }
+
+    // ==========================================
+    // PIPE LENGTH & METER CALCULATOR HELPERS
+    // ==========================================
+    function handleProductUnitChange(prefix) {
+        const unitElem = document.getElementById(prefix + 'ProdUnit');
+        const calcCard = document.getElementById(prefix + 'PipeCalcCard');
+        const rateLabel = document.getElementById(prefix + 'ProdRateLabel');
+        const rateHelp = document.getElementById(prefix + 'ProdRateHelp');
+        const qtyLabel = document.getElementById(prefix + 'ProdQtyLabel');
+        const pipeLenWrap = document.getElementById(prefix + 'ProdPipeLengthWrap');
+
+        if (!unitElem) return;
+        const isMeter = unitElem.value === 'METER';
+
+        if (calcCard) calcCard.style.display = isMeter ? 'block' : 'none';
+        if (pipeLenWrap) pipeLenWrap.style.display = 'block';
+
+        if (isMeter) {
+            if (rateLabel) rateLabel.textContent = 'Rate / Price (₹ per Meter) *';
+            if (rateHelp) rateHelp.textContent = 'Price for 1 meter. Full pipe price is calculated below.';
+            if (qtyLabel) qtyLabel.textContent = 'Stock Quantity (Total Meters) *';
+        } else {
+            if (rateLabel) rateLabel.textContent = 'Rate / Price (₹ per Piece) *';
+            if (rateHelp) rateHelp.textContent = 'Price per single piece / item.';
+            if (qtyLabel) qtyLabel.textContent = 'Stock Quantity (Pieces / Nos) *';
+        }
+        calculateMeterAmount(prefix);
+    }
+
+    function calculateMeterAmount(prefix) {
+        const rateInput = document.getElementById(prefix + 'ProdRate');
+        const lenInput = document.getElementById(prefix + 'ProdPipeLength');
+        const rate = parseFloat(rateInput ? rateInput.value : 0) || 0;
+        const pipeLen = parseFloat(lenInput ? lenInput.value : 6.00) || 6.00;
+        const fullPipePrice = rate * pipeLen;
+
+        const meterElem = document.getElementById(prefix + 'Calc1MeterRate');
+        const lenTextElem = document.getElementById(prefix + 'CalcPipeLenText');
+        const fullPriceElem = document.getElementById(prefix + 'CalcFullPipePrice');
+
+        if (meterElem) meterElem.textContent = `₹${rate.toFixed(2)}`;
+        if (lenTextElem) lenTextElem.textContent = pipeLen.toFixed(2);
+        if (fullPriceElem) fullPriceElem.textContent = `₹${fullPipePrice.toFixed(2)}`;
+
+        updateBundlePreview(prefix);
+    }
+
+    function updateBundlePreview(prefix) {
+        const countInput = document.getElementById(prefix + 'BundlePipeCount');
+        const lenInput = document.getElementById(prefix + 'ProdPipeLength');
+        const pipeCount = parseInt(countInput ? countInput.value : 0) || 0;
+        const pipeLen = parseFloat(lenInput ? lenInput.value : 6.00) || 6.00;
+        const totalMeters = (pipeCount * pipeLen).toFixed(2);
+
+        const lenElem = document.getElementById(prefix + 'BundlePipeLen');
+        const totElem = document.getElementById(prefix + 'BundleTotalMeters');
+        if (lenElem) lenElem.textContent = pipeLen.toFixed(2);
+        if (totElem) totElem.textContent = totalMeters;
+    }
+
+    function applyPipeBundleToStock(prefix) {
+        const countInput = document.getElementById(prefix + 'BundlePipeCount');
+        const lenInput = document.getElementById(prefix + 'ProdPipeLength');
+        const pipeCount = parseInt(countInput ? countInput.value : 0) || 0;
+        const pipeLen = parseFloat(lenInput ? lenInput.value : 6.00) || 6.00;
+        const totalMeters = Math.round(pipeCount * pipeLen);
+
+        const qtyInput = document.getElementById(prefix + 'ProdQty');
+        if (qtyInput) {
+            qtyInput.value = totalMeters;
+            showToast(`Applied ${pipeCount} pipes (${totalMeters}m) to stock!`, 'success');
+        }
+    }
+
     // ==========================================
     // API SUBMISSION: CREATE NEW PRODUCT
     // ==========================================
@@ -2483,8 +2969,12 @@
 
         const payload = {
             category_id: document.getElementById('newProdCategory').value,
+            brand_id: document.getElementById('newProdBrand').value || null,
+            product_code: document.getElementById('newProdCode').value.trim(),
             name: document.getElementById('newProdName').value.trim(),
             size: document.getElementById('newProdSize').value.trim(),
+            unit: document.getElementById('newProdUnit').value,
+            pipe_length: parseFloat(document.getElementById('newProdPipeLength').value) || 6.00,
             rate: parseFloat(document.getElementById('newProdRate').value) || 0,
             quantity: parseInt(document.getElementById('newProdQty').value) || 0,
         };
@@ -2492,7 +2982,7 @@
         try {
             const resp = await fetch("{% url 'add_product_api' %}", {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
                 body: JSON.stringify(payload)
             });
             const data = await resp.json();
@@ -2536,7 +3026,7 @@
         try {
             const resp = await fetch("{% url 'add_category_api' %}", {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
                 body: JSON.stringify(payload)
             });
             const data = await resp.json();
@@ -2582,7 +3072,7 @@
         try {
             const resp = await fetch("{% url 'add_expense_api' %}", {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
                 body: JSON.stringify(payload)
             });
             const data = await resp.json();
@@ -2610,7 +3100,7 @@
         try {
             const resp = await fetch(`/api/expense/delete/${expenseId}/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }
             });
             const data = await resp.json();
             if (data.status === 'success') {
@@ -2648,7 +3138,7 @@
         try {
             const resp = await fetch("{% url 'add_supplier_api' %}", {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
                 body: JSON.stringify(payload)
             });
             const data = await resp.json();
@@ -2676,7 +3166,7 @@
         try {
             const resp = await fetch(`/api/supplier/delete/${supplierId}/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }
             });
             const data = await resp.json();
             if (data.status === 'success') {
@@ -2723,9 +3213,10 @@
         document.getElementById('restockProdId').value = prodId;
         document.getElementById('restockProductSelect').value = prodId;
         document.getElementById('restockProdTitle').textContent = `${name} (${size})`;
-        document.getElementById('restockProdSub').textContent = `Current Stock: ${currentStock} units | Current Rate: ₹${rate.toFixed(2)}`;
+        const numRate = parseFloat(rate) || 0;
+        document.getElementById('restockProdSub').textContent = `Current Stock: ${currentStock} units | Current Rate: ₹${numRate.toFixed(2)}`;
         document.getElementById('restockAddQty').value = 25;
-        document.getElementById('restockRate').value = rate;
+        document.getElementById('restockRate').value = numRate;
         openModal('modalRestock');
     }
 
@@ -2746,7 +3237,7 @@
         try {
             const resp = await fetch(`/api/product/quick-stock/${prodId}/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
                 body: JSON.stringify({ add_quantity: addQty, rate: rate })
             });
             const data = await resp.json();
@@ -2769,7 +3260,7 @@
         try {
             const resp = await fetch(`/api/product/quick-stock/${prodId}/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
                 body: JSON.stringify({ add_quantity: qty })
             });
             const data = await resp.json();
@@ -2838,7 +3329,7 @@
         try {
             const resp = await fetch("{% url 'add_featured_offer_api' %}", {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
                 body: JSON.stringify(payload)
             });
             const data = await resp.json();
@@ -2873,7 +3364,7 @@
         try {
             const resp = await fetch(`/api/featured-offer/delete/${offerId}/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }
             });
             const data = await resp.json();
             if (data.status === 'success') {
@@ -2890,17 +3381,141 @@
     }
 
     // ==========================================
+    // BRAND MANAGEMENT API HANDLERS
+    // ==========================================
+    async function submitAddBrand(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnSaveBrand');
+        const warnBox = document.getElementById('newBrandWarning');
+        if (warnBox) warnBox.style.display = 'none';
+
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        const payload = {
+            name: document.getElementById('newBrandName').value.trim(),
+            description: document.getElementById('newBrandDesc').value.trim()
+        };
+
+        try {
+            const resp = await fetch("{% url 'add_brand_api' %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                closeModal('modalBrand');
+                document.getElementById('formAddBrand').reset();
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                if (warnBox) {
+                    warnBox.innerHTML = `⚠️ <strong>Duplicate Brand:</strong> ${data.message}`;
+                    warnBox.style.display = 'block';
+                }
+                showToast(data.message || 'Failed to add brand.', 'error');
+            }
+        } catch (err) {
+            showToast('Network error while saving brand.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Create Brand';
+        }
+    }
+
+    function openEditBrandModal(id, name, desc) {
+        document.getElementById('editBrandId').value = id;
+        document.getElementById('editBrandName').value = name;
+        document.getElementById('editBrandDesc').value = desc || '';
+        const warnBox = document.getElementById('editBrandWarning');
+        if (warnBox) warnBox.style.display = 'none';
+        openModal('modalEditBrand');
+    }
+
+    async function submitEditBrand(e) {
+        e.preventDefault();
+        const id = document.getElementById('editBrandId').value;
+        const btn = document.getElementById('btnUpdateBrand');
+        const warnBox = document.getElementById('editBrandWarning');
+        if (warnBox) warnBox.style.display = 'none';
+
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        const payload = {
+            name: document.getElementById('editBrandName').value.trim(),
+            description: document.getElementById('editBrandDesc').value.trim()
+        };
+
+        try {
+            const resp = await fetch(`/api/brand/edit/${id}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                closeModal('modalEditBrand');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                if (warnBox) {
+                    warnBox.innerHTML = `⚠️ <strong>Error:</strong> ${data.message}`;
+                    warnBox.style.display = 'block';
+                }
+                showToast(data.message || 'Failed to update brand.', 'error');
+            }
+        } catch (err) {
+            showToast('Network error while updating brand.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Save Changes';
+        }
+    }
+
+    async function deleteBrand(brandId, brandName) {
+        if (!confirm(`Are you sure you want to delete brand "${brandName}"? Any products under this brand will become generic unbranded.`)) {
+            return;
+        }
+        try {
+            const resp = await fetch(`/api/brand/delete/${brandId}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() }
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                const row = document.getElementById(`brand-row-${brandId}`);
+                if (row) row.remove();
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                showToast(data.message || 'Failed to delete brand.', 'error');
+            }
+        } catch (err) {
+            showToast('Network error while deleting brand.', 'error');
+        }
+    }
+
+    // ==========================================
     // EDIT PRODUCT MODAL HANDLERS
     // ==========================================
-    function openEditProductModal(id, catId, name, size, rate, qty) {
+    function openEditProductModal(id, catId, name, size, rate, qty, code = '', unit = 'PIECE', brandId = '', pipeLen = 6.00) {
         document.getElementById('editProdId').value = id;
         document.getElementById('editProdCategory').value = catId;
+        document.getElementById('editProdBrand').value = brandId || '';
         document.getElementById('editProdName').value = name;
+        document.getElementById('editProdCode').value = code || '';
         document.getElementById('editProdSize').value = size;
+        document.getElementById('editProdUnit').value = unit || 'PIECE';
         document.getElementById('editProdRate').value = parseFloat(rate) || 0;
+        document.getElementById('editProdPipeLength').value = parseFloat(pipeLen) || 6.00;
         document.getElementById('editProdQty').value = parseInt(qty) || 0;
         const warnBox = document.getElementById('editProdWarning');
         if (warnBox) warnBox.style.display = 'none';
+
+        handleProductUnitChange('edit');
+        calculateMeterAmount('edit');
         openModal('modalEditProduct');
     }
 
@@ -2916,8 +3531,12 @@
 
         const payload = {
             category_id: document.getElementById('editProdCategory').value,
+            brand_id: document.getElementById('editProdBrand').value || null,
+            product_code: document.getElementById('editProdCode').value.trim(),
             name: document.getElementById('editProdName').value.trim(),
             size: document.getElementById('editProdSize').value.trim(),
+            unit: document.getElementById('editProdUnit').value,
+            pipe_length: parseFloat(document.getElementById('editProdPipeLength').value) || 6.00,
             rate: parseFloat(document.getElementById('editProdRate').value) || 0,
             quantity: parseInt(document.getElementById('editProdQty').value) || 0
         };
@@ -2925,7 +3544,7 @@
         try {
             const resp = await fetch(`/api/product/edit/${id}/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
                 body: JSON.stringify(payload)
             });
             const data = await resp.json();
@@ -2978,7 +3597,7 @@
         try {
             const resp = await fetch(`/api/category/edit/${id}/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
                 body: JSON.stringify(payload)
             });
             const data = await resp.json();
@@ -3036,7 +3655,7 @@
         try {
             const resp = await fetch(`/api/expense/edit/${id}/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
                 body: JSON.stringify(payload)
             });
             const data = await resp.json();
@@ -3092,7 +3711,7 @@
         try {
             const resp = await fetch(`/api/supplier/edit/${id}/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
                 body: JSON.stringify(payload)
             });
             const data = await resp.json();
@@ -3159,7 +3778,7 @@
         try {
             const resp = await fetch(`/api/featured-offer/update/${id}/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
                 body: JSON.stringify(payload)
             });
             const data = await resp.json();
