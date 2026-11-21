@@ -5,39 +5,432 @@
 {% block extra_head %}
 <style>
     /* =========================================================
-       ADMIN DASHBOARD - HIGH CONTRAST EXECUTIVE DESIGN
-       Palette: White, Black, Electric Blue, Crimson Red, Emerald
+       ZAM ZAM HARDWARE & PLUMBING - EXECUTIVE ADMIN DASHBOARD
+       Ultra-Modern Industrial & High-Tech Executive Styling
+       Palette: Deep Slate/Navy (#090d16, #0f172a), Crisp Pure White,
+       Electric Cyan/Blue (#0284c7, #38bdf8), Emerald Profit (#10b981),
+       Crimson Alert (#ef4444), Amber Warning (#f59e0b)
        ========================================================= */
 
-    /* Header Banner */
-    .dash-header-card {
-        background: var(--color-white);
-        border: 1.5px solid var(--color-gray-border);
-        border-radius: var(--radius-lg);
-        padding: 22px 28px;
-        margin-bottom: 24px;
-        box-shadow: var(--shadow-sm);
+    :root {
+        --dash-navy-950: #060a12;
+        --dash-navy-900: #090d16;
+        --dash-navy-800: #0f172a;
+        --dash-navy-700: #1e293b;
+        --dash-slate-500: #64748b;
+        --dash-slate-400: #94a3b8;
+        --dash-slate-200: #e2e8f0;
+        --dash-slate-100: #f1f5f9;
+        --dash-slate-50:  #f8fafc;
+        --dash-blue-600:  #0284c7;
+        --dash-blue-500:  #0ea5e9;
+        --dash-cyan-400:  #38bdf8;
+        --dash-cyan-300:  #00f2fe;
+        --dash-green-600: #10b981;
+        --dash-green-500: #16a34a;
+        --dash-red-600:   #ef4444;
+        --dash-red-500:   #dc2626;
+        --dash-amber-500: #f59e0b;
+        --dash-purple-600:#8b5cf6;
+        --dash-card-bg:   #ffffff;
+        --dash-border:    #e2e8f0;
+        --dash-radius:    16px;
+        --dash-radius-sm: 10px;
+        --dash-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+        --dash-shadow-md: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+        --dash-shadow-lg: 0 16px 36px -6px rgba(2, 132, 199, 0.14);
+    }
+
+    /* Container */
+    .dash-wrapper {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 24px 20px 48px;
+    }
+
+    /* =========================================================
+       5-SECOND WATER PIPE OPENING INTRO LOADER OVERLAY
+       ========================================================= */
+    .pipe-intro-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(ellipse at 50% 40%, #0d1e3a 0%, #081120 50%, #030712 100%);
+        backdrop-filter: blur(14px);
+        padding: 20px;
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1), transform 0.65s cubic-bezier(0.4, 0, 0.2, 1), filter 0.65s ease;
+    }
+
+    .pipe-intro-overlay.pipe-loader-dissolve {
+        opacity: 0 !important;
+        transform: scale(1.04) !important;
+        filter: blur(12px) !important;
+        pointer-events: none !important;
+    }
+
+    .pipe-intro-card {
+        max-width: 660px;
+        width: 100%;
+        background: rgba(15, 23, 42, 0.94);
+        border: 1.5px solid rgba(56, 189, 248, 0.35);
+        border-radius: 24px;
+        padding: 30px 34px;
+        box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 50px rgba(2, 132, 199, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .pipe-intro-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #0284c7, #38bdf8, #00f2fe, #10b981, #38bdf8);
+        background-size: 200% 100%;
+        animation: pipeBorderShift 3s linear infinite;
+    }
+
+    @keyframes pipeBorderShift {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 200% 50%; }
+    }
+
+    .pipe-intro-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 20px;
+        gap: 10px;
     }
 
-    .dash-header-left h1 {
-        font-size: 24px;
-        font-weight: 800;
-        color: var(--color-black);
-        letter-spacing: -0.02em;
+    .pipe-brand-badge {
         display: flex;
         align-items: center;
         gap: 10px;
     }
 
+    .pipe-brand-icon {
+        font-size: 24px;
+        filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.8));
+    }
+
+    .pipe-brand-name {
+        font-size: 14.5px;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .pipe-system-status {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 11.5px;
+        font-weight: 800;
+        color: #38bdf8;
+        background: rgba(2, 132, 199, 0.2);
+        padding: 4px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(56, 189, 248, 0.4);
+        letter-spacing: 0.05em;
+    }
+
+    .pipe-status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #38bdf8;
+        box-shadow: 0 0 10px #38bdf8;
+        animation: pipeDotPulse 1.2s infinite;
+    }
+
+    @keyframes pipeDotPulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(1.3); }
+    }
+
+    /* SVG Scene */
+    .pipe-visual-assembly {
+        width: 100%;
+        background: radial-gradient(ellipse at center, rgba(14, 165, 233, 0.1) 0%, rgba(15, 23, 42, 0.6) 80%);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 16px;
+        padding: 10px;
+        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .pipe-svg-scene {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .pipe-valve-wheel.spinning {
+        animation: spinValveAnim 1.6s linear infinite;
+        transform-origin: 173px 34px;
+    }
+
+    @keyframes spinValveAnim {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .water-wave-anim {
+        animation: waterScroll 0.9s linear infinite;
+    }
+
+    .water-wave-anim-fast {
+        animation: waterScrollFast 0.6s linear infinite;
+    }
+
+    @keyframes waterScroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-30px); }
+    }
+
+    @keyframes waterScrollFast {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-40px); }
+    }
+
+    .pipe-bubble {
+        animation: bubbleFly 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    .bubble-1 { animation-delay: 0.0s; }
+    .bubble-2 { animation-delay: 0.25s; }
+    .bubble-3 { animation-delay: 0.5s; }
+    .bubble-4 { animation-delay: 0.75s; }
+    .bubble-5 { animation-delay: 1.0s; }
+
+    @keyframes bubbleFly {
+        0% { transform: translateX(0); opacity: 0.2; }
+        40% { opacity: 0.9; }
+        100% { transform: translateX(160px); opacity: 0.1; }
+    }
+
+    .spray-drop-1 { animation: sprayDrop 0.8s linear infinite; }
+    .spray-drop-2 { animation: sprayDrop 0.6s linear 0.15s infinite; }
+    .spray-drop-3 { animation: sprayDrop 0.9s linear 0.3s infinite; }
+    .spray-drop-4 { animation: sprayDrop 0.7s linear 0.1s infinite; }
+    .spray-drop-5 { animation: sprayDrop 0.85s linear 0.25s infinite; }
+
+    @keyframes sprayDrop {
+        0% { transform: translate(0, 0); opacity: 1; }
+        100% { transform: translate(25px, -8px); opacity: 0; }
+    }
+
+    /* Stage Box */
+    .pipe-stage-wrap {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: rgba(2, 132, 199, 0.12);
+        border: 1.5px solid rgba(56, 189, 248, 0.3);
+        border-radius: 14px;
+        padding: 12px 18px;
+    }
+
+    .pipe-stage-icon {
+        font-size: 26px;
+        width: 44px;
+        height: 44px;
+        background: rgba(56, 189, 248, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 0 14px rgba(56, 189, 248, 0.3);
+    }
+
+    .pipe-stage-info {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        min-width: 0;
+    }
+
+    .pipe-stage-sub {
+        font-size: 10px;
+        font-weight: 800;
+        color: #94a3b8;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .pipe-stage-text {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #f0f9ff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Liquid Progress Bar */
+    .pipe-progress-container {
+        width: 100%;
+    }
+
+    .pipe-progress-bar {
+        height: 18px;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1.5px solid rgba(56, 189, 248, 0.45);
+        border-radius: 999px;
+        padding: 2px;
+        overflow: hidden;
+        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 16px rgba(2, 132, 199, 0.2);
+        position: relative;
+    }
+
+    .pipe-progress-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #0284c7 0%, #38bdf8 50%, #00f2fe 100%);
+        box-shadow: 0 0 16px rgba(56, 189, 248, 0.7);
+        position: relative;
+        overflow: hidden;
+        transition: width 0.05s linear;
+    }
+
+    .pipe-water-shimmer {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+        background-size: 60px 100%;
+        animation: waterShimmer 1.2s infinite linear;
+    }
+
+    @keyframes waterShimmer {
+        0% { transform: translateX(-60px); }
+        100% { transform: translateX(400px); }
+    }
+
+    /* Metrics Row */
+    .pipe-metrics-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+        align-items: center;
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 10px 16px;
+    }
+
+    .pipe-metric-col {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .pipe-metric-center { text-align: center; }
+    .pipe-metric-right { text-align: right; }
+
+    .pipe-metric-lbl {
+        font-size: 10px;
+        font-weight: 800;
+        color: #94a3b8;
+        letter-spacing: 0.06em;
+    }
+
+    .pipe-metric-val {
+        font-size: 14px;
+        font-weight: 800;
+        color: #ffffff;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .pipe-pressure-val {
+        color: #38bdf8;
+    }
+
+    .pipe-pct-val {
+        color: #00f2fe;
+    }
+
+    .pipe-skip-wrap {
+        display: flex;
+        justify-content: center;
+        margin-top: 4px;
+    }
+
+    .pipe-skip-btn {
+        background: transparent;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        color: #94a3b8;
+        font-size: 11.5px;
+        font-weight: 700;
+        padding: 5px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .pipe-skip-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        border-color: #38bdf8;
+    }
+
+    /* =========================================================
+       DASHBOARD HEADER & REAL-TIME AVIONICS CLOCK
+       ========================================================= */
+    .dash-header-card {
+        background: linear-gradient(135deg, #090d16 0%, #0f172a 55%, #1e293b 100%);
+        border: 1.5px solid rgba(56, 189, 248, 0.25);
+        border-radius: 18px;
+        padding: 24px 30px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px -5px rgba(2, 132, 199, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dash-header-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 320px;
+        height: 100%;
+        background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .dash-header-left h1 {
+        font-size: 24px;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.02em;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
     .dash-header-left p {
         font-size: 13.5px;
-        color: var(--color-gray-text);
-        margin-top: 4px;
+        color: #cbd5e1;
+        margin-top: 6px;
     }
 
     .dash-header-actions {
@@ -45,35 +438,138 @@
         align-items: center;
         gap: 10px;
         flex-wrap: wrap;
+        z-index: 2;
     }
 
-    /* Live Digital Clock Widget */
+    /* Live Digital Cockpit Clock */
     .dash-live-clock {
-        background: linear-gradient(135deg, #090d16 0%, #1e293b 100%);
+        background: rgba(9, 13, 22, 0.95);
         color: #ffffff;
-        border: 2px solid #0284c7;
+        border: 1.5px solid #0284c7;
         border-radius: 12px;
         padding: 8px 16px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         font-family: 'JetBrains Mono', monospace;
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+        box-shadow: 0 0 18px rgba(2, 132, 199, 0.3), inset 0 0 10px rgba(2, 132, 199, 0.15);
     }
 
     .dash-clock-date {
-        font-size: 12.5px;
-        color: #cbd5e1;
-        font-weight: 600;
+        font-size: 11.5px;
+        color: #94a3b8;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
     .dash-clock-time {
-        font-size: 14.5px;
+        font-size: 15px;
         color: #38bdf8;
         font-weight: 800;
+        letter-spacing: 0.04em;
     }
 
-    /* KPI Summary Cards Grid */
+    /* Executive Buttons */
+    .btn-blue {
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        color: #ffffff !important;
+        border: 1px solid #38bdf8;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 13px;
+        padding: 9px 16px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+    }
+
+    .btn-blue:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
+        border-color: #7dd3fc;
+    }
+
+    .btn-blue:active {
+        transform: translateY(0);
+    }
+
+    .btn-black {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: #ffffff !important;
+        border: 1px solid #475569;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 13px;
+        padding: 9px 16px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+        transition: all 0.2s;
+    }
+
+    .btn-black:hover {
+        transform: translateY(-2px);
+        background: #0f172a;
+        border-color: #94a3b8;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.35);
+    }
+
+    .btn-red {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: #ffffff !important;
+        border: 1px solid #f87171;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 13px;
+        padding: 9px 16px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        transition: all 0.2s;
+    }
+
+    .btn-red:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(239, 68, 68, 0.45);
+        border-color: #fca5a5;
+    }
+
+    .btn-white {
+        background: #ffffff;
+        color: #0f172a !important;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 13px;
+        padding: 9px 16px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        transition: all 0.2s;
+    }
+
+    .btn-white:hover {
+        transform: translateY(-2px);
+        border-color: #0284c7;
+        color: #0284c7 !important;
+        background: #f0f9ff;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+    }
+
+    /* =========================================================
+       EXECUTIVE KPI SUMMARY CARDS GRID
+       ========================================================= */
     .kpi-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -82,74 +578,76 @@
     }
 
     .kpi-card {
-        background: var(--color-white);
-        border: 1.5px solid var(--color-gray-border);
-        border-radius: var(--radius-md);
-        padding: 20px;
-        box-shadow: var(--shadow-sm);
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 20px 22px;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
         position: relative;
         overflow: hidden;
     }
 
     .kpi-card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
+        transform: translateY(-4px);
+        box-shadow: 0 14px 28px -4px rgba(2, 132, 199, 0.16);
+        border-color: #93c5fd;
     }
 
-    .kpi-card.border-blue { border-top: 4px solid var(--color-blue); }
+    .kpi-card.border-blue { border-top: 4px solid #0284c7; }
     .kpi-card.border-green { border-top: 4px solid #10b981; }
-    .kpi-card.border-red { border-top: 4px solid var(--color-red); }
-    .kpi-card.border-black { border-top: 4px solid var(--color-black); }
+    .kpi-card.border-red { border-top: 4px solid #ef4444; }
+    .kpi-card.border-black { border-top: 4px solid #0f172a; }
     .kpi-card.border-purple { border-top: 4px solid #8b5cf6; }
     .kpi-card.border-amber { border-top: 4px solid #f59e0b; }
 
     .kpi-label {
-        font-size: 11.5px;
+        font-size: 11px;
         font-weight: 800;
         text-transform: uppercase;
-        color: var(--color-gray-text);
-        letter-spacing: 0.04em;
+        color: #64748b;
+        letter-spacing: 0.06em;
         margin-bottom: 6px;
     }
 
     .kpi-val {
         font-size: 24px;
         font-weight: 800;
-        color: var(--color-black);
+        color: #0f172a;
         font-family: 'JetBrains Mono', monospace;
         letter-spacing: -0.02em;
     }
 
     .kpi-subtext {
         font-size: 12px;
-        color: var(--color-gray-text);
-        margin-top: 6px;
+        color: #64748b;
+        margin-top: 8px;
         display: flex;
         align-items: center;
         gap: 6px;
     }
 
     .kpi-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 22px;
         flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
-    .icon-bg-blue { background: #e0f2fe; color: #0284c7; }
-    .icon-bg-green { background: #dcfce7; color: #15803d; }
-    .icon-bg-red { background: #fee2e2; color: #dc2626; }
-    .icon-bg-black { background: #0f172a; color: #38bdf8; }
-    .icon-bg-purple { background: #f3e8ff; color: #7c3aed; }
-    .icon-bg-amber { background: #fef3c7; color: #d97706; }
+    .icon-bg-blue { background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); color: #0284c7; border: 1px solid #7dd3fc; }
+    .icon-bg-green { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); color: #15803d; border: 1px solid #86efac; }
+    .icon-bg-red { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: #dc2626; border: 1px solid #fca5a5; }
+    .icon-bg-black { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #38bdf8; border: 1px solid #334155; }
+    .icon-bg-purple { background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); color: #7c3aed; border: 1px solid #d8b4fe; }
+    .icon-bg-amber { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); color: #d97706; border: 1px solid #fcd34d; }
 
     /* Alert Pulse Badge */
     .pulse-badge {
@@ -160,7 +658,7 @@
         color: #dc2626;
         font-size: 11px;
         font-weight: 800;
-        padding: 2px 8px;
+        padding: 3px 9px;
         border-radius: 999px;
         border: 1px solid #fca5a5;
     }
@@ -170,57 +668,69 @@
         height: 8px;
         border-radius: 50%;
         background: #dc2626;
-        animation: pulseDotAnim 1.5s infinite;
+        box-shadow: 0 0 6px #dc2626;
+        animation: pulseDotAnim 1.4s infinite;
     }
 
     @keyframes pulseDotAnim {
         0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.4; transform: scale(1.3); }
+        50% { opacity: 0.35; transform: scale(1.35); }
     }
 
-    /* Financial Breakdown Bar */
+    /* =========================================================
+       FINANCIAL INFLOW VS DUES BREAKDOWN BAR
+       ========================================================= */
     .fin-bar-card {
-        background: var(--color-white);
-        border: 1.5px solid var(--color-gray-border);
-        border-radius: var(--radius-lg);
-        padding: 22px 24px;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 24px;
         margin-bottom: 24px;
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
     }
 
     .fin-bar-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 16px;
+        margin-bottom: 18px;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 12px;
     }
 
     .fin-bar-header h3 {
         font-size: 16px;
         font-weight: 800;
-        color: var(--color-black);
+        color: #0f172a;
     }
 
     .fin-progress-multi {
         display: flex;
-        height: 18px;
-        border-radius: 9px;
+        height: 20px;
+        border-radius: 999px;
         overflow: hidden;
         background: #e2e8f0;
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-        margin-bottom: 14px;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
+        margin-bottom: 16px;
     }
 
     .fin-seg {
         height: 100%;
-        transition: width 0.3s ease;
+        transition: width 0.4s ease;
+        position: relative;
     }
 
-    .seg-paid { background: #10b981; }
-    .seg-credit { background: #f59e0b; }
-    .seg-expense { background: #ef4444; }
+    .seg-paid {
+        background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    }
+
+    .seg-credit {
+        background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .seg-expense {
+        background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+    }
 
     .fin-legend {
         display: flex;
@@ -232,17 +742,20 @@
     .fin-legend-item {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-weight: 600;
+        gap: 8px;
+        font-weight: 700;
+        color: #334155;
     }
 
     .legend-color-dot {
         width: 12px;
         height: 12px;
-        border-radius: 3px;
+        border-radius: 4px;
     }
 
-    /* Analytics 2-Column Section */
+    /* =========================================================
+       2-COLUMN ANALYTICS OVERVIEW SECTION
+       ========================================================= */
     .analytics-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -251,178 +764,203 @@
     }
 
     .analytics-card {
-        background: var(--color-white);
-        border: 1.5px solid var(--color-gray-border);
-        border-radius: var(--radius-lg);
-        padding: 20px;
-        box-shadow: var(--shadow-sm);
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 24px;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
     }
 
     .card-head-title {
         font-size: 15px;
         font-weight: 800;
-        color: var(--color-black);
-        margin-bottom: 16px;
+        color: #0f172a;
+        margin-bottom: 18px;
         display: flex;
         align-items: center;
         justify-content: space-between;
     }
 
-    /* Payment mode list */
     .mode-list-item {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 10px 14px;
-        border-radius: 8px;
-        margin-bottom: 8px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 10px;
         background: #f8fafc;
         border: 1px solid #e2e8f0;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .mode-list-item:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        transform: translateX(3px);
     }
 
     .mode-info {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         font-weight: 700;
         font-size: 13.5px;
     }
 
     .mode-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 15px;
+        font-size: 16px;
+        flex-shrink: 0;
     }
 
     .mode-val {
         font-family: 'JetBrains Mono', monospace;
         font-weight: 800;
         font-size: 14.5px;
-        color: var(--color-black);
+        color: #0f172a;
     }
 
-    /* Navigation Tabs */
+    /* =========================================================
+       MASTER NAVIGATION TABS BAR
+       ========================================================= */
     .dash-tabs-bar {
         display: flex;
         align-items: center;
         gap: 8px;
-        background: var(--color-white);
-        border: 1.5px solid var(--color-gray-border);
-        border-radius: var(--radius-lg);
-        padding: 8px;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 8px 10px;
         margin-bottom: 24px;
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
         overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .dash-tabs-bar::-webkit-scrollbar {
+        display: none;
     }
 
     .dash-tab-btn {
         background: transparent;
         border: none;
-        padding: 10px 18px;
-        border-radius: 8px;
+        padding: 11px 18px;
+        border-radius: 10px;
         font-size: 13.5px;
         font-weight: 700;
-        color: var(--color-gray-text);
+        color: #64748b;
         cursor: pointer;
         display: flex;
         align-items: center;
         gap: 8px;
         white-space: nowrap;
-        transition: all 0.15s ease;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .dash-tab-btn:hover {
         background: #f1f5f9;
-        color: var(--color-black);
+        color: #0f172a;
     }
 
     .dash-tab-btn.active {
-        background: var(--color-blue);
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
         color: #ffffff;
-        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.38);
     }
 
     .tab-counter {
         background: rgba(255, 255, 255, 0.25);
-        padding: 2px 7px;
+        padding: 2px 8px;
         border-radius: 999px;
         font-size: 11px;
+        font-weight: 800;
     }
 
     .dash-tab-btn:not(.active) .tab-counter {
         background: #e2e8f0;
-        color: var(--color-black);
+        color: #0f172a;
     }
 
     /* Tab Panes */
     .tab-content-pane {
         display: none;
+        animation: tabFadeIn 0.2s ease;
     }
 
     .tab-content-pane.active {
         display: block;
     }
 
-    /* Modern Data Tables */
+    @keyframes tabFadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =========================================================
+       DATA TABLES & TOOLBARS
+       ========================================================= */
     .table-container {
-        background: var(--color-white);
-        border: 1.5px solid var(--color-gray-border);
-        border-radius: var(--radius-lg);
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 16px;
         overflow: hidden;
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
         margin-bottom: 24px;
     }
 
     .table-toolbar {
-        padding: 16px 20px;
-        border-bottom: 1.5px solid var(--color-gray-border);
+        padding: 16px 22px;
+        border-bottom: 1.5px solid #e2e8f0;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 12px;
-        background: #fafafa;
+        gap: 14px;
+        background: #fafbfc;
     }
 
     .table-toolbar-title {
         font-size: 15px;
         font-weight: 800;
-        color: var(--color-black);
+        color: #0f172a;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
     }
 
     .search-input-wrap {
         position: relative;
-        width: 280px;
+        width: 290px;
     }
 
     .search-input {
         width: 100%;
-        padding: 8px 12px 8px 34px;
-        border-radius: 8px;
-        border: 1.5px solid var(--color-gray-border);
+        padding: 9px 12px 9px 36px;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
         font-size: 13px;
         outline: none;
-        transition: border-color 0.2s;
+        background: #ffffff;
+        transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     .search-input:focus {
-        border-color: var(--color-blue);
+        border-color: #0284c7;
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
     }
 
     .search-icon {
         position: absolute;
-        left: 10px;
+        left: 12px;
         top: 50%;
         transform: translateY(-50%);
         font-size: 14px;
-        color: var(--color-gray-text);
+        color: #94a3b8;
     }
 
     .custom-table {
@@ -434,19 +972,19 @@
 
     .custom-table th {
         background: #f8fafc;
-        color: var(--color-black);
+        color: #0f172a;
         font-weight: 800;
-        padding: 12px 16px;
-        border-bottom: 1.5px solid var(--color-gray-border);
+        padding: 13px 18px;
+        border-bottom: 1.5px solid #e2e8f0;
         text-transform: uppercase;
         font-size: 11px;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.05em;
     }
 
     .custom-table td {
-        padding: 14px 16px;
-        border-bottom: 1px solid var(--color-gray-border);
-        color: var(--color-black);
+        padding: 14px 18px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #0f172a;
         vertical-align: middle;
     }
 
@@ -454,41 +992,40 @@
         background-color: #f8fafc;
     }
 
-    /* Badges */
+    /* Badges & Status Pills */
     .status-pill {
         display: inline-flex;
         align-items: center;
-        padding: 3px 9px;
+        padding: 3px 10px;
         border-radius: 999px;
         font-size: 11px;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.03em;
     }
 
-    .pill-green { background: #dcfce7; color: #15803d; }
-    .pill-blue { background: #e0f2fe; color: #0369a1; }
-    .pill-amber { background: #fef3c7; color: #b45309; }
-    .pill-orange { background: #ffedd5; color: #c2410c; }
-    .pill-red { background: #fee2e2; color: #dc2626; }
+    .pill-green { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .pill-blue { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+    .pill-amber { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .pill-orange { background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; }
+    .pill-red { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
 
-    /* Modals ("New Model / Modal Create") */
+    /* =========================================================
+       MODALS & DIALOGS
+       ========================================================= */
     .modal-overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(15, 23, 42, 0.7);
-        backdrop-filter: blur(4px);
+        inset: 0;
+        background: rgba(9, 13, 22, 0.78);
+        backdrop-filter: blur(8px);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 1000;
-        padding: 16px;
+        padding: 18px;
         opacity: 0;
         visibility: hidden;
-        transition: all 0.2s ease;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .modal-overlay.active {
@@ -498,29 +1035,30 @@
 
     .modal-box {
         background: #ffffff;
-        border-radius: 16px;
-        border: 2px solid var(--color-gray-border);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        border-radius: 20px;
+        border: 1.5px solid #e2e8f0;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
         width: 100%;
-        max-width: 580px;
+        max-width: 600px;
         max-height: 90vh;
         overflow-y: auto;
-        transform: scale(0.95);
-        transition: transform 0.2s ease;
+        transform: scale(0.96) translateY(10px);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .modal-overlay.active .modal-box {
-        transform: scale(1);
+        transform: scale(1) translateY(0);
     }
 
     .modal-header {
-        padding: 18px 24px;
-        background: linear-gradient(135deg, #090d16 0%, #1e293b 100%);
+        padding: 20px 26px;
+        background: linear-gradient(135deg, #090d16 0%, #0f172a 60%, #1e293b 100%);
         color: #ffffff;
-        border-bottom: 2px solid var(--color-blue);
+        border-bottom: 2px solid #0284c7;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        border-radius: 18px 18px 0 0;
     }
 
     .modal-title {
@@ -528,27 +1066,28 @@
         font-weight: 800;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
     }
 
     .modal-close-btn {
         background: transparent;
         border: none;
         color: #cbd5e1;
-        font-size: 22px;
+        font-size: 24px;
         cursor: pointer;
         line-height: 1;
         padding: 4px;
-        border-radius: 6px;
+        border-radius: 8px;
+        transition: all 0.15s;
     }
 
     .modal-close-btn:hover {
         color: #ffffff;
-        background: rgba(255,255,255,0.1);
+        background: rgba(255, 255, 255, 0.12);
     }
 
     .modal-body {
-        padding: 24px;
+        padding: 24px 26px;
     }
 
     .form-group {
@@ -557,26 +1096,29 @@
 
     .form-label {
         display: block;
-        font-size: 12.5px;
-        font-weight: 700;
+        font-size: 12px;
+        font-weight: 800;
         color: #334155;
         margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
     }
 
     .form-control {
         width: 100%;
-        padding: 9px 12px;
-        border: 1.5px solid var(--color-gray-border);
-        border-radius: 8px;
+        padding: 10px 14px;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 10px;
         font-size: 13.5px;
-        color: var(--color-black);
+        color: #0f172a;
         outline: none;
-        transition: border-color 0.2s;
+        background: #ffffff;
+        transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     .form-control:focus {
-        border-color: var(--color-blue);
-        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        border-color: #0284c7;
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18);
     }
 
     .form-row {
@@ -586,12 +1128,13 @@
     }
 
     .modal-footer {
-        padding: 16px 24px;
+        padding: 18px 26px;
         background: #f8fafc;
-        border-top: 1.5px solid var(--color-gray-border);
+        border-top: 1.5px solid #e2e8f0;
         display: flex;
         justify-content: flex-end;
         gap: 10px;
+        border-radius: 0 0 18px 18px;
     }
 
     /* Toast Notification */
@@ -602,35 +1145,35 @@
         z-index: 2000;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 10px;
     }
 
     .toast-item {
-        background: var(--color-black);
+        background: #0f172a;
         color: #ffffff;
-        padding: 12px 18px;
-        border-radius: 10px;
+        padding: 13px 20px;
+        border-radius: 12px;
         font-size: 13.5px;
         font-weight: 700;
-        box-shadow: var(--shadow-lg);
+        box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.35);
         display: flex;
         align-items: center;
         gap: 10px;
-        border-left: 4px solid var(--color-blue);
-        animation: toastSlideIn 0.3s ease;
+        border-left: 4px solid #0284c7;
+        animation: toastSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .toast-item.toast-success { border-left-color: #10b981; }
-    .toast-item.toast-error { border-left-color: var(--color-red); }
+    .toast-item.toast-error { border-left-color: #ef4444; }
 
     @keyframes toastSlideIn {
         from { transform: translateX(100%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
     }
 
-    /* Full Calendar Modal & Cell Styles */
+    /* Store Calendar Modal */
     .modal-box.calendar-modal-box {
-        max-width: 760px;
+        max-width: 780px;
         width: 100%;
     }
 
@@ -638,20 +1181,20 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 12px 16px;
+        padding: 14px 18px;
         background: #f8fafc;
-        border-radius: 12px;
-        margin-bottom: 16px;
-        border: 1.5px solid var(--color-gray-border);
+        border-radius: 14px;
+        margin-bottom: 18px;
+        border: 1.5px solid #e2e8f0;
     }
 
     .cal-month-title {
         font-size: 18px;
         font-weight: 800;
-        color: var(--color-black);
+        color: #0f172a;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
     }
 
     .cal-weekdays-grid {
@@ -662,36 +1205,36 @@
         font-weight: 800;
         color: #64748b;
         text-transform: uppercase;
-        margin-bottom: 8px;
-        letter-spacing: 0.04em;
+        margin-bottom: 10px;
+        letter-spacing: 0.05em;
     }
 
     .cal-days-grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 6px;
+        gap: 8px;
     }
 
     .cal-day-cell {
-        min-height: 72px;
+        min-height: 76px;
         background: #ffffff;
-        border: 1.5px solid var(--color-gray-border);
-        border-radius: 10px;
-        padding: 6px 8px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 8px 10px;
         font-size: 13px;
         font-weight: 700;
         cursor: pointer;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        transition: all 0.15s ease;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .cal-day-cell:hover {
-        border-color: var(--color-blue);
+        border-color: #0284c7;
         background: #f0f9ff;
         transform: translateY(-2px);
-        box-shadow: var(--shadow-sm);
+        box-shadow: 0 6px 14px rgba(2, 132, 199, 0.15);
     }
 
     .cal-day-cell.other-month {
@@ -702,12 +1245,12 @@
     }
 
     .cal-day-cell.today {
-        border: 2px solid var(--color-blue);
+        border: 2px solid #0284c7;
         background: #f0f9ff;
     }
 
     .cal-day-cell.selected {
-        box-shadow: 0 0 0 2px #0f172a;
+        box-shadow: 0 0 0 2.5px #0f172a;
         border-color: #0f172a;
     }
 
@@ -719,9 +1262,9 @@
 
     .cal-today-badge {
         font-size: 9px;
-        background: var(--color-blue);
+        background: #0284c7;
         color: #ffffff;
-        padding: 1px 5px;
+        padding: 2px 6px;
         border-radius: 4px;
         font-weight: 800;
     }
@@ -731,8 +1274,8 @@
         color: #15803d;
         font-size: 10.5px;
         font-weight: 800;
-        padding: 2px 5px;
-        border-radius: 5px;
+        padding: 2px 6px;
+        border-radius: 6px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -740,24 +1283,33 @@
     }
 
     .cal-inspector-card {
-        margin-top: 16px;
-        padding: 14px 18px;
+        margin-top: 18px;
+        padding: 16px 20px;
         background: #f8fafc;
-        border: 1.5px solid var(--color-gray-border);
-        border-radius: 12px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 14px;
     }
 
+    /* =========================================================
+       RESPONSIVE ADAPTATIONS
+       ========================================================= */
     @media (max-width: 1200px) {
         .kpi-grid {
             grid-template-columns: repeat(2, 1fr);
         }
         .analytics-row {
             grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .dash-header-card {
+            padding: 20px;
         }
     }
 
@@ -769,14 +1321,294 @@
             flex-direction: column;
             align-items: stretch;
         }
+        .dash-header-actions {
+            justify-content: flex-start;
+        }
         .form-row {
             grid-template-columns: 1fr;
+        }
+        .modal-box {
+            max-width: 100%;
+            border-radius: 14px;
+        }
+        .pipe-intro-card {
+            padding: 20px 18px;
+            border-radius: 18px;
+        }
+        .pipe-metrics-row {
+            grid-template-columns: 1fr;
+            text-align: left;
+            gap: 8px;
+        }
+        .pipe-metric-center, .pipe-metric-right {
+            text-align: left;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .dash-wrapper {
+            padding: 16px 12px 36px;
+        }
+        .dash-header-left h1 {
+            font-size: 20px;
+        }
+        .table-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .search-input-wrap {
+            width: 100%;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- =========================================================
+     5-SECOND WATER PIPE OPENING INTRO LOADER (REALISTIC ANIMATION)
+     ========================================================= -->
+<div id="pipeWaterIntroLoader" class="pipe-intro-overlay">
+    <div class="pipe-intro-card">
+        <!-- Brand Header -->
+        <div class="pipe-intro-header">
+            <div class="pipe-brand-badge">
+                <span class="pipe-brand-icon">🚰</span>
+                <span class="pipe-brand-name">ZAM ZAM HARDWARE &amp; PLUMBING ERP</span>
+            </div>
+            <div class="pipe-system-status">
+                <span class="pipe-status-dot"></span>
+                <span>SYSTEM PRIMING &bull; 5.0s SEQUENCE</span>
+            </div>
+        </div>
+
+        <!-- 3D Plumbing Visual Scene (Interactive SVG) -->
+        <div class="pipe-visual-assembly">
+            <svg class="pipe-svg-scene" viewBox="0 0 620 220" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <!-- Metallic Pipe Gradient -->
+                    <linearGradient id="metalPipeGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#475569"/>
+                        <stop offset="30%" stop-color="#94a3b8"/>
+                        <stop offset="50%" stop-color="#f1f5f9"/>
+                        <stop offset="70%" stop-color="#64748b"/>
+                        <stop offset="100%" stop-color="#1e293b"/>
+                    </linearGradient>
+
+                    <!-- Brass Valve Body Gradient -->
+                    <linearGradient id="brassGrad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#f59e0b"/>
+                        <stop offset="50%" stop-color="#fbbf24"/>
+                        <stop offset="100%" stop-color="#b45309"/>
+                    </linearGradient>
+
+                    <!-- Industrial Valve Wheel Gradient -->
+                    <linearGradient id="valveWheelGrad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#ef4444"/>
+                        <stop offset="50%" stop-color="#dc2626"/>
+                        <stop offset="100%" stop-color="#991b1b"/>
+                    </linearGradient>
+
+                    <!-- High-Pressure Electric Water Flow Gradient -->
+                    <linearGradient id="waterFlowGrad" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stop-color="#0284c7" stop-opacity="0.9"/>
+                        <stop offset="35%" stop-color="#38bdf8" stop-opacity="0.95"/>
+                        <stop offset="70%" stop-color="#00f2fe" stop-opacity="1"/>
+                        <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0.95"/>
+                    </linearGradient>
+
+                    <!-- Acrylic Glass Inspection Tube Gradient -->
+                    <linearGradient id="glassReflection" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
+                        <stop offset="15%" stop-color="#ffffff" stop-opacity="0.1"/>
+                        <stop offset="85%" stop-color="#38bdf8" stop-opacity="0.05"/>
+                        <stop offset="100%" stop-color="#ffffff" stop-opacity="0.2"/>
+                    </linearGradient>
+
+                    <!-- Pressure Gauge Dial Gradient -->
+                    <radialGradient id="gaugeDialGrad" cx="50%" cy="50%" r="50%">
+                        <stop offset="70%" stop-color="#0f172a"/>
+                        <stop offset="92%" stop-color="#1e293b"/>
+                        <stop offset="100%" stop-color="#334155"/>
+                    </radialGradient>
+
+                    <!-- Water Spray Radial Gradient -->
+                    <radialGradient id="sprayGrad" cx="0%" cy="50%" r="100%">
+                        <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.8"/>
+                        <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.4"/>
+                        <stop offset="100%" stop-color="#0284c7" stop-opacity="0"/>
+                    </radialGradient>
+
+                    <!-- Filter for Water Glow -->
+                    <filter id="waterGlow" x="-10%" y="-20%" width="120%" height="140%">
+                        <feGaussianBlur stdDeviation="4" result="blur"/>
+                        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                    </filter>
+                </defs>
+
+                <!-- Pipe Background Shadow -->
+                <rect x="20" y="102" width="560" height="20" rx="10" fill="rgba(0,0,0,0.5)" filter="blur(6px)"/>
+
+                <!-- 1. Left Inflow Steel Pipe -->
+                <rect x="30" y="90" width="120" height="40" rx="4" fill="url(#metalPipeGrad)" stroke="#334155" stroke-width="2"/>
+                <!-- Flange Collar -->
+                <rect x="25" y="85" width="12" height="50" rx="3" fill="#64748b" stroke="#1e293b" stroke-width="1.5"/>
+                <circle cx="31" cy="95" r="2.5" fill="#f8fafc"/>
+                <circle cx="31" cy="125" r="2.5" fill="#f8fafc"/>
+
+                <!-- 2. Main Gate Valve Assembly -->
+                <rect x="150" y="75" width="46" height="70" rx="5" fill="url(#brassGrad)" stroke="#78350f" stroke-width="2"/>
+                <!-- Flange bolts -->
+                <rect x="145" y="70" width="8" height="80" rx="2" fill="#d97706" stroke="#92400e" stroke-width="1"/>
+                <rect x="193" y="70" width="8" height="80" rx="2" fill="#d97706" stroke="#92400e" stroke-width="1"/>
+                <!-- Valve Stem -->
+                <rect x="169" y="38" width="8" height="38" fill="url(#metalPipeGrad)" stroke="#334155" stroke-width="1"/>
+                <!-- Valve Packing Nut -->
+                <polygon points="166,62 180,62 178,72 168,72" fill="#d97706" stroke="#78350f" stroke-width="1"/>
+
+                <!-- ROTATABLE VALVE WHEEL -->
+                <g id="valveWheelElem" class="pipe-valve-wheel" transform-origin="173 34">
+                    <!-- Wheel Rim -->
+                    <circle cx="173" cy="34" r="24" fill="none" stroke="url(#valveWheelGrad)" stroke-width="7"/>
+                    <!-- Rim Ridges/Grips -->
+                    <circle cx="173" cy="10" r="3" fill="#ffffff"/>
+                    <circle cx="197" cy="34" r="3" fill="#ffffff"/>
+                    <circle cx="173" cy="58" r="3" fill="#ffffff"/>
+                    <circle cx="149" cy="34" r="3" fill="#ffffff"/>
+                    <!-- Center Hub -->
+                    <circle cx="173" cy="34" r="8" fill="#78350f" stroke="#fbbf24" stroke-width="2"/>
+                    <!-- Spokes -->
+                    <line x1="173" y1="12" x2="173" y2="56" stroke="#ffffff" stroke-width="2.5"/>
+                    <line x1="151" y1="34" x2="195" y2="34" stroke="#ffffff" stroke-width="2.5"/>
+                </g>
+
+                <!-- 3. Central Acrylic Glass Inspection Pipe Tube (Water Flow Section) -->
+                <rect x="201" y="90" width="230" height="40" rx="6" fill="#091428" stroke="#0284c7" stroke-width="1.5"/>
+
+                <!-- SURGING WATER STREAM (Fills with Valve Open) -->
+                <g id="waterStreamSvg" class="water-stream-group" style="opacity: 0; transition: opacity 0.4s ease;">
+                    <!-- Base Water Flow -->
+                    <rect x="202" y="94" width="228" height="32" rx="4" fill="url(#waterFlowGrad)" filter="url(#waterGlow)"/>
+                    <!-- High Velocity Inner Water Waves -->
+                    <path class="water-wave-anim" d="M202,104 Q230,98 260,104 T320,104 T380,104 T430,104 L430,120 Q380,126 320,120 T260,120 T202,120 Z" fill="#38bdf8" opacity="0.6"/>
+                    <path class="water-wave-anim-fast" d="M202,108 Q240,114 280,108 T360,108 T430,108 L430,116 Q360,112 280,116 T202,116 Z" fill="#ffffff" opacity="0.75"/>
+                </g>
+
+                <!-- DYNAMIC WATER BUBBLES IN INSPECTION PIPE -->
+                <g id="waterBubblesSvg" class="water-bubbles-group" style="opacity: 0; transition: opacity 0.4s ease;">
+                    <circle class="pipe-bubble bubble-1" cx="230" cy="106" r="3.5" fill="#ffffff" opacity="0.8"/>
+                    <circle class="pipe-bubble bubble-2" cx="280" cy="114" r="2.5" fill="#e0f2fe" opacity="0.9"/>
+                    <circle class="pipe-bubble bubble-3" cx="330" cy="102" r="4" fill="#ffffff" opacity="0.7"/>
+                    <circle class="pipe-bubble bubble-4" cx="370" cy="112" r="3" fill="#bae6fd" opacity="0.85"/>
+                    <circle class="pipe-bubble bubble-5" cx="400" cy="105" r="2" fill="#ffffff" opacity="0.9"/>
+                </g>
+
+                <!-- Glass Sheen / Reflection Highlights -->
+                <rect x="201" y="90" width="230" height="40" rx="6" fill="url(#glassReflection)"/>
+                <line x1="205" y1="94" x2="425" y2="94" stroke="#ffffff" stroke-width="1.5" stroke-opacity="0.6"/>
+                <line x1="208" y1="98" x2="380" y2="98" stroke="#ffffff" stroke-width="0.8" stroke-opacity="0.4"/>
+
+                <!-- Flange Clamps securing Glass Tube -->
+                <rect x="198" y="86" width="7" height="48" rx="2" fill="#64748b" stroke="#1e293b" stroke-width="1"/>
+                <rect x="427" y="86" width="7" height="48" rx="2" fill="#64748b" stroke="#1e293b" stroke-width="1"/>
+
+                <!-- 4. Right Outflow Steel Pipe & Manifold -->
+                <rect x="431" y="90" width="130" height="40" rx="4" fill="url(#metalPipeGrad)" stroke="#334155" stroke-width="2"/>
+                <!-- Gauge Fitting Neck -->
+                <rect x="496" y="70" width="14" height="22" fill="url(#brassGrad)" stroke="#78350f" stroke-width="1.5"/>
+
+                <!-- 5. INDUSTRIAL PRECISION PRESSURE GAUGE (MANOMETER) -->
+                <g id="pressureGaugeAssembly">
+                    <!-- Gauge Drop Shadow -->
+                    <circle cx="503" cy="46" r="37" fill="rgba(0,0,0,0.6)" filter="blur(4px)"/>
+                    <!-- Chrome Outer Bezel -->
+                    <circle cx="503" cy="44" r="36" fill="url(#metalPipeGrad)" stroke="#94a3b8" stroke-width="2.5"/>
+                    <!-- Dark Dial Face -->
+                    <circle cx="503" cy="44" r="31" fill="url(#gaugeDialGrad)" stroke="#0284c7" stroke-width="1.5"/>
+
+                    <!-- Gauge Scale Arc (0 - 100 PSI) -->
+                    <path d="M478 58 A 24 24 0 1 1 528 58" fill="none" stroke="#334155" stroke-width="3" stroke-linecap="round"/>
+                    <!-- Green Safe Zone -->
+                    <path d="M486 32 A 24 24 0 0 1 520 32" fill="none" stroke="#10b981" stroke-width="3"/>
+                    <!-- High Nominal Pressure Zone (90-100 PSI) -->
+                    <path d="M520 32 A 24 24 0 0 1 528 58" fill="none" stroke="#00f2fe" stroke-width="3"/>
+
+                    <!-- Tick Marks -->
+                    <line x1="479" y1="58" x2="484" y2="55" stroke="#94a3b8" stroke-width="1.5"/>
+                    <line x1="486" y1="32" x2="491" y2="35" stroke="#94a3b8" stroke-width="1.5"/>
+                    <line x1="503" y1="20" x2="503" y2="26" stroke="#94a3b8" stroke-width="2"/>
+                    <line x1="520" y1="32" x2="515" y2="35" stroke="#94a3b8" stroke-width="1.5"/>
+                    <line x1="527" y1="58" x2="522" y2="55" stroke="#00f2fe" stroke-width="2"/>
+
+                    <!-- Gauge Labels -->
+                    <text x="503" y="37" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="7" font-weight="800" fill="#38bdf8" letter-spacing="0.5">PSI</text>
+                    <text x="503" y="58" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="5.5" font-weight="700" fill="#94a3b8">PRESSURE</text>
+
+                    <!-- ROTATABLE GAUGE NEEDLE -->
+                    <g id="gaugeNeedleElem" transform="rotate(-120 503 44)">
+                        <!-- Needle Pointer -->
+                        <polygon points="501,44 505,44 503.5,21 502.5,21" fill="#ef4444"/>
+                        <circle cx="503" cy="44" r="4.5" fill="#f59e0b" stroke="#78350f" stroke-width="1.5"/>
+                        <circle cx="503" cy="44" r="1.5" fill="#ffffff"/>
+                    </g>
+                </g>
+
+                <!-- 6. HIGH-PRESSURE WATER SPRAY / MIST (Outlet on Right) -->
+                <g id="waterSpraySvg" class="water-spray-group" style="opacity: 0; transition: opacity 0.5s ease;">
+                    <!-- Spray Cone -->
+                    <polygon points="560,98 615,80 615,140 560,122" fill="url(#sprayGrad)"/>
+                    <!-- Flying Droplets -->
+                    <circle cx="575" cy="94" r="2" fill="#00f2fe" class="spray-drop-1"/>
+                    <circle cx="590" cy="108" r="2.5" fill="#38bdf8" class="spray-drop-2"/>
+                    <circle cx="605" cy="88" r="1.5" fill="#ffffff" class="spray-drop-3"/>
+                    <circle cx="612" cy="120" r="2.2" fill="#00f2fe" class="spray-drop-4"/>
+                    <circle cx="585" cy="126" r="1.8" fill="#bae6fd" class="spray-drop-5"/>
+                </g>
+            </svg>
+        </div>
+
+        <!-- Dynamic Status Notification Box -->
+        <div class="pipe-stage-wrap">
+            <div class="pipe-stage-icon" id="loaderStageIcon">🔧</div>
+            <div class="pipe-stage-info">
+                <div class="pipe-stage-sub">FLOW INITIALIZATION STATUS:</div>
+                <div class="pipe-stage-text" id="loaderStageText">Inspecting Main Line &amp; Pipe Valves...</div>
+            </div>
+        </div>
+
+        <!-- 5-Second Liquid Progress Bar Tube -->
+        <div class="pipe-progress-container">
+            <div class="pipe-progress-bar">
+                <div class="pipe-progress-fill" id="waterProgressFill">
+                    <div class="pipe-water-shimmer"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Metrics & Countdown Row -->
+        <div class="pipe-metrics-row">
+            <div class="pipe-metric-col">
+                <span class="pipe-metric-lbl">SEQUENCE TIMER</span>
+                <span class="pipe-metric-val" id="waterTimerSec">0.0s / 5.0s</span>
+            </div>
+            <div class="pipe-metric-col pipe-metric-center">
+                <span class="pipe-metric-lbl">HYDRAULIC PRESSURE</span>
+                <span class="pipe-metric-val pipe-pressure-val" id="waterPressureVal">0 PSI</span>
+            </div>
+            <div class="pipe-metric-col pipe-metric-right">
+                <span class="pipe-metric-lbl">VALVE OPENING</span>
+                <span class="pipe-metric-val pipe-pct-val" id="waterProgressPct">0%</span>
+            </div>
+        </div>
+
+        <!-- Skip Intro Button -->
+        <div class="pipe-skip-wrap">
+            <button type="button" class="pipe-skip-btn" onclick="dismissPipeLoader()">
+                Skip Intro ⏩
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="dash-wrapper">
     <!-- Top Executive Header Banner -->
     <div class="dash-header-card">
@@ -2747,6 +3579,119 @@
 
 {% block scripts %}
 <script>
+    // =========================================================
+    // 5-SECOND HIGH-TECH WATER PIPE INTRO LOADER SCRIPT
+    // =========================================================
+    (function() {
+        let loaderDismissed = false;
+
+        window.dismissPipeLoader = function() {
+            if (loaderDismissed) return;
+            loaderDismissed = true;
+            const loader = document.getElementById('pipeWaterIntroLoader');
+            if (loader) {
+                loader.classList.add('pipe-loader-dissolve');
+                setTimeout(() => {
+                    try {
+                        loader.remove();
+                    } catch (e) {
+                        loader.style.display = 'none';
+                    }
+                }, 700);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const loader = document.getElementById('pipeWaterIntroLoader');
+            if (!loader) return;
+
+            const fill = document.getElementById('waterProgressFill');
+            const pct = document.getElementById('waterProgressPct');
+            const sec = document.getElementById('waterTimerSec');
+            const press = document.getElementById('waterPressureVal');
+            const gaugeNeedle = document.getElementById('gaugeNeedleElem');
+            const stageIcon = document.getElementById('loaderStageIcon');
+            const stageText = document.getElementById('loaderStageText');
+            const valveWheel = document.getElementById('valveWheelElem');
+            const waterStream = document.getElementById('waterStreamSvg');
+            const waterBubbles = document.getElementById('waterBubblesSvg');
+            const waterSpray = document.getElementById('waterSpraySvg');
+
+            const DURATION = 5000; // Exact 5.0 seconds (5000ms)
+            const startTime = performance.now();
+
+            const stages = [
+                { threshold: 0.0, icon: '🔧', text: 'Inspecting Main Line & Pipe Valves...' },
+                { threshold: 1.0, icon: '🚰', text: 'Turning Gate Valve — Opening High-Pressure Flow...' },
+                { threshold: 2.3, icon: '🌊', text: 'Water Surging Across Hardware Pipeline & POS Networks...' },
+                { threshold: 3.7, icon: '⚡', text: 'Stabilizing Hydraulic Pressure & Synchronizing Ledger...' },
+                { threshold: 4.6, icon: '✅', text: 'Pressure Nominal (100 PSI) — Opening Executive Dashboard!' }
+            ];
+
+            function frame(now) {
+                if (loaderDismissed) return;
+
+                const elapsed = Math.min(DURATION, now - startTime);
+                const progress = elapsed / DURATION;
+                const progressPct = Math.min(100, Math.round(progress * 100));
+                const elapsedSec = (elapsed / 1000).toFixed(1);
+                const currentPsi = Math.min(100, Math.round(progress * 100));
+
+                // Update Progress Fill & Metrics
+                if (fill) fill.style.width = progressPct + '%';
+                if (pct) pct.textContent = progressPct + '%';
+                if (sec) sec.textContent = `${elapsedSec}s / 5.0s`;
+                if (press) press.textContent = `${currentPsi} PSI`;
+
+                // Rotate Gauge Needle (from -120deg at 0 PSI to +120deg at 100 PSI)
+                if (gaugeNeedle) {
+                    const needleAngle = -120 + (progress * 240);
+                    gaugeNeedle.setAttribute('transform', `rotate(${needleAngle.toFixed(1)} 503 44)`);
+                }
+
+                // Animate Valve Wheel and Water Stream
+                if (progress >= 0.18) {
+                    if (valveWheel && !valveWheel.classList.contains('spinning')) {
+                        valveWheel.classList.add('spinning');
+                    }
+                    if (waterStream) {
+                        waterStream.style.opacity = Math.min(1, (progress - 0.18) / 0.25);
+                    }
+                    if (waterBubbles) {
+                        waterBubbles.style.opacity = Math.min(1, (progress - 0.22) / 0.25);
+                    }
+                }
+
+                if (progress >= 0.48 && waterSpray) {
+                    waterSpray.style.opacity = Math.min(1, (progress - 0.48) / 0.28);
+                }
+
+                // Update Stage Text and Icon
+                const currentSec = elapsed / 1000;
+                for (let i = stages.length - 1; i >= 0; i--) {
+                    if (currentSec >= stages[i].threshold) {
+                        if (stageIcon && stageIcon.textContent !== stages[i].icon) {
+                            stageIcon.textContent = stages[i].icon;
+                        }
+                        if (stageText && stageText.textContent !== stages[i].text) {
+                            stageText.textContent = stages[i].text;
+                        }
+                        break;
+                    }
+                }
+
+                if (elapsed < DURATION) {
+                    requestAnimationFrame(frame);
+                } else {
+                    // Exactly 5.0 seconds reached!
+                    setTimeout(window.dismissPipeLoader, 150);
+                }
+            }
+
+            requestAnimationFrame(frame);
+        });
+    })();
+
     // ==========================================
     // Real-Time Live Clock Script
     // ==========================================
