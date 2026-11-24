@@ -832,10 +832,10 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                 <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label">Category *</label>
-                    <select id="formCategory" class="form-input" required>
+                    <select id="formCategory" class="form-input" onchange="handleCategoryOrNameChange()" required>
                         <option value="">-- Select Category --</option>
                         {% for cat in categories %}
-                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        <option value="{{ cat.id }}" data-name="{{ cat.name }}">{{ cat.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -859,40 +859,41 @@
                 </div>
                 <div>
                     <label class="form-label">Unit of Measure *</label>
-                    <select id="formProductUnit" class="form-input" onchange="handleInvUnitChange()" required>
-                        <option value="PIECE">Piece / Unit (Nos)</option>
-                        <option value="METER">Meter (m) / Length Pipe</option>
+                    <select id="formProductUnit" class="form-input" onchange="handleInvUnitChange(true)" required>
+                        <option value="PIECE">📦 Piece / Unit (Nos) — Fittings & Hardware</option>
+                        <option value="METER">📏 Meter (m) / Length Pipe — Pipes Only</option>
                     </select>
-                    <span style="font-size: 11px; color: #0284c7; font-weight: 600;">Length pipe by meter or piece</span>
+                    <div id="unitNoticePill" style="margin-top: 5px; font-size: 11px; font-weight: 700; line-height: 1.3;"></div>
                 </div>
             </div>
 
             <!-- Product Name * -->
             <div class="form-group">
                 <label class="form-label">Product Name *</label>
-                <input type="text" id="formName" class="form-input" placeholder="e.g. CPVC Brass Elbow, Brass Ball Valve, PVC Conduit Pipe" required>
+                <input type="text" id="formName" class="form-input" placeholder="e.g. CPVC Brass Elbow, Brass Ball Valve, or PVC Pasting Pipe" oninput="handleCategoryOrNameChange()" required>
             </div>
 
             <!-- Size / Dimension * -->
             <div class="form-group">
                 <label class="form-label">Size / Dimension *</label>
-                <input type="text" id="formSize" class="form-input" placeholder="e.g. 1/2 inch, 3/4 inch, 25mm, 1 inch" required>
+                <input type="text" id="formSize" class="form-input" placeholder="e.g. 1/2 inch, 3/4 inch, 25mm, 1 inch, 110mm" required>
             </div>
 
-            <!-- Rate, Pipe Length & Initial Stock -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+            <!-- Rate, Pipe Length (Only shown for Pipes; hidden for Fittings) -->
+            <div id="ratePipeGrid" style="display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 14px; transition: all 0.2s ease;">
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label class="form-label" id="formRateLabel">Rate / Unit Price (₹) *</label>
+                    <label class="form-label" id="formRateLabel">Rate / Piece Price (₹) *</label>
                     <input type="number" id="formRate" class="form-input" step="0.01" min="0" placeholder="150.00" oninput="calculateInvMeterAmount()" required>
                 </div>
-                <div class="form-group" style="margin-bottom: 0;" id="formPipeLengthWrap">
-                    <label class="form-label">Pipe Length (Meters per pipe)</label>
+                <div class="form-group" style="margin-bottom: 0; display: none;" id="formPipeLengthWrap">
+                    <label class="form-label">Pipe Length (Meters per pipe) *</label>
                     <input type="number" id="formPipeLength" class="form-input" step="0.01" min="0.1" value="6.00" oninput="calculateInvMeterAmount()">
+                    <span style="font-size: 10.5px; color: #0284c7; font-weight: 600;">Standard 1 Length = 6.00m (approx 20 Feet)</span>
                 </div>
             </div>
 
             <div class="form-group">
-                <label class="form-label" id="formQuantityLabel">Initial Stock Quantity *</label>
+                <label class="form-label" id="formQuantityLabel">Initial Stock Quantity (Pieces) *</label>
                 <input type="number" id="formQuantity" class="form-input" min="0" placeholder="0" required>
             </div>
 
@@ -1227,26 +1228,88 @@
         deleteSingleProduct(id, name);
     }
 
-    // DYNAMIC PRICING UNIT & METER CALCULATOR
-    function handleInvUnitChange() {
+    let userManuallyToggledUnit = false;
+
+    function isFittingProduct(catName, prodName) {
+        const text = ((catName || '') + ' ' + (prodName || '')).toLowerCase();
+        const fittingKeywords = [
+            'elbow', 'tee', 'reducer', 'coupler', 'coupling', 'socket', 'union', 
+            'nipple', 'valve', 'cock', 'tap', 'faucet', 'clamp', 'bush', 'bushing', 
+            'plug', 'cap', 'bend', 'trap', 'collar', 'fitting', 'flange', 'adapter', 
+            'solvent', 'cement', 'tape', 'glue', 'clip', 'shower', 'waste', 'bracket',
+            'screw', 'tools', 'sealant', 'ball valve', 'bib tap', 'angle valve'
+        ];
+        return fittingKeywords.some(kw => text.includes(kw));
+    }
+
+    function isPipeProduct(catName, prodName) {
+        const cat = (catName || '').toLowerCase();
+        const name = (prodName || '').toLowerCase();
+        // If explicitly a fitting/valve/hardware, it's NOT a pipe
+        if (isFittingProduct(cat, name)) return false;
+        // Pure pipe categories: e.g. "PVC Pipe", "CPVC Pipe", "UPVC Pipe", "HDPE Pipe", "PPR Pipe", "Copper Pipe"
+        if (cat.includes('pipe') && !cat.includes('fitting')) return true;
+        // Or if product name contains pipe
+        if (name.includes('pipe')) return true;
+        return false;
+    }
+
+    function handleCategoryOrNameChange() {
+        if (userManuallyToggledUnit) return; // respect manual override if user explicitly selected unit
+
+        const catElem = document.getElementById('formCategory');
+        const selectedOpt = catElem && catElem.selectedIndex >= 0 ? catElem.options[catElem.selectedIndex] : null;
+        const catName = selectedOpt ? (selectedOpt.getAttribute('data-name') || selectedOpt.textContent || '') : '';
+        const nameVal = (document.getElementById('formName').value || '').trim();
+
+        const unitElem = document.getElementById('formProductUnit');
+        if (!unitElem) return;
+
+        // Auto-detect Pipe vs Fitting
+        if (isPipeProduct(catName, nameVal)) {
+            unitElem.value = 'METER';
+        } else {
+            unitElem.value = 'PIECE';
+        }
+        handleInvUnitChange(false);
+    }
+
+    // DYNAMIC PRICING UNIT & METER CALCULATOR (ONLY PIPE SHOWS METER AND LENGTH)
+    function handleInvUnitChange(manual = false) {
+        if (manual) {
+            userManuallyToggledUnit = true;
+        }
+
         const unitElem = document.getElementById('formProductUnit');
         const unit = unitElem ? unitElem.value : 'PIECE';
         const rateLabel = document.getElementById('formRateLabel');
         const qtyLabel = document.getElementById('formQuantityLabel');
         const calcBox = document.getElementById('invMeterCalcBox');
         const pipeWrap = document.getElementById('formPipeLengthWrap');
-
-        if (pipeWrap) pipeWrap.style.display = 'block';
+        const ratePipeGrid = document.getElementById('ratePipeGrid');
+        const noticePill = document.getElementById('unitNoticePill');
 
         if (unit === 'METER') {
+            // ONLY PIPE SHOWS METER AND LENGTH
+            if (pipeWrap) pipeWrap.style.display = 'block';
+            if (ratePipeGrid) ratePipeGrid.style.gridTemplateColumns = '1fr 1fr';
             if (rateLabel) rateLabel.textContent = 'Rate per 1 Meter (₹/m) *';
             if (qtyLabel) qtyLabel.textContent = 'Initial Stock Quantity (Total Meters) *';
             if (calcBox) calcBox.style.display = 'block';
+            if (noticePill) {
+                noticePill.innerHTML = '<span style="color: #0284c7; background: #e0f2fe; padding: 2px 7px; border-radius: 4px; border: 1px solid #bae6fd;">📏 <strong>Pipe Item:</strong> Sold by Length & Meters (Standard: 6m = 20ft)</span>';
+            }
             calculateInvMeterAmount();
         } else {
-            if (rateLabel) rateLabel.textContent = 'Rate / Unit Price (₹) *';
-            if (qtyLabel) qtyLabel.textContent = 'Initial Stock Quantity (Pieces) *';
+            // FITTINGS & HARDWARE: HIDE METER AND LENGTH COMPLETELY
+            if (pipeWrap) pipeWrap.style.display = 'none';
+            if (ratePipeGrid) ratePipeGrid.style.gridTemplateColumns = '1fr';
+            if (rateLabel) rateLabel.textContent = 'Rate / Piece Price (₹) *';
+            if (qtyLabel) qtyLabel.textContent = 'Initial Stock Quantity (Pieces / Nos) *';
             if (calcBox) calcBox.style.display = 'none';
+            if (noticePill) {
+                noticePill.innerHTML = '<span style="color: #15803d; background: #dcfce7; padding: 2px 7px; border-radius: 4px; border: 1px solid #bbf7d0;">📦 <strong>Fitting / Hardware:</strong> Sold by Piece (Nos). Meter & length do not apply.</span>';
+            }
         }
     }
 
@@ -1299,6 +1362,7 @@
 
     // ADD & EDIT MODAL
     function openAddModal() {
+        userManuallyToggledUnit = false;
         document.getElementById('modalTitle').textContent = '➕ Add New Plumbing Product';
         document.getElementById('formProductId').value = '';
         const codeElem = document.getElementById('formProductCode');
@@ -1314,13 +1378,14 @@
         document.getElementById('formSize').value = '';
         document.getElementById('formRate').value = '';
         document.getElementById('formQuantity').value = '0';
-        handleInvUnitChange();
+        handleInvUnitChange(false);
         const warnBox = document.getElementById('productFormWarning');
         if (warnBox) warnBox.style.display = 'none';
         document.getElementById('productModal').classList.add('show');
     }
 
     function openEditModal(id, name, catId, size, rate, qty, code = '', unit = 'PIECE', brandId = '', pipeLen = 6.00) {
+        userManuallyToggledUnit = true; // preserve current unit when editing
         document.getElementById('modalTitle').textContent = `✏️ Edit: ${name}`;
         document.getElementById('formProductId').value = id;
         document.getElementById('formCategory').value = catId;
@@ -1331,12 +1396,12 @@
         const unitElem = document.getElementById('formProductUnit');
         if (unitElem) unitElem.value = unit || 'PIECE';
         const lenElem = document.getElementById('formPipeLength');
-        if (lenElem) lenElem.value = parseFloat(pipeLen) || 6.00;
+        if (lenElem) lenElem.value = (unit === 'METER' ? (parseFloat(pipeLen) || 6.00) : 6.00);
         document.getElementById('formName').value = name;
         document.getElementById('formSize').value = size;
         document.getElementById('formRate').value = rate;
         document.getElementById('formQuantity').value = qty;
-        handleInvUnitChange();
+        handleInvUnitChange(false);
         const warnBox = document.getElementById('productFormWarning');
         if (warnBox) warnBox.style.display = 'none';
         document.getElementById('productModal').classList.add('show');
@@ -1389,12 +1454,16 @@
             saveBtn.innerHTML = '⏳ Saving...';
         }
 
+        const unit = unitElem ? unitElem.value : 'PIECE';
+        const isPipe = (unit === 'METER');
+        const pipeLen = isPipe ? (lenElem ? parseFloat(lenElem.value) || 6.00 : 6.00) : 1.00;
+
         const payload = {
             category_id: parseInt(catVal),
             brand_id: brandElem && brandElem.value ? parseInt(brandElem.value) : null,
             product_code: codeElem ? codeElem.value.trim() : '',
-            unit: unitElem ? unitElem.value : 'PIECE',
-            pipe_length: lenElem ? parseFloat(lenElem.value) || 6.00 : 6.00,
+            unit: unit,
+            pipe_length: pipeLen,
             name: nameVal,
             size: sizeVal,
             rate: parseFloat(document.getElementById('formRate').value) || 0,

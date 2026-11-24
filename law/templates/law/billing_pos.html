@@ -398,10 +398,18 @@
         pointer-events: none;
     }
 
-    /* Category Filter Pills */
+    /* Category Filter Pills & Horizontal Scroll Container */
     .category-scroll-container {
         position: relative;
-        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 14px;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 7px 8px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
         flex-shrink: 0;
     }
 
@@ -409,22 +417,81 @@
         display: flex;
         gap: 8px;
         overflow-x: auto;
-        padding-bottom: 6px;
-        scrollbar-width: none;
+        padding: 4px 2px 7px 2px;
+        scroll-behavior: smooth;
         -webkit-overflow-scrolling: touch;
+        flex: 1;
+        cursor: grab;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f8fafc;
     }
 
+    .category-scroll-pills.dragging {
+        cursor: grabbing;
+        user-select: none;
+    }
+
+    /* Modern Visible Slim Horizontal Scrollbar */
     .category-scroll-pills::-webkit-scrollbar {
-        display: none;
+        height: 6px;
+        display: block;
+    }
+    .category-scroll-pills::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 999px;
+    }
+    .category-scroll-pills::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 999px;
+        transition: background 0.2s;
+    }
+    .category-scroll-pills::-webkit-scrollbar-thumb:hover {
+        background: #0284c7;
+    }
+
+    /* Scroll Navigation Arrow Buttons */
+    .cat-scroll-arrow {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1.5px solid #e2e8f0;
+        background: #f8fafc;
+        color: #1e293b;
+        font-size: 20px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.16s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        padding: 0;
+        user-select: none;
+        line-height: 1;
+    }
+    .cat-scroll-arrow:hover:not(:disabled) {
+        background: #0284c7;
+        color: #ffffff;
+        border-color: #0284c7;
+        transform: scale(1.06);
+    }
+    .cat-scroll-arrow:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        background: #f8fafc;
+        color: #94a3b8;
+        border-color: #e2e8f0;
+        transform: none;
     }
 
     .pos-cat-pill {
-        background: #f1f5f9;
-        color: #475569;
+        background: #f8fafc;
+        color: #334155;
         border: 1.5px solid #e2e8f0;
-        padding: 7px 14px;
+        padding: 6px 13px;
         border-radius: 999px;
-        font-size: 12px;
+        font-size: 12.5px;
         font-weight: 700;
         cursor: pointer;
         white-space: nowrap;
@@ -433,11 +500,13 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
+        flex-shrink: 0;
     }
 
     .pos-cat-pill:hover {
-        background: #e2e8f0;
+        background: #f1f5f9;
         color: #0f172a;
+        border-color: #cbd5e1;
         transform: translateY(-1px);
     }
 
@@ -445,7 +514,106 @@
         background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
         color: #ffffff;
         border-color: #0284c7;
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.32);
+    }
+
+    .cat-pill-icon {
+        font-size: 13px;
+        line-height: 1;
+    }
+
+    .cat-pill-name {
+        letter-spacing: 0.2px;
+    }
+
+    .pos-cat-count {
+        font-size: 10.5px;
+        font-weight: 800;
+        background: #e2e8f0;
+        color: #475569;
+        padding: 1px 7px;
+        border-radius: 999px;
+        line-height: 1.35;
+        transition: all 0.18s ease;
+    }
+
+    .pos-cat-pill.active .pos-cat-count {
+        background: rgba(255, 255, 255, 0.28);
+        color: #ffffff;
+    }
+
+    /* Quick Size Filter Bar & Pills */
+    .pos-size-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 6px 10px;
+        flex-shrink: 0;
+    }
+
+    .pos-size-bar-label {
+        font-size: 11px;
+        font-weight: 800;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+
+    .pos-size-pills-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        overflow-x: auto;
+        flex: 1;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+        padding-bottom: 2px;
+    }
+
+    .pos-size-pills-wrap::-webkit-scrollbar {
+        height: 4px;
+    }
+    .pos-size-pills-wrap::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 999px;
+    }
+
+    .pos-size-pill {
+        background: #ffffff;
+        color: #334155;
+        border: 1.5px solid #cbd5e1;
+        padding: 4px 11px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+        user-select: none;
+        flex-shrink: 0;
+    }
+
+    .pos-size-pill:hover {
+        background: #f0f9ff;
+        color: #0284c7;
+        border-color: #0284c7;
+        transform: translateY(-1px);
+    }
+
+    .pos-size-pill.active {
+        background: #0284c7;
+        color: #ffffff;
+        border-color: #0284c7;
+        box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
     }
 
     /* Product Cards Touch Grid */
@@ -1909,44 +2077,88 @@
         <div class="catalog-panel" id="catalogPanel">
             <div class="catalog-toolbar" style="flex-wrap: wrap; gap: 10px;">
                 <!-- Direct Product Select Dropdown -->
-                <div class="search-input-box" style="flex: 1.5; min-width: 250px;">
+                <div class="search-input-box" style="flex: 1.4; min-width: 240px;">
                     <span class="search-input-icon">📦</span>
                     <select id="quickProductSelect" class="pos-search-input" onchange="handleProductDropdownSelect(this)">
                         <option value="">-- Select Product to Add to Bill --</option>
                         {% for p in products %}
                         <option value="{{ p.id }}" data-name="{{ p.name }}" data-code="{{ p.display_code }}" data-unit="{{ p.unit }}" data-brand="{{ p.brand.name|default:'' }}" data-pipe-length="{{ p.pipe_length|default:6.00 }}" data-category="{{ p.category.name }}" data-size="{{ p.size }}" data-rate="{{ p.rate }}" data-stock="{{ p.quantity }}">
-                            #{{ p.display_code }} • {% if p.brand %}[{{ p.brand.name }}] {% endif %}{{ p.category.name }} • {{ p.name }} ({{ p.size }}) — ₹{{ p.rate|floatformat:2 }}{% if p.unit == 'METER' %}/m ({{ p.pipe_length|default:6.00 }}m pipe = ₹{{ p.full_pipe_price|floatformat:2 }}){% else %}/pc{% endif %}
+                            #{{ p.display_code }} • {% if p.brand %}[{{ p.brand.name }}] {% endif %}{{ p.category.name }} • {{ p.name }} ({{ p.size }}) — ₹{{ p.rate|floatformat:2 }}{% if p.unit == 'METER' or p.is_pipe %}/m ({{ p.pipe_length|default:6.00 }}m pipe = ₹{{ p.full_pipe_price|floatformat:2 }}){% else %}/pc{% endif %}
                         </option>
                         {% endfor %}
                     </select>
                 </div>
 
-                <div class="search-input-box" style="flex: 1; min-width: 200px;">
+                <!-- Text Search Input Box -->
+                <div class="search-input-box" style="flex: 1.1; min-width: 190px;">
                     <span class="search-input-icon">🔍</span>
                     <input type="text" id="posSearchInput" class="pos-search-input" 
                            placeholder="Search hardware by name, size, or category..." 
                            onkeyup="filterPosProducts()">
                 </div>
-                <button type="button" class="btn-blue" onclick="filterPosProducts()" style="padding: 10px 14px;">
-                    Search
-                </button>
-                <button type="button" class="btn-white" onclick="resetPosSearch()" style="padding: 10px 12px;">
-                    ↺ Reset
-                </button>
+
+                <!-- Size Search & Filter Dropdown -->
+                <div class="search-input-box" style="flex: 0.9; min-width: 170px;">
+                    <span class="search-input-icon">📏</span>
+                    <select id="posSizeFilter" class="pos-search-input" onchange="onPosSizeDropdownChange()">
+                        <option value="ALL">-- Filter by Size --</option>
+                        {% for s in sizes %}
+                        <option value="{{ s }}">{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button type="button" class="btn-blue" onclick="filterPosProducts()" style="padding: 10px 14px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;">
+                        🔍 Filter
+                    </button>
+                    <button type="button" class="btn-white" onclick="resetPosSearch()" style="padding: 10px 12px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;">
+                        ↺ Reset
+                    </button>
+                </div>
             </div>
 
-            <!-- Category Pills with Horizontal Scroll -->
-            <div class="category-scroll-container">
-                <div class="category-scroll-pills">
-                    <button type="button" class="pos-cat-pill active" data-cat="ALL" onclick="selectPosCategory('ALL', this)">
-                        All Hardware ({{ products|length }})
+            <!-- Quick Size Filter Pills Bar -->
+            {% if sizes %}
+            <div class="pos-size-bar">
+                <span class="pos-size-bar-label">📏 Sizes:</span>
+                <div class="pos-size-pills-wrap" id="posSizePillsWrap">
+                    <button type="button" class="pos-size-pill active" data-size="ALL" onclick="selectPosSize('ALL', this)">
+                        All Sizes
                     </button>
-                    {% for cat in categories %}
-                    <button type="button" class="pos-cat-pill" data-cat="{{ cat.name }}" onclick="selectPosCategory(this.getAttribute('data-cat'), this)">
-                        {{ cat.name }} ({{ cat.products.count }})
+                    {% for s in sizes %}
+                    <button type="button" class="pos-size-pill" data-size="{{ s }}" onclick="selectPosSize('{{ s }}', this)">
+                        {{ s }}
                     </button>
                     {% endfor %}
                 </div>
+            </div>
+            {% endif %}
+
+            <!-- Category Pills with Horizontal Scroll -->
+            <div class="category-scroll-container">
+                <button type="button" class="cat-scroll-arrow cat-scroll-left" id="btnScrollCatLeft" onclick="scrollCategoryPills(-240)" aria-label="Scroll categories left" title="Scroll left">
+                    ‹
+                </button>
+                <div class="category-scroll-pills" id="categoryScrollPills" onscroll="updateCategoryScrollButtons()">
+                    <button type="button" class="pos-cat-pill active" data-cat="ALL" onclick="selectPosCategory('ALL', this)">
+                        <span class="cat-pill-icon">🏬</span>
+                        <span class="cat-pill-name">All Hardware</span>
+                        <span class="pos-cat-count">{{ products|length }}</span>
+                    </button>
+                    {% for cat in categories %}
+                    <button type="button" class="pos-cat-pill" data-cat="{{ cat.name }}" onclick="selectPosCategory(this.getAttribute('data-cat'), this)">
+                        <span class="cat-pill-icon">
+                            {% if 'pipe' in cat.name|lower %}📏{% elif 'tap' in cat.name|lower or 'faucet' in cat.name|lower %}🚰{% elif 'valve' in cat.name|lower %}🎛️{% elif 'tool' in cat.name|lower %}🔧{% elif 'sanitary' in cat.name|lower or 'drain' in cat.name|lower %}🚽{% elif 'seal' in cat.name|lower or 'adhesive' in cat.name|lower %}🧪{% else %}📦{% endif %}
+                        </span>
+                        <span class="cat-pill-name">{{ cat.name }}</span>
+                        <span class="pos-cat-count">{{ cat.products.count }}</span>
+                    </button>
+                    {% endfor %}
+                </div>
+                <button type="button" class="cat-scroll-arrow cat-scroll-right" id="btnScrollCatRight" onclick="scrollCategoryPills(240)" aria-label="Scroll categories right" title="Scroll right">
+                    ›
+                </button>
             </div>
 
             <!-- Product Cards Grid (Card Model) -->
@@ -1979,8 +2191,10 @@
                         <div class="pos-card-name">{{ p.name }}</div>
                         <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-top: 2px;">
                             <span class="pos-card-size">⚙️ {{ p.size }}</span>
-                            {% if p.unit == 'METER' %}
-                            <span style="font-size: 10px; font-weight: 800; background: #e0f2fe; color: #0284c7; padding: 1px 6px; border-radius: 4px;">📏 {{ p.pipe_length|default:6.00 }}m Pipe (₹{{ p.full_pipe_price|floatformat:2 }}/pc)</span>
+                            {% if p.unit == 'METER' or p.is_pipe %}
+                            <span style="font-size: 10px; font-weight: 800; background: #e0f2fe; color: #0284c7; padding: 1px 6px; border-radius: 4px;">📏 {{ p.pipe_length|default:6.00 }}m Pipe (₹{{ p.full_pipe_price|floatformat:2 }}/len)</span>
+                            {% else %}
+                            <span style="font-size: 10px; font-weight: 700; background: #f1f5f9; color: #475569; padding: 1px 6px; border-radius: 4px;">📦 Fitting / Piece</span>
                             {% endif %}
                         </div>
                     </div>
@@ -1989,16 +2203,18 @@
                         <div>
                             <div class="pos-card-rate">
                                 ₹{{ p.rate|floatformat:2 }}
-                                {% if p.unit == 'METER' %}
-                                <small style="font-size: 11px; color: #0284c7; font-weight: 700;">/m</small>
+                                {% if p.unit == 'METER' or p.is_pipe %}
+                                <small style="font-size: 11px; color: #0284c7; font-weight: 700;">/meter</small>
+                                {% else %}
+                                <small style="font-size: 11px; color: #64748b;">/pc</small>
                                 {% endif %}
                             </div>
                             {% if p.quantity == 0 %}
                             <span class="pos-stock-tag stock-zero">Out of Stock</span>
                             {% elif p.quantity <= 10 %}
-                            <span class="pos-stock-tag stock-low">Low: {{ p.quantity }}{% if p.unit == 'METER' %}m{% endif %}</span>
+                            <span class="pos-stock-tag stock-low">Low: {{ p.quantity }}{% if p.unit == 'METER' or p.is_pipe %}m{% endif %}</span>
                             {% else %}
-                            <span class="pos-stock-tag stock-in">Stock: {{ p.quantity }}{% if p.unit == 'METER' %}m{% endif %}</span>
+                            <span class="pos-stock-tag stock-in">Stock: {{ p.quantity }}{% if p.unit == 'METER' or p.is_pipe %}m{% endif %}</span>
                             {% endif %}
                         </div>
 
@@ -2105,8 +2321,9 @@
                     <div style="margin-bottom: 8px;">
                         <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 3px;">Select Plumbing Pipe:</label>
                         <select id="pipeQuickSelect" class="cust-select-field" onchange="onPipeQuickProductChanged()" style="font-size: 12px; height: 36px; padding: 4px 8px;">
-                            <option value="">-- Choose Pipe / Fitting Product --</option>
+                            <option value="">-- Choose Plumbing Pipe (PVC, CPVC, UPVC, etc.) --</option>
                             {% for p in products %}
+                                {% if p.unit == 'METER' or p.is_pipe %}
                                 <option value="{{ p.id }}" 
                                         data-id="{{ p.id }}"
                                         data-name="{{ p.name }}"
@@ -2118,8 +2335,9 @@
                                         data-size="{{ p.size }}"
                                         data-rate="{{ p.rate }}"
                                         data-stock="{{ p.quantity }}">
-                                    {% if p.unit == 'METER' %}📏{% else %}📦{% endif %} {{ p.name }} ({{ p.size }}) — ₹{{ p.rate }}{% if p.unit == 'METER' %}/m{% else %}/pc{% endif %} [Std: {{ p.pipe_length|default:6.00 }}m]
+                                    📏 {{ p.name }} ({{ p.size }}) — ₹{{ p.rate|floatformat:2 }}/m [Std: {{ p.pipe_length|default:6.00 }}m]
                                 </option>
+                                {% endif %}
                             {% endfor %}
                         </select>
                     </div>
@@ -2243,6 +2461,14 @@
                     <span>Total Amount:</span>
                     <span class="grand-total-highlight" id="calcGrandTotal">₹0.00</span>
                 </div>
+                <div class="calc-row" style="color: #16a34a; font-weight: 700; margin-top: 6px;">
+                    <span>Paid Amount:</span>
+                    <strong id="cardSummaryPaid">₹0.00</strong>
+                </div>
+                <div class="calc-row" style="font-weight: 800; font-size: 13.5px; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
+                    <span>Balance Due:</span>
+                    <strong id="cardSummaryBalance" style="color: #16a34a;">₹0.00</strong>
+                </div>
 
                 <!-- Multi-Payment Mode & Split Breakdown (Cash + GPay / PhonePe / Paytm / Card) -->
                 <div class="payment-split-box">
@@ -2281,7 +2507,7 @@
                             </div>
                             <div class="split-row-field">
                                 <span class="currency-prefix">₹</span>
-                                <input type="number" id="payCashAmount" class="split-val-input" value="0" min="0" step="1" oninput="onSplitAmountChanged('CASH')">
+                                <input type="number" id="payCashAmount" class="split-val-input" value="0" min="0" step="0.01" oninput="onSplitAmountChanged('CASH')">
                                 <button type="button" class="btn-split-action" onclick="fillRemainingAmount('CASH')">Remaining</button>
                             </div>
                         </div>
@@ -2294,7 +2520,7 @@
                             </div>
                             <div class="split-row-field">
                                 <span class="currency-prefix">₹</span>
-                                <input type="number" id="payUpiAmount" class="split-val-input" value="0" min="0" step="1" oninput="onSplitAmountChanged('UPI')" style="color: #0284c7; font-weight: 800;">
+                                <input type="number" id="payUpiAmount" class="split-val-input" value="0" min="0" step="0.01" oninput="onSplitAmountChanged('UPI')" style="color: #0284c7; font-weight: 800;">
                                 <button type="button" class="btn-split-action" onclick="fillRemainingAmount('UPI')">Remaining</button>
                             </div>
                         </div>
@@ -2306,7 +2532,7 @@
                             </div>
                             <div class="split-row-field">
                                 <span class="currency-prefix">₹</span>
-                                <input type="number" id="payCardAmount" class="split-val-input" value="0" min="0" step="1" oninput="onSplitAmountChanged('CARD')">
+                                <input type="number" id="payCardAmount" class="split-val-input" value="0" min="0" step="0.01" oninput="onSplitAmountChanged('CARD')">
                                 <button type="button" class="btn-split-action" onclick="fillRemainingAmount('CARD')">Remaining</button>
                             </div>
                         </div>
@@ -2555,6 +2781,7 @@
 
     let posCart = [];
     let currentCategory = 'ALL';
+    let currentSelectedSize = 'ALL';
     let currentPaymentMode = 'CASH';
     let currentGender = 'MALE';
     let currentBillMode = 'GST'; // 'GST' (1. GST Add) or 'NOGST' (2. No GST)
@@ -2695,16 +2922,41 @@
         calculatePosTotals();
     }
 
-    // CATEGORY & SEARCH FILTER
+    // ==========================================
+    // SIZE, CATEGORY & SEARCH FILTER
+    // ==========================================
     function selectPosCategory(catName, pillElem) {
         currentCategory = catName;
         document.querySelectorAll('.pos-cat-pill').forEach(p => p.classList.remove('active'));
         pillElem.classList.add('active');
+        if (pillElem && pillElem.scrollIntoView) {
+            pillElem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+        filterPosProducts();
+        setTimeout(updateCategoryScrollButtons, 300);
+    }
+
+    function selectPosSize(sizeVal, btnElem) {
+        currentSelectedSize = sizeVal || 'ALL';
+        const sizeSelect = document.getElementById('posSizeFilter');
+        if (sizeSelect) sizeSelect.value = currentSelectedSize;
+        document.querySelectorAll('.pos-size-pill').forEach(b => b.classList.remove('active'));
+        if (btnElem) btnElem.classList.add('active');
+        filterPosProducts();
+    }
+
+    function onPosSizeDropdownChange() {
+        const sizeSelect = document.getElementById('posSizeFilter');
+        currentSelectedSize = sizeSelect ? sizeSelect.value : 'ALL';
+        document.querySelectorAll('.pos-size-pill').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-size') === currentSelectedSize);
+        });
         filterPosProducts();
     }
 
     function filterPosProducts() {
         const query = document.getElementById('posSearchInput').value.toLowerCase().trim();
+        const sizeFilter = (currentSelectedSize || 'ALL').toLowerCase();
         const cards = document.querySelectorAll('.pos-product-card');
 
         cards.forEach(card => {
@@ -2713,24 +2965,171 @@
             const size = (card.getAttribute('data-size') || '').toLowerCase();
 
             const matchCat = (currentCategory === 'ALL' || category === currentCategory);
+            const matchSize = (sizeFilter === 'all' || size === sizeFilter || size.includes(sizeFilter));
             const matchQuery = (!query || name.includes(query) || category.toLowerCase().includes(query) || size.includes(query));
 
-            if (matchCat && matchQuery) {
+            if (matchCat && matchSize && matchQuery) {
                 card.style.display = 'flex';
             } else {
                 card.style.display = 'none';
             }
         });
+
+        syncQuickProductSelectDropdown(query, sizeFilter, currentCategory);
     }
 
     function resetPosSearch() {
         document.getElementById('posSearchInput').value = '';
         currentCategory = 'ALL';
-        document.querySelectorAll('.pos-cat-pill').forEach((p, idx) => {
-            if (idx === 0) p.classList.add('active');
-            else p.classList.remove('active');
+        currentSelectedSize = 'ALL';
+
+        const sizeSelect = document.getElementById('posSizeFilter');
+        if (sizeSelect) sizeSelect.value = 'ALL';
+
+        document.querySelectorAll('.pos-size-pill').forEach((b, idx) => {
+            b.classList.toggle('active', idx === 0);
         });
+
+        document.querySelectorAll('.pos-cat-pill').forEach((p, idx) => {
+            if (idx === 0) {
+                p.classList.add('active');
+                if (p.scrollIntoView) p.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            } else {
+                p.classList.remove('active');
+            }
+        });
+
         filterPosProducts();
+        setTimeout(updateCategoryScrollButtons, 300);
+    }
+
+    function syncQuickProductSelectDropdown(query, sizeFilter, catFilter) {
+        const sel = document.getElementById('quickProductSelect');
+        if (!sel) return;
+        for (let i = 1; i < sel.options.length; i++) {
+            const opt = sel.options[i];
+            const name = (opt.getAttribute('data-name') || '').toLowerCase();
+            const category = opt.getAttribute('data-category') || '';
+            const size = (opt.getAttribute('data-size') || '').toLowerCase();
+
+            const matchCat = (catFilter === 'ALL' || category === catFilter);
+            const matchSize = (sizeFilter === 'all' || size === sizeFilter || size.includes(sizeFilter));
+            const matchQuery = (!query || name.includes(query) || category.toLowerCase().includes(query) || size.includes(query));
+
+            opt.style.display = (matchCat && matchSize && matchQuery) ? '' : 'none';
+        }
+    }
+
+    // ==========================================
+    // CATEGORY HORIZONTAL SCROLL HELPERS
+    // ==========================================
+    function scrollCategoryPills(delta) {
+        const container = document.getElementById('categoryScrollPills');
+        if (container) {
+            container.scrollBy({ left: delta, behavior: 'smooth' });
+            setTimeout(updateCategoryScrollButtons, 260);
+        }
+    }
+
+    function updateCategoryScrollButtons() {
+        const container = document.getElementById('categoryScrollPills');
+        const btnLeft = document.getElementById('btnScrollCatLeft');
+        const btnRight = document.getElementById('btnScrollCatRight');
+        if (!container || !btnLeft || !btnRight) return;
+
+        const scrollLeft = Math.round(container.scrollLeft);
+        const maxScroll = Math.round(container.scrollWidth - container.clientWidth);
+
+        btnLeft.disabled = scrollLeft <= 4;
+        btnRight.disabled = scrollLeft >= maxScroll - 4;
+    }
+
+    function setupCategoryDragScroll() {
+        const slider = document.getElementById('categoryScrollPills');
+        if (!slider) return;
+
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        slider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            slider.classList.add('dragging');
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+
+        slider.addEventListener('mouseleave', () => {
+            isDown = false;
+            slider.classList.remove('dragging');
+        });
+
+        slider.addEventListener('mouseup', () => {
+            isDown = false;
+            slider.classList.remove('dragging');
+        });
+
+        slider.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 1.5;
+            slider.scrollLeft = scrollLeft - walk;
+            updateCategoryScrollButtons();
+        });
+
+        // Wheel horizontal scroll support
+        slider.addEventListener('wheel', (e) => {
+            if (e.deltaY !== 0) {
+                e.preventDefault();
+                slider.scrollLeft += e.deltaY;
+                updateCategoryScrollButtons();
+            }
+        }, { passive: false });
+
+        updateCategoryScrollButtons();
+    }
+
+    // ==========================================
+    // PIPE VS FITTING DISCRIMINATOR
+    // ==========================================
+    // Strictly ensures ONLY genuine plumbing pipes show lengths and meters, NEVER fittings (elbows, tees, valves, etc.)
+    function checkIsPipeItem(unit, category, name) {
+        const u = (unit || 'PIECE').toUpperCase();
+        const cat = (category || '').toLowerCase();
+        const pname = (name || '').toLowerCase();
+
+        // 1. If product is explicitly set to METER, it is a pipe
+        if (u === 'METER') return true;
+
+        // 2. Explicit fitting / valve / tap / hardware keywords -> definitely NOT a pipe
+        const fittingKeywords = [
+            'elbow', 'tee', 'reducer', 'coupler', 'coupling', 'socket', 'union', 
+            'nipple', 'valve', 'cock', 'tap', 'faucet', 'clamp', 'bush', 'bushing', 
+            'plug', 'cap', 'bend', 'trap', 'collar', 'fitting', 'flange', 'adapter', 
+            'solvent', 'cement', 'tape', 'glue', 'clip', 'shower', 'waste', 'bracket',
+            'screw', 'tools', 'sealant', 'ball valve', 'bib tap', 'angle valve'
+        ];
+        if (fittingKeywords.some(kw => pname.includes(kw) || cat.includes(kw))) {
+            return false;
+        }
+
+        // 3. If unit is PIECE and product name doesn't contain "pipe", it's a fitting/piece
+        if (u === 'PIECE' && !pname.includes('pipe')) {
+            return false;
+        }
+
+        // 4. Pure pipe category without "fitting" and has "pipe" in name
+        if (cat.includes('pipe') && !cat.includes('fitting') && pname.includes('pipe')) {
+            return true;
+        }
+
+        // 5. Explicit pipe in product name
+        if (pname.includes('pipe')) {
+            return true;
+        }
+
+        return false;
     }
 
     // ==========================================
@@ -2869,7 +3268,7 @@
         const rate = parseFloat(opt.getAttribute('data-rate')) || 0;
         const stock = parseInt(opt.getAttribute('data-stock')) || 0;
 
-        const isPipe = (unit === 'METER' || (category && category.toLowerCase().includes('pipe')) || (name && name.toLowerCase().includes('pipe')));
+        const isPipe = checkIsPipeItem(unit, category, name);
         if (isPipe) {
             openPipeLengthModal({
                 id: id,
@@ -2892,7 +3291,7 @@
 
         // Sync Pipe Quick-Adder
         const pipeSel = document.getElementById('pipeQuickSelect');
-        if (pipeSel) {
+        if (pipeSel && isPipe) {
             pipeSel.value = id;
             onPipeQuickProductChanged();
         }
@@ -2912,7 +3311,7 @@
         const rate = parseFloat(cardElem.getAttribute('data-rate')) || 0;
         const stock = parseInt(cardElem.getAttribute('data-stock')) || 0;
 
-        const isPipe = (unit === 'METER' || (category && category.toLowerCase().includes('pipe')) || (name && name.toLowerCase().includes('pipe')));
+        const isPipe = checkIsPipeItem(unit, category, name);
         if (isPipe) {
             openPipeLengthModal({
                 id: id,
@@ -3075,7 +3474,7 @@
     // CART OPERATIONS
     // ==========================================
     function addToCart(id, name, category, size, rate, stock, code = '', unit = 'PIECE', brand = '', pipeLen = 6.00, customQty = null) {
-        const isPipe = (unit === 'METER' || (category && category.toLowerCase().includes('pipe')) || (name && name.toLowerCase().includes('pipe')));
+        const isPipe = checkIsPipeItem(unit, category, name);
         const stdLen = (pipeLen > 0) ? pipeLen : 6.00;
 
         let qtyToAdd;
@@ -3084,7 +3483,7 @@
         } else if (isPipe) {
             qtyToAdd = stdLen; // Default 1 full length pipe (6m = 20ft)
         } else {
-            qtyToAdd = 1.0;
+            qtyToAdd = 1.0; // 1 piece for fittings and hardware
         }
 
         const existing = posCart.find(i => i.id === id);
@@ -3194,7 +3593,7 @@
 
         posCart.forEach(item => {
             const lineTotal = (item.rate * item.qty).toFixed(2);
-            const isPipe = (item.unit === 'METER' || (item.category && item.category.toLowerCase().includes('pipe')) || (item.name && item.name.toLowerCase().includes('pipe')));
+            const isPipe = checkIsPipeItem(item.unit, item.category, item.name);
             const stdLen = item.pipeLength || 6.00;
             const lengths = (item.qty / stdLen);
             const formattedLengths = (lengths % 1 === 0) ? lengths : lengths.toFixed(1);
@@ -3266,10 +3665,23 @@
 
     function applyPaymentPreset(preset) {
         paymentPreset = preset;
+        if (preset === 'CASH' || preset === 'UPI' || preset === 'CARD') {
+            manualPaidModified = false;
+        } else {
+            manualPaidModified = true;
+        }
+
         const grandTotal = getGrandTotalNumber();
 
         document.querySelectorAll('.split-preset-btn').forEach(b => b.classList.remove('active'));
-        const activeBtn = document.getElementById('btnPreset' + preset.charAt(0).toUpperCase() + preset.slice(1).toLowerCase());
+        const btnIdMap = {
+            'CASH': 'btnPresetCash',
+            'UPI': 'btnPresetUpi',
+            'SPLIT_HALF': 'btnPresetSplit',
+            'CARD': 'btnPresetCard',
+            'CREDIT': 'btnPresetCredit'
+        };
+        const activeBtn = document.getElementById(btnIdMap[preset] || ('btnPreset' + preset));
         if (activeBtn) activeBtn.classList.add('active');
 
         if (preset === 'CASH') {
@@ -3376,6 +3788,15 @@
         if (balElem) {
             balElem.textContent = `₹${balance.toFixed(2)}`;
             balElem.style.color = balance > 0 ? '#dc2626' : '#16a34a';
+        }
+
+        const cardPaid = document.getElementById('cardSummaryPaid');
+        if (cardPaid) cardPaid.textContent = `₹${totalPaid.toFixed(2)}`;
+
+        const cardBal = document.getElementById('cardSummaryBalance');
+        if (cardBal) {
+            cardBal.textContent = `₹${balance.toFixed(2)}`;
+            cardBal.style.color = balance > 0 ? '#dc2626' : '#16a34a';
         }
 
         const tag = document.getElementById('splitBreakdownTag');
@@ -3518,7 +3939,7 @@
             paid_amount: totalPaid,
             notes: paymentNotes,
             items: posCart.map(item => {
-                const isPipe = (item.unit === 'METER' || (item.category && item.category.toLowerCase().includes('pipe')) || (item.name && item.name.toLowerCase().includes('pipe')));
+                const isPipe = checkIsPipeItem(item.unit, item.category, item.name);
                 const stdLen = item.pipeLength || 6.00;
                 let itemSize = item.size || 'Standard';
                 if (isPipe) {
@@ -3662,6 +4083,12 @@
             if (catalogPanel) catalogPanel.classList.remove('mobile-hidden');
             if (checkoutPanel) checkoutPanel.classList.remove('mobile-hidden');
         }
+        updateCategoryScrollButtons();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setupCategoryDragScroll();
+        updateCategoryScrollButtons();
     });
 </script>
 {% endblock %}

@@ -121,6 +121,14 @@ def billing_pos(request):
     total_invoices = Bill.objects.count()
     low_stock_count = Product.objects.filter(quantity__lte=10).count()
 
+    # Collect unique distinct product sizes for quick size search & filter
+    all_sizes = []
+    for p in products:
+        s = p.size.strip() if p.size else ''
+        if s and s not in all_sizes:
+            all_sizes.append(s)
+    all_sizes.sort()
+
     context = {
         'shop_name': "ZAM ZAM HARDWARE",
         'shop_owner': "Lawrence C",
@@ -130,6 +138,7 @@ def billing_pos(request):
         'categories': categories,
         'brands': brands,
         'products': products,
+        'sizes': all_sizes,
         'recent_bills': recent_bills,
         'total_sales': total_sales,
         'total_invoices': total_invoices,
@@ -277,10 +286,21 @@ def invoice_detail(request, bill_id):
 
     # Non-GST calculations (pure items total minus discount)
     non_gst_total = taxable_amount
-    non_gst_paid = min(float(bill.paid_amount), non_gst_total) if float(bill.paid_amount) > 0 else 0.0
-    if float(bill.balance_amount) <= 0.01 and float(bill.paid_amount) >= float(bill.grand_total):
+    if float(bill.balance_amount) <= 0.01:
+        # Full paid bill
         non_gst_paid = non_gst_total
-    non_gst_balance = max(0.0, round(non_gst_total - non_gst_paid, 2))
+        non_gst_balance = 0.0
+    else:
+        # Bill with balance due
+        if float(bill.grand_total) > 0 and float(bill.gst_amount) > 0:
+            # Proportional or capped paid amount from GST bill
+            paid_val = float(bill.paid_amount)
+            non_gst_paid = round(min(paid_val, non_gst_total), 2)
+            non_gst_balance = round(max(0.0, non_gst_total - non_gst_paid), 2)
+        else:
+            # Non-GST bill originally created
+            non_gst_paid = float(bill.paid_amount)
+            non_gst_balance = float(bill.balance_amount)
 
     context = {
         'bill': bill,
@@ -456,12 +476,16 @@ def add_product_api(request):
         if unit not in ['PIECE', 'METER']:
             unit = 'PIECE'
         
-        pipe_length = 6.00
-        if 'pipe_length' in data and data['pipe_length'] is not None and str(data['pipe_length']).strip() != '':
-            try:
-                pipe_length = round(float(data['pipe_length']), 2)
-            except (ValueError, TypeError):
-                pipe_length = 6.00
+        # Only pipe items (unit=METER) store pipe length; fittings/hardware (PIECE) are standard 1.00 unit
+        if unit == 'PIECE':
+            pipe_length = 1.00
+        else:
+            pipe_length = 6.00
+            if 'pipe_length' in data and data['pipe_length'] is not None and str(data['pipe_length']).strip() != '':
+                try:
+                    pipe_length = round(float(data['pipe_length']), 2)
+                except (ValueError, TypeError):
+                    pipe_length = 6.00
 
         size = (data.get('size') or '').strip()
         rate = float(data.get('rate', 0))
@@ -576,7 +600,10 @@ def edit_product_api(request, product_id):
             prod.product_code = str(data['product_code']).strip()
         if 'unit' in data and data['unit'] in ['PIECE', 'METER']:
             prod.unit = data['unit']
-        if 'pipe_length' in data and data['pipe_length'] is not None and str(data['pipe_length']).strip() != '':
+        # Fittings & hardware (PIECE) are 1 unit; only METER items have pipe length
+        if prod.unit == 'PIECE':
+            prod.pipe_length = 1.00
+        elif 'pipe_length' in data and data['pipe_length'] is not None and str(data['pipe_length']).strip() != '':
             try:
                 prod.pipe_length = round(float(data['pipe_length']), 2)
             except (ValueError, TypeError):

@@ -556,14 +556,71 @@
         color: #0f766e;
     }
 
-    /* 4 Card Action Buttons: GST Print, No-GST Print, Edit, Delete */
+    /* Separate Card Action Layout: 2 Dedicated Distinct Rows */
     .bill-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        margin-top: 10px;
+        border-top: 1.5px dashed var(--color-gray-border);
+        padding-top: 10px;
+    }
+
+    /* Row 1: Separate Dedicated Edit & Delete Bar */
+    .bill-actions-manage {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr 38px;
-        gap: 5px;
-        margin-top: 8px;
-        border-top: 1px dashed var(--color-gray-border);
-        padding-top: 12px;
+        grid-template-columns: 1fr 38px;
+        gap: 6px;
+    }
+
+    .btn-act-edit-separate {
+        background: #0f172a;
+        color: #ffffff;
+        border: 1.5px solid #0f172a;
+        padding: 8px 12px;
+        border-radius: 7px;
+        font-size: 12.5px;
+        font-weight: 800;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.15s ease;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+    }
+    .btn-act-edit-separate:hover {
+        background: #1e293b;
+        border-color: #1e293b;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 6px rgba(15, 23, 42, 0.15);
+    }
+
+    /* Top Header Quick Edit Pill */
+    .btn-card-top-edit {
+        background: #f1f5f9;
+        color: #0f172a;
+        border: 1px solid #cbd5e1;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        transition: all 0.15s ease;
+    }
+    .btn-card-top-edit:hover {
+        background: #e2e8f0;
+        border-color: #94a3b8;
+    }
+
+    /* Row 2: Separate Print Buttons Row (50/50 Split) */
+    .bill-actions-print {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
     }
 
     .btn-act-print-gst {
@@ -1316,6 +1373,9 @@
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <input type="checkbox" class="card-checkbox invoice-select" value="{{ b.id }}" onchange="handleInvoiceCheckboxChange(this, 'bill-card-{{ b.id }}')">
                     <span class="bill-number-pill">#{{ b.bill_number }}</span>
+                    <button type="button" class="btn-card-top-edit" onclick="editInvoiceFromElement(this)" title="Quick Edit Invoice">
+                        ✏️ Edit
+                    </button>
                 </div>
                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
                     <!-- 5-Tier Payment Status Badge -->
@@ -1428,20 +1488,27 @@
             </div>
         </div>
 
-        <!-- 4 Card Action Buttons: GST Print, No-GST Print, Edit, Delete -->
+        <!-- Separate Action Rows: Edit Section & Print Section -->
         <div class="bill-actions">
-            <a href="{% url 'invoice_detail' b.id %}?type=gst" target="_blank" class="btn-act-print-gst" title="Print as Official GST Tax Invoice">
-                🧾 GST Bill
-            </a>
-            <a href="{% url 'invoice_detail' b.id %}?type=nogst" target="_blank" class="btn-act-print-nogst" title="Print as Non-GST Retail Cash Memo">
-                📄 No GST
-            </a>
-            <button type="button" class="btn-act-edit" onclick="editInvoiceFromElement(this)">
-                ✏️ Edit
-            </button>
-            <button type="button" class="btn-act-del" onclick="deleteInvoiceFromElement(this)" title="Delete invoice">
-                🗑️
-            </button>
+            <!-- Separate Dedicated Edit & Delete Row -->
+            <div class="bill-actions-manage">
+                <button type="button" class="btn-act-edit-separate" onclick="editInvoiceFromElement(this)" title="Edit customer details, payment mode, discount, GST, and product line items">
+                    ✏️ Edit Bill & Products
+                </button>
+                <button type="button" class="btn-act-del" onclick="deleteInvoiceFromElement(this)" title="Delete invoice">
+                    🗑️
+                </button>
+            </div>
+
+            <!-- Separate Dedicated Print Row (GST vs Non-GST) -->
+            <div class="bill-actions-print">
+                <a href="{% url 'invoice_detail' b.id %}?type=gst" target="_blank" class="btn-act-print-gst" title="Print as Official GST Tax Invoice">
+                    🧾 GST Bill
+                </a>
+                <a href="{% url 'invoice_detail' b.id %}?type=nogst" target="_blank" class="btn-act-print-nogst" title="Print as Non-GST Retail Cash Memo">
+                    📄 Bill (No GST)
+                </a>
+            </div>
         </div>
     </div>
     {% endfor %}
@@ -1533,10 +1600,13 @@
                 </td>
                 <td style="font-size: 12px; color: #64748b;">{{ b.created_at|date:"d M Y, h:i A" }}</td>
                 <td style="text-align: right; white-space: nowrap;">
-                    <a href="{% url 'invoice_detail' b.id %}?type=gst" target="_blank" class="btn-act-print-gst" style="display: inline-flex; padding: 4px 7px; font-size: 11px; margin-right: 2px;" title="Print GST Tax Invoice">🧾 GST</a>
-                    <a href="{% url 'invoice_detail' b.id %}?type=nogst" target="_blank" class="btn-act-print-nogst" style="display: inline-flex; padding: 4px 7px; font-size: 11px; margin-right: 4px;" title="Print No-GST Retail Bill">📄 No GST</a>
-                    <button type="button" class="btn-act-edit" style="display: inline-flex; padding: 4px 8px; font-size: 11.5px;" onclick="editInvoiceFromElement(this)">✏️ Edit</button>
-                    <button type="button" class="btn-act-del" style="display: inline-flex; padding: 4px 7px; font-size: 11.5px;" onclick="deleteInvoiceFromElement(this)" title="Delete invoice">🗑️</button>
+                    <div style="display: inline-flex; align-items: center; gap: 5px;">
+                        <a href="{% url 'invoice_detail' b.id %}?type=gst" target="_blank" class="btn-act-print-gst" style="display: inline-flex; padding: 4px 7px; font-size: 11px;" title="Print GST Tax Invoice">🧾 GST</a>
+                        <a href="{% url 'invoice_detail' b.id %}?type=nogst" target="_blank" class="btn-act-print-nogst" style="display: inline-flex; padding: 4px 7px; font-size: 11px;" title="Print No-GST Retail Bill">📄 No GST</a>
+                        <span style="color: #cbd5e1; font-weight: 300;">|</span>
+                        <button type="button" class="btn-act-edit" style="display: inline-flex; padding: 4px 9px; font-size: 11.5px; font-weight: 800; background: #0f172a;" onclick="editInvoiceFromElement(this)" title="Edit Bill & Products">✏️ Edit</button>
+                        <button type="button" class="btn-act-del" style="display: inline-flex; padding: 4px 7px; font-size: 11.5px;" onclick="deleteInvoiceFromElement(this)" title="Delete invoice">🗑️</button>
+                    </div>
                 </td>
             </tr>
             {% endfor %}
@@ -1901,8 +1971,8 @@
                             <select id="quickAddProductSelect" class="modal-form-input" style="font-size: 13px;" onchange="onQuickAddProductChange()">
                                 <option value="">-- Choose Product to Add --</option>
                                 {% for p in products %}
-                                <option value="{{ p.id }}" data-name="{{ p.name|escapejs }}" data-category="{{ p.category.name|escapejs }}" data-size="{{ p.size|escapejs }}" data-rate="{{ p.rate|stringformat:'.2f' }}">
-                                    {{ p.name }} ({{ p.size }}) - ₹{{ p.rate|floatformat:2 }} [Stock: {{ p.quantity }}]
+                                <option value="{{ p.id }}" data-name="{{ p.name|escapejs }}" data-category="{{ p.category.name|escapejs }}" data-size="{{ p.size|escapejs }}" data-rate="{{ p.rate|stringformat:'.2f' }}" data-unit="{{ p.unit }}" data-pipe-length="{{ p.pipe_length|default:6.00 }}">
+                                    {{ p.name }} ({{ p.size }}) - ₹{{ p.rate|floatformat:2 }}{% if p.unit == 'METER' %}/m ({{ p.pipe_length|default:6.00 }}m pipe){% else %}/pc{% endif %} [Stock: {{ p.quantity }}]
                                 </option>
                                 {% endfor %}
                             </select>
@@ -1913,7 +1983,7 @@
                         </div>
                         <div style="width: 80px;">
                             <label style="font-size: 11.5px; font-weight: 700; color: #0369a1; display: block; margin-bottom: 4px;">Qty</label>
-                            <input type="number" step="1" min="1" value="1" id="quickAddQty" class="modal-form-input" style="font-size: 13px;">
+                            <input type="number" step="0.1" min="0.1" value="1" id="quickAddQty" class="modal-form-input" style="font-size: 13px;">
                         </div>
                         <button type="button" class="btn-blue" onclick="addQuickProductToEditList()" style="padding: 9px 16px; font-size: 13px; font-weight: 700;">
                             ✓ Add Item
@@ -1976,7 +2046,14 @@
                         </select>
                     </div>
                     <div>
-                        <label class="modal-form-label">Paid Amount (₹) *</label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <label class="modal-form-label" style="margin-bottom: 0;">Paid Amount (₹) *</label>
+                            <div style="display: flex; gap: 4px;">
+                                <button type="button" class="btn-preset-mini" onclick="setEditPaidPreset('FULL')" style="background: #ecfdf5; color: #16a34a; border: 1px solid #a7f3d0; border-radius: 4px; font-size: 10.5px; font-weight: 700; padding: 2px 6px; cursor: pointer;">100% Full</button>
+                                <button type="button" class="btn-preset-mini" onclick="setEditPaidPreset('HALF')" style="background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; border-radius: 4px; font-size: 10.5px; font-weight: 700; padding: 2px 6px; cursor: pointer;">50%</button>
+                                <button type="button" class="btn-preset-mini" onclick="setEditPaidPreset('ZERO')" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; border-radius: 4px; font-size: 10.5px; font-weight: 700; padding: 2px 6px; cursor: pointer;">Due / 0</button>
+                            </div>
+                        </div>
                         <input type="number" id="editPaidAmount" class="modal-form-input" min="0" step="0.01" required oninput="recalculateEditTotals()">
                     </div>
                 </div>
@@ -2348,14 +2425,15 @@
 
     function openEditInvoiceModal(id, custName, custPhone, gender, doorNo, address, idType, idNum, payMode, paidAmt, notes) {
         currentEditingBill = null;
+        const targetId = String(id).trim();
         
         // Try reading from pre-rendered safe JSON script
         const allBillsScript = document.getElementById('allBillsJsonData');
         if (allBillsScript) {
             try {
                 const allBills = JSON.parse(allBillsScript.textContent || '{}');
-                if (allBills && (allBills[id] || allBills[String(id)])) {
-                    currentEditingBill = allBills[id] || allBills[String(id)];
+                if (allBills && (allBills[targetId] || allBills[parseInt(targetId)])) {
+                    currentEditingBill = allBills[targetId] || allBills[parseInt(targetId)];
                 }
             } catch (e) {
                 console.error("JSON parse error for allBillsJsonData", e);
@@ -2364,20 +2442,20 @@
 
         // Fallback for legacy individual bill script tag if present
         if (!currentEditingBill) {
-            const dataScript = document.getElementById(`bill-data-${id}`);
+            const dataScript = document.getElementById(`bill-data-${targetId}`);
             if (dataScript) {
                 try {
                     currentEditingBill = JSON.parse(dataScript.textContent);
                 } catch (e) {
-                    console.error("JSON parse error for bill", id, e);
+                    console.error("JSON parse error for bill", targetId, e);
                 }
             }
         }
 
-        if (!currentEditingBill || (currentEditingBill.id !== id && currentEditingBill.id !== String(id))) {
+        if (!currentEditingBill || String(currentEditingBill.id) !== targetId) {
             currentEditingBill = {
-                id: id,
-                bill_number: id,
+                id: targetId,
+                bill_number: targetId,
                 customer_name: custName || '',
                 customer_phone: custPhone || '',
                 gender: gender || 'MALE',
@@ -2386,6 +2464,8 @@
                 id_proof_type: idType || 'AADHAAR',
                 id_proof_number: idNum || '',
                 payment_mode: payMode || 'CASH',
+                discount: 0,
+                gst_rate: 18,
                 paid_amount: paidAmt || 0,
                 notes: notes || '',
                 items: []
@@ -2404,21 +2484,31 @@
         document.getElementById('editIdProofNumber').value = currentEditingBill.id_proof_number || '';
         document.getElementById('editPaymentMode').value = currentEditingBill.payment_mode || 'CASH';
         document.getElementById('editDiscount').value = parseFloat(currentEditingBill.discount) || 0;
-        document.getElementById('editGstRate').value = String(parseInt(currentEditingBill.gst_rate) || 18);
+        document.getElementById('editGstRate').value = (currentEditingBill.gst_rate !== undefined && currentEditingBill.gst_rate !== null) ? String(parseInt(currentEditingBill.gst_rate)) : '18';
         document.getElementById('editPaidAmount').value = parseFloat(currentEditingBill.paid_amount) || 0;
         document.getElementById('editNotes').value = currentEditingBill.notes || '';
 
-        // Clone line items deep copy
-        editBillItems = (currentEditingBill.items || []).map(it => ({
-            id: it.id,
-            product_id: it.product_id,
-            product_name: it.product_name,
-            category_name: it.category_name,
-            size: it.size,
-            rate: parseFloat(it.rate) || 0,
-            quantity: parseInt(it.quantity) || 1,
-            total: parseFloat(it.total) || 0
-        }));
+        // Clone line items deep copy (preserving pipes, decimals, etc.)
+        editBillItems = (currentEditingBill.items || []).map(it => {
+            const isPipe = Boolean(it.is_pipe || (it.category_name && it.category_name.toLowerCase().includes('pipe')) || (it.product_name && it.product_name.toLowerCase().includes('pipe')));
+            const qty = parseFloat(it.quantity) || 1;
+            const std = 6.00;
+            return {
+                id: it.id,
+                product_id: it.product_id,
+                product_name: it.product_name,
+                category_name: it.category_name,
+                size: it.size,
+                rate: parseFloat(it.rate) || 0,
+                quantity: qty,
+                total: parseFloat(it.total) || 0,
+                is_pipe: isPipe,
+                pipe_lengths: it.pipe_lengths || (isPipe ? parseFloat((qty / std).toFixed(2)) : 0),
+                pipe_meters: it.pipe_meters || (isPipe ? qty : 0),
+                pipe_feet: it.pipe_feet || (isPipe ? Math.round((qty / std) * 20) : 0),
+                pipe_display: it.pipe_display || ''
+            };
+        });
 
         // Hide quick add bar on open
         document.getElementById('editQuickAddBar').style.display = 'none';
@@ -2462,10 +2552,10 @@
             if (isPipe) {
                 const std = 6.00;
                 const qtyMeters = parseFloat(item.quantity) || 0;
-                const lens = item.pipe_lengths || (qtyMeters / std);
+                const lens = item.pipe_lengths || parseFloat((qtyMeters / std).toFixed(2));
                 const formattedLens = (lens % 1 === 0) ? lens : parseFloat(lens.toFixed(2));
-                const feet = item.pipe_feet || Math.round(lens * 20);
-                pipePill = `<div style="margin-top: 3px;"><span style="background: #e0f2fe; color: #0284c7; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 800; border: 1px solid #bae6fd;">📏 ${formattedLens} Length(s) = ${qtyMeters}m (${feet}ft)</span></div>`;
+                const feet = item.pipe_feet || Math.round((qtyMeters / std) * 20);
+                pipePill = `<div style="margin-top: 3px;"><span id="pipeBadge-${idx}" style="background: #e0f2fe; color: #0284c7; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 800; border: 1px solid #bae6fd;">📏 ${formattedLens} Length(s) = ${qtyMeters}m (${feet}ft)</span></div>`;
             }
             tr.innerHTML = `
                 <td style="color: #64748b; font-weight: 700;">${idx + 1}</td>
@@ -2484,7 +2574,7 @@
                     <div style="display: inline-flex; align-items: center; gap: 4px;">
                         <button type="button" class="btn-qty-step" onclick="stepEditItemQty(${idx}, ${isPipe ? -6 : -1})">-${isPipe ? '6m' : '1'}</button>
                         <input type="number" step="${isPipe ? '6' : '1'}" min="${isPipe ? '0.1' : '1'}" class="edit-qty-input" value="${item.quantity}"
-                               oninput="updateEditItemQty(${idx}, this.value)" style="width: 55px; text-align: center;">
+                               oninput="updateEditItemQty(${idx}, this.value)" style="width: 60px; text-align: center;">
                         <button type="button" class="btn-qty-step" onclick="stepEditItemQty(${idx}, ${isPipe ? 6 : 1})">+${isPipe ? '6m' : '1'}</button>
                     </div>
                     ${isPipe ? '<div style="font-size: 10px; color: #0284c7; font-weight: 700; margin-top: 2px;">(meters)</div>' : ''}
@@ -2515,9 +2605,23 @@
 
     function updateEditItemQty(idx, val) {
         if (!editBillItems[idx]) return;
-        const qty = Math.max(1, parseInt(val) || 1);
+        const isPipe = Boolean(editBillItems[idx].is_pipe || (editBillItems[idx].category_name && editBillItems[idx].category_name.toLowerCase().includes('pipe')) || (editBillItems[idx].product_name && editBillItems[idx].product_name.toLowerCase().includes('pipe')));
+        const minQty = isPipe ? 0.1 : 1;
+        const qty = Math.max(minQty, parseFloat(val) || minQty);
         editBillItems[idx].quantity = qty;
         editBillItems[idx].total = Math.round(editBillItems[idx].rate * qty * 100) / 100;
+        if (isPipe) {
+            const std = 6.00;
+            editBillItems[idx].pipe_meters = qty;
+            editBillItems[idx].pipe_lengths = parseFloat((qty / std).toFixed(2));
+            editBillItems[idx].pipe_feet = Math.round((qty / std) * 20);
+            const pipeBadge = document.getElementById(`pipeBadge-${idx}`);
+            if (pipeBadge) {
+                const lens = editBillItems[idx].pipe_lengths;
+                const formattedLens = (lens % 1 === 0) ? lens : parseFloat(lens.toFixed(2));
+                pipeBadge.textContent = `📏 ${formattedLens} Length(s) = ${qty}m (${editBillItems[idx].pipe_feet}ft)`;
+            }
+        }
 
         const cell = document.getElementById(`lineTotalCol-${idx}`);
         if (cell) cell.textContent = `₹${editBillItems[idx].total.toFixed(2)}`;
@@ -2526,9 +2630,18 @@
 
     function stepEditItemQty(idx, delta) {
         if (!editBillItems[idx]) return;
-        const newQty = Math.max(1, (editBillItems[idx].quantity || 1) + delta);
+        const isPipe = Boolean(editBillItems[idx].is_pipe || (editBillItems[idx].category_name && editBillItems[idx].category_name.toLowerCase().includes('pipe')) || (editBillItems[idx].product_name && editBillItems[idx].product_name.toLowerCase().includes('pipe')));
+        const minQty = isPipe ? 0.1 : 1;
+        const currQty = parseFloat(editBillItems[idx].quantity) || minQty;
+        const newQty = Math.max(minQty, Math.round((currQty + delta) * 100) / 100);
         editBillItems[idx].quantity = newQty;
         editBillItems[idx].total = Math.round(editBillItems[idx].rate * newQty * 100) / 100;
+        if (isPipe) {
+            const std = 6.00;
+            editBillItems[idx].pipe_meters = newQty;
+            editBillItems[idx].pipe_lengths = parseFloat((newQty / std).toFixed(2));
+            editBillItems[idx].pipe_feet = Math.round((newQty / std) * 20);
+        }
         renderEditItemsTable();
         recalculateEditTotals();
     }
@@ -2575,15 +2688,23 @@
         const category = opt.dataset.category || 'General';
         const size = opt.dataset.size || 'Standard';
         const rate = Math.max(0, parseFloat(document.getElementById('quickAddRate').value) || 0);
-        const qty = Math.max(1, parseInt(document.getElementById('quickAddQty').value) || 1);
+        const isPipe = (opt.dataset.unit === 'METER') || category.toLowerCase().includes('pipe') || name.toLowerCase().includes('pipe');
+        const minQty = isPipe ? 0.1 : 1;
+        const qty = Math.max(minQty, parseFloat(document.getElementById('quickAddQty').value) || (isPipe ? 6 : 1));
         const total = Math.round(rate * qty * 100) / 100;
 
         // Check if item with same product_id already in list
         const existingIdx = editBillItems.findIndex(it => it.product_id === prodId && it.size === size);
         if (existingIdx >= 0) {
-            editBillItems[existingIdx].quantity += qty;
+            editBillItems[existingIdx].quantity = Math.round((editBillItems[existingIdx].quantity + qty) * 100) / 100;
             editBillItems[existingIdx].rate = rate;
             editBillItems[existingIdx].total = Math.round(editBillItems[existingIdx].rate * editBillItems[existingIdx].quantity * 100) / 100;
+            if (isPipe) {
+                const std = 6.00;
+                editBillItems[existingIdx].pipe_meters = editBillItems[existingIdx].quantity;
+                editBillItems[existingIdx].pipe_lengths = parseFloat((editBillItems[existingIdx].quantity / std).toFixed(2));
+                editBillItems[existingIdx].pipe_feet = Math.round((editBillItems[existingIdx].quantity / std) * 20);
+            }
         } else {
             editBillItems.push({
                 id: null,
@@ -2593,7 +2714,12 @@
                 size: size,
                 rate: rate,
                 quantity: qty,
-                total: total
+                total: total,
+                is_pipe: isPipe,
+                pipe_lengths: isPipe ? parseFloat((qty / 6.00).toFixed(2)) : 0,
+                pipe_meters: isPipe ? qty : 0,
+                pipe_feet: isPipe ? Math.round((qty / 6.00) * 20) : 0,
+                pipe_display: ''
             });
         }
 
@@ -2604,6 +2730,25 @@
         document.getElementById('editQuickAddBar').style.display = 'none';
 
         renderEditItemsTable();
+        recalculateEditTotals();
+    }
+
+    function setEditPaidPreset(type) {
+        const subtotal = editBillItems.reduce((acc, it) => acc + (it.total || 0), 0);
+        const discount = Math.max(0, parseFloat(document.getElementById('editDiscount').value) || 0);
+        const taxable = Math.max(0, subtotal - discount);
+        const gstRate = parseFloat(document.getElementById('editGstRate').value) || 0;
+        const gstAmount = Math.round(((taxable * gstRate) / 100.0) * 100) / 100;
+        const grandTotal = Math.round((taxable + gstAmount) * 100) / 100;
+
+        const paidInput = document.getElementById('editPaidAmount');
+        if (type === 'FULL') {
+            paidInput.value = grandTotal.toFixed(2);
+        } else if (type === 'HALF') {
+            paidInput.value = (Math.round((grandTotal / 2.0) * 100) / 100).toFixed(2);
+        } else {
+            paidInput.value = '0.00';
+        }
         recalculateEditTotals();
     }
 
@@ -2696,7 +2841,7 @@
             id_proof_number: document.getElementById('editIdProofNumber').value.trim(),
             payment_mode: document.getElementById('editPaymentMode').value,
             discount: parseFloat(document.getElementById('editDiscount').value) || 0,
-            gst_rate: parseFloat(document.getElementById('editGstRate').value) || 18,
+            gst_rate: (document.getElementById('editGstRate').value !== '') ? parseFloat(document.getElementById('editGstRate').value) : 18,
             paid_amount: parseFloat(document.getElementById('editPaidAmount').value) || 0,
             notes: document.getElementById('editNotes').value.trim(),
             items: editBillItems

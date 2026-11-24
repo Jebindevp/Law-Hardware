@@ -305,7 +305,11 @@ class PlumbingBillingTests(TestCase):
         html_nogst = response_nogst.content.decode('utf-8')
         self.assertIn("RETAIL BILL", html_nogst)
         self.assertIn("mode-nogst", html_nogst)
-        self.assertIn("Retail Cash Memo", html_nogst)
+        # Ensure 'Retail Cash Memo (Non-GST)' is NOT shown as requested by user
+        self.assertNotIn("Retail Cash Memo (Non-GST)", html_nogst)
+        # Ensure discount amount is NOT shown in print statement
+        self.assertNotIn("Discount:", html)
+        self.assertNotIn("Discount:", html_nogst)
 
     def test_brand_and_pipe_length_calculation(self):
         """Verify Brand management, pipe length, 1-meter rate & full pipe price calculation."""
@@ -463,3 +467,351 @@ class PlumbingBillingTests(TestCase):
         self.assertEqual(list_res.status_code, 200)
         list_html = list_res.content.decode('utf-8')
         self.assertIn("2 Lengths (12.0m / 40ft)", list_html)
+
+    def test_inventory_fitting_vs_pipe_add_api(self):
+        """
+        Verify that adding fittings (unit=PIECE) does not assign pipe length/meters,
+        while only pipe products (unit=METER) store pipe lengths (e.g. 6.00m).
+        """
+        # 1. Add Fitting (Elbow) - unit: PIECE
+        res_fitting = self.client.post(
+            reverse('add_product_api'),
+            data=json.dumps({
+                'category_id': self.category.id,
+                'name': 'PVC 90 Degree Elbow Fitting',
+                'size': '25mm',
+                'unit': 'PIECE',
+                'pipe_length': 6.00,  # Even if sent, backend sets 1.00 for fittings
+                'rate': 35.00,
+                'quantity': 50
+            }),
+            content_type='application/json'
+        )
+        self.assertEqual(res_fitting.status_code, 200)
+        fitting_id = res_fitting.json()['product_id']
+        fitting = Product.objects.get(id=fitting_id)
+
+        # Fittings should be PIECE with standard 1.00 unit, not 6.00m pipe
+        self.assertEqual(fitting.unit, 'PIECE')
+        self.assertEqual(fitting.pipe_length, Decimal('1.00'))
+        self.assertFalse(fitting.is_meter)
+        self.assertFalse(fitting.is_pipe)
+        self.assertEqual(fitting.rate_display, '₹35.00 / pc')
+        self.assertEqual(fitting.full_pipe_price, 35.00)
+
+        # 2. Add Pipe - unit: METER
+        res_pipe = self.client.post(
+            reverse('add_product_api'),
+            data=json.dumps({
+                'category_id': self.category.id,
+                'name': 'PVC Rigid Conduit Pipe',
+                'size': '25mm x 6m',
+                'unit': 'METER',
+                'pipe_length': 6.00,
+                'rate': 80.00,
+                'quantity': 60  # 60 meters = 10 pipes
+            }),
+            content_type='application/json'
+        )
+        self.assertEqual(res_pipe.status_code, 200)
+        pipe_id = res_pipe.json()['product_id']
+        pipe = Product.objects.get(id=pipe_id)
+
+        # Pipes should be METER with standard 6.00m pipe length
+        self.assertEqual(pipe.unit, 'METER')
+        self.assertEqual(pipe.pipe_length, Decimal('6.00'))
+        self.assertTrue(pipe.is_meter)
+        self.assertTrue(pipe.is_pipe)
+        self.assertEqual(pipe.rate_display, '₹80.00 / meter')
+        self.assertEqual(pipe.full_pipe_price, 480.00)  # 6m * 80
+        self.assertEqual(pipe.estimated_pipe_count, 10.0)
+
+    def test_pos_billing_fittings_vs_pipes_separation(self):
+        """
+        Verify that in POS billing, fittings (even in categories with 'Pipe' in the name)
+        are billed purely as pieces without meter/length badges, while only genuine pipes
+        show length and meter calculations on the bill and print invoice.
+        """
+        # Use self.category which is "PVC Pipes & Fittings"
+        cat = self.category
+        
+        # 1. Elbow Fitting (Piece)
+        elbow = Product.objects.create(
+            category=cat,
+            name="PVC Elbow 90deg",
+            size="25mm",
+            unit="PIECE",
+            pipe_length=Decimal("1.00"),
+            rate=Decimal("35.00"),
+            quantity=100
+        )
+        self.assertFalse(elbow.is_pipe)
+
+        # 2. Pipe (Meter / Length)
+        pipe = Product.objects.create(
+            category=cat,
+            name="PVC Pasting Pipe 6kg",
+            size="110mm",
+            unit="METER",
+            pipe_length=Decimal("6.00"),
+            rate=Decimal("581.00"),
+            quantity=60
+        )
+        self.assertTrue(pipe.is_pipe)
+
+        # 3. Create Bill via API with both items
+        payload = {
+            "customer_name": "Murugan Hardware",
+            "customer_phone": "9876543210",
+            "gender": "MALE",
+            "payment_mode": "CASH",
+            "gst_rate": 18.0,
+            "items": [
+                {
+                    "product_id": elbow.id,
+                    "quantity": 5.0,
+                    "size": elbow.size  # Pure size for fitting
+                },
+                {
+                    "product_id": pipe.id,
+                    "quantity": 12.0,  # 2 lengths = 12m
+                    "size": "110mm • 2 Len (12m/40ft)"
+                }
+            ]
+        }
+        res = self.client.post(
+            reverse('create_bill_api'),
+            data=json.dumps(payload),
+            content_type='application/json'
+        )
+        self.assertEqual(res.status_code, 200)
+        bill_id = res.json()['bill_id']
+        bill = Bill.objects.get(id=bill_id)
+
+        # 4. Verify line items
+        elbow_item = bill.items.get(product_id=elbow.id)
+        pipe_item = bill.items.get(product_id=pipe.id)
+
+        # Fitting item MUST NOT be pipe
+        self.assertFalse(elbow_item.is_pipe)
+        self.assertEqual(elbow_item.pipe_display, "")
+        self.assertEqual(elbow_item.size, "25mm")
+
+        # Pipe item MUST be pipe
+        self.assertTrue(pipe_item.is_pipe)
+        self.assertEqual(pipe_item.pipe_lengths, 2)
+        self.assertEqual(pipe_item.pipe_meters, 12.0)
+        self.assertEqual(pipe_item.pipe_feet, 40)
+
+        # 5. Verify Invoice Print view renders length badges for pipe but NOT for elbow
+        print_res = self.client.get(reverse('invoice_detail', kwargs={'bill_id': bill.id}))
+        self.assertEqual(print_res.status_code, 200)
+        html = print_res.content.decode('utf-8')
+
+        # Pipe length badge is rendered
+        self.assertIn("2 Lengths</strong> = 12.00 Meters", html)
+        self.assertIn("(12.0m)", html)
+
+        # Elbow fitting is rendered with standard pieces, not length badges
+        self.assertIn("PVC Elbow 90deg", html)
+        self.assertNotIn("PVC Elbow 90deg</strong>\n                        <div style=\"font-size: 11.5px; color: #64748b;\">PVC Pipes & Fittings</div>\n                        \n                        <div style=\"margin-top: 4px;", html)
+
+    def test_billing_pos_size_filter_and_toolbar(self):
+        """
+        Verify that billing_pos passes unique sorted sizes to context,
+        and renders both the size dropdown and quick size filter pills in the catalog toolbar.
+        """
+        # Create test products with varied sizes
+        Product.objects.create(
+            category=self.category,
+            name="CPVC Pipe SDR 11",
+            size="3/4 inch",
+            unit="METER",
+            pipe_length=Decimal("3.00"),
+            rate=Decimal("120.00"),
+            quantity=50
+        )
+        Product.objects.create(
+            category=self.category,
+            name="UPVC Brass Tee",
+            size="1 inch",
+            unit="PIECE",
+            rate=Decimal("95.00"),
+            quantity=40
+        )
+
+        res = self.client.get(reverse('billing_pos'))
+        self.assertEqual(res.status_code, 200)
+
+        # Context contains unique sizes
+        self.assertIn('sizes', res.context)
+        sizes = res.context['sizes']
+        self.assertIn('3/4 inch', sizes)
+        self.assertIn('1 inch', sizes)
+
+        html = res.content.decode('utf-8')
+        # Check size dropdown and quick filter pills
+        self.assertIn('id="posSizeFilter"', html)
+        self.assertIn('onchange="onPosSizeDropdownChange()"', html)
+        self.assertIn('class="pos-size-bar"', html)
+        self.assertIn('class="pos-size-pill', html)
+        self.assertIn('selectPosSize(', html)
+
+    def test_partial_payment_balance_amount_in_pos_and_print(self):
+        """
+        Verify that balance amounts are accurately calculated and displayed:
+        1. On the billing_pos screen in the live summary card
+        2. On the invoice_print page for both GST and Non-GST views
+        """
+        # 1. Check POS billing page has live paid and balance due in summary card
+        pos_res = self.client.get(reverse('billing_pos'))
+        self.assertEqual(pos_res.status_code, 200)
+        pos_html = pos_res.content.decode('utf-8')
+        self.assertIn('id="cardSummaryPaid"', pos_html)
+        self.assertIn('id="cardSummaryBalance"', pos_html)
+
+        # 2. Create a bill with partial payment (Grand Total: 750, Paid: 500, Balance: 250)
+        bill = Bill.objects.create(
+            customer_name="Kannan Electricals",
+            customer_phone="9876501234",
+            payment_mode="SPLIT",
+            subtotal=Decimal("750.00"),
+            discount=Decimal("0.00"),
+            gst_rate=Decimal("0.00"),
+            gst_amount=Decimal("0.00"),
+            grand_total=Decimal("750.00"),
+            paid_amount=Decimal("500.00"),
+            balance_amount=Decimal("250.00")
+        )
+        BillItem.objects.create(
+            bill=bill,
+            product=self.product1,
+            product_name="PVC Pipe 110mm",
+            category_name="PVC Pipes",
+            size="110mm",
+            rate=Decimal("750.00"),
+            quantity=1,
+            total=Decimal("750.00")
+        )
+
+        # 3. Verify in Non-GST Print view
+        res_nogst = self.client.get(reverse('invoice_detail', kwargs={'bill_id': bill.id}) + '?type=nogst')
+        self.assertEqual(res_nogst.status_code, 200)
+        html_nogst = res_nogst.content.decode('utf-8')
+        self.assertIn("500.00", html_nogst)
+        self.assertIn("250.00", html_nogst)
+
+        # 4. Verify in GST Print view
+        res_gst = self.client.get(reverse('invoice_detail', kwargs={'bill_id': bill.id}) + '?type=gst')
+        self.assertEqual(res_gst.status_code, 200)
+        html_gst = res_gst.content.decode('utf-8')
+        self.assertIn("500.00", html_gst)
+        self.assertIn("250.00", html_gst)
+
+    def test_invoices_list_json_data_and_edit_invoice_api(self):
+        """
+        Verify that:
+        1. invoices_list template provides #allBillsJsonData with serialized bills & line items.
+        2. edit_invoice_api updates line items, rates, quantities, customer details, and recalculates totals.
+        """
+        bill = Bill.objects.create(
+            customer_name="Murugan Stores",
+            customer_phone="9443322110",
+            gender="MALE",
+            door_no="88/1",
+            address="Main Bazaar",
+            id_proof_type="AADHAAR",
+            id_proof_number="9988-7766-5544",
+            payment_mode="CASH",
+            subtotal=Decimal("900.00"),
+            discount=Decimal("0.00"),
+            gst_rate=Decimal("18.00"),
+            gst_amount=Decimal("162.00"),
+            grand_total=Decimal("1062.00"),
+            paid_amount=Decimal("1062.00"),
+            balance_amount=Decimal("0.00")
+        )
+        item = BillItem.objects.create(
+            bill=bill,
+            product=self.product1,
+            product_name="PVC Elbow 90 Degree",
+            category_name="PVC Pipes & Fittings",
+            size="25mm",
+            rate=Decimal("45.00"),
+            quantity=20,
+            total=Decimal("900.00")
+        )
+
+        # 1. Verify invoices_list page contains the serialized JSON script
+        res_list = self.client.get(reverse('invoices_list'))
+        self.assertEqual(res_list.status_code, 200)
+        self.assertIn('bills_dict', res_list.context)
+        self.assertIn(str(bill.id), res_list.context['bills_dict'])
+        bill_data = res_list.context['bills_dict'][str(bill.id)]
+        self.assertEqual(bill_data['customer_name'], "Murugan Stores")
+        self.assertEqual(len(bill_data['items']), 1)
+        self.assertEqual(bill_data['items'][0]['product_name'], "PVC Elbow 90 Degree")
+        self.assertEqual(bill_data['items'][0]['quantity'], 20.0)
+
+        html = res_list.content.decode('utf-8')
+        self.assertIn('id="allBillsJsonData"', html)
+        self.assertIn('openEditInvoiceModal', html)
+        self.assertIn('String(currentEditingBill.id) !== targetId', html)
+
+        # 2. Test edit_invoice_api with modified qty and new item
+        edit_payload = {
+            "customer_name": "Murugan Hardware & Electricals",
+            "customer_phone": "9443322110",
+            "gender": "MALE",
+            "door_no": "88/1A",
+            "address": "Main Bazaar Road",
+            "id_proof_type": "AADHAAR",
+            "id_proof_number": "9988-7766-5544",
+            "payment_mode": "UPI",
+            "discount": 50.0,
+            "gst_rate": 18.0,
+            "paid_amount": 1000.0,
+            "notes": "Updated after site delivery",
+            "items": [
+                {
+                    "id": item.id,
+                    "product_id": self.product1.id,
+                    "product_name": self.product1.name,
+                    "category_name": self.category.name,
+                    "size": self.product1.size,
+                    "rate": 45.0,
+                    "quantity": 10
+                },
+                {
+                    "product_id": self.product2.id,
+                    "product_name": self.product2.name,
+                    "category_name": self.category.name,
+                    "size": self.product2.size,
+                    "rate": 350.0,
+                    "quantity": 2
+                }
+            ]
+        }
+        res_edit = self.client.post(
+            reverse('edit_invoice_api', kwargs={'bill_id': bill.id}),
+            data=json.dumps(edit_payload),
+            content_type='application/json'
+        )
+        self.assertEqual(res_edit.status_code, 200)
+        edit_resp = res_edit.json()
+        self.assertEqual(edit_resp['status'], 'success')
+
+        bill.refresh_from_db()
+        self.assertEqual(bill.customer_name, "Murugan Hardware & Electricals")
+        # Subtotal: (10 * 45) + (2 * 350) = 450 + 700 = 1150
+        # Discount: 50 -> Taxable: 1100
+        # GST (18%): 198.00 -> Grand Total: 1298.00
+        # Paid: 1000.00 -> Balance: 298.00
+        self.assertEqual(float(bill.subtotal), 1150.00)
+        self.assertEqual(float(bill.discount), 50.00)
+        self.assertEqual(float(bill.gst_amount), 198.00)
+        self.assertEqual(float(bill.grand_total), 1298.00)
+        self.assertEqual(float(bill.paid_amount), 1000.00)
+        self.assertEqual(float(bill.balance_amount), 298.00)
+        self.assertEqual(bill.items.count(), 2)
+

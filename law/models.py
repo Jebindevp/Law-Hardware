@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from decimal import Decimal
 import random
 import string
 import uuid
@@ -184,6 +185,20 @@ class Product(models.Model):
         return self.unit == 'METER'
 
     @property
+    def is_pipe(self):
+        """Identifies if this product is a pipe sold by meters and length (not a fitting)"""
+        if self.unit == 'METER':
+            return True
+        cname = (self.category.name if self.category else '').lower()
+        pname = self.name.lower()
+        fitting_keywords = ['elbow', 'tee', 'reducer', 'coupler', 'coupling', 'socket', 'union', 
+                            'nipple', 'valve', 'cock', 'tap', 'faucet', 'clamp', 'bush', 'plug', 
+                            'cap', 'bend', 'trap', 'collar', 'fitting', 'flange', 'adapter', 'solvent', 'cement']
+        if any(kw in pname for kw in fitting_keywords) or any(kw in cname for kw in ['fitting', 'valve', 'tap', 'hardware']):
+            return False
+        return 'pipe' in cname or 'pipe' in pname
+
+    @property
     def unit_label(self):
         return "meter" if self.unit == 'METER' else "pcs"
 
@@ -299,7 +314,7 @@ class Bill(models.Model):
         """
         total = float(self.grand_total or 0)
         paid = float(self.paid_amount or 0)
-        self.balance_amount = round(max(0.0, total - paid), 2)
+        self.balance_amount = Decimal(str(round(max(0.0, total - paid), 2)))
 
         if total <= 0:
             return 'COMPLETED_PAID'
@@ -381,10 +396,29 @@ class BillItem(models.Model):
     @property
     def is_pipe(self):
         """Identifies if this line item is a plumbing pipe (sold by meters & standard 6m lengths)"""
-        if self.product and self.product.unit == 'METER':
+        if self.product:
+            if self.product.unit == 'METER':
+                return True
+            if self.product.unit == 'PIECE':
+                return False
+
+        pname = self.product_name.lower()
+        cname = self.category_name.lower()
+        fitting_keywords = [
+            'elbow', 'tee', 'reducer', 'coupler', 'coupling', 'socket', 'union', 
+            'nipple', 'valve', 'cock', 'tap', 'faucet', 'clamp', 'bush', 'bushing', 
+            'plug', 'cap', 'bend', 'trap', 'collar', 'fitting', 'flange', 'adapter', 
+            'solvent', 'cement', 'tape', 'glue', 'clip', 'shower', 'waste', 'bracket',
+            'screw', 'tools', 'sealant', 'ball valve', 'bib tap', 'angle valve'
+        ]
+        if any(kw in pname for kw in fitting_keywords):
+            return False
+        if any(kw in cname for kw in ['valve', 'tap', 'hardware', 'tool', 'sealant']):
+            return False
+
+        if 'pipe' in cname and 'fitting' not in cname:
             return True
-        text = f"{self.product_name} {self.category_name} {self.size}".lower()
-        return 'pipe' in text
+        return 'pipe' in pname
 
     @property
     def pipe_std_len(self):
