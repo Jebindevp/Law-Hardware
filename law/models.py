@@ -378,6 +378,52 @@ class BillItem(models.Model):
             self.total = 0.00
         super().save(*args, **kwargs)
 
+    @property
+    def is_pipe(self):
+        """Identifies if this line item is a plumbing pipe (sold by meters & standard 6m lengths)"""
+        if self.product and self.product.unit == 'METER':
+            return True
+        text = f"{self.product_name} {self.category_name} {self.size}".lower()
+        return 'pipe' in text
+
+    @property
+    def pipe_std_len(self):
+        """Standard full length of pipe in meters (Default: 6.00 meters = approx 20 feet)"""
+        if self.product and self.product.pipe_length:
+            return float(self.product.pipe_length)
+        return 6.00
+
+    @property
+    def pipe_lengths(self):
+        """Calculate how many full pipe lengths were purchased (1 Length = 6m)"""
+        std = self.pipe_std_len
+        qty = float(self.quantity or 0)
+        lens = qty / std if std > 0 else qty
+        return int(lens) if lens.is_integer() else round(lens, 2)
+
+    @property
+    def pipe_meters(self):
+        """Total meters of pipe"""
+        return float(self.quantity or 0)
+
+    @property
+    def pipe_feet(self):
+        """Approximate feet of pipe (1 Length = 20 Feet, 1 meter = 3.28084 feet)"""
+        std = self.pipe_std_len
+        if std == 6.00:
+            return int(round(float(self.pipe_lengths) * 20))
+        return int(round(self.pipe_meters * 3.28084))
+
+    @property
+    def pipe_display(self):
+        """Display breakdown: e.g., '2 Lengths = 12.00 Meters (40 Feet)'"""
+        if not self.is_pipe:
+            return ""
+        lens = self.pipe_lengths
+        meters = self.pipe_meters
+        feet = self.pipe_feet
+        return f"{lens} Length{'s' if lens != 1 else ''} = {meters:.2f} Meters ({feet} Feet)"
+
 
 class Supplier(models.Model):
     """

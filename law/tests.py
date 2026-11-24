@@ -288,13 +288,24 @@ class PlumbingBillingTests(TestCase):
             quantity=2,
             total=Decimal("90.00")
         )
-        response = self.client.get(reverse('invoice_detail', kwargs={'bill_id': bill.id}))
+        # Test default and GST mode (type=gst)
+        response = self.client.get(reverse('invoice_detail', kwargs={'bill_id': bill.id}) + '?type=gst')
         self.assertEqual(response.status_code, 200)
         html = response.content.decode('utf-8')
         self.assertIn("Walk-in Customer", html)
-        self.assertNotIn("<span>👨</span>", html)
-        self.assertNotIn("<span>👩</span>", html)
-        self.assertNotIn("📞 Mobile:", html)
+        self.assertIn("33CGSPC1805K1ZG", html)
+        self.assertIn("Mulagumoodu Junction", html)
+        self.assertIn("TAX INVOICE", html)
+        self.assertIn("mode-gst", html)
+        self.assertIn("CGST", html)
+
+        # Test Non-GST mode (type=nogst)
+        response_nogst = self.client.get(reverse('invoice_detail', kwargs={'bill_id': bill.id}) + '?type=nogst')
+        self.assertEqual(response_nogst.status_code, 200)
+        html_nogst = response_nogst.content.decode('utf-8')
+        self.assertIn("RETAIL BILL", html_nogst)
+        self.assertIn("mode-nogst", html_nogst)
+        self.assertIn("Retail Cash Memo", html_nogst)
 
     def test_brand_and_pipe_length_calculation(self):
         """Verify Brand management, pipe length, 1-meter rate & full pipe price calculation."""
@@ -371,3 +382,84 @@ class PlumbingBillingTests(TestCase):
         resp_inv = self.client.get(reverse('inventory'))
         self.assertEqual(resp_inv.status_code, 200)
         self.assertIn('brands', resp_inv.context)
+
+    def test_pipe_lengths_and_meters_billing_and_print(self):
+        """
+        Verify pipe items calculation (1 Length Pipe = 6.00 meters = 20 feet),
+        POS billing breakdown, stock deduction, and clear print display.
+        """
+        # Create a PVC Pipe sold by meters with standard 6m length
+        pipe_cat = Category.objects.create(name="PVC Pipes", description="Pipes")
+        pipe_prod = Product.objects.create(
+            category=pipe_cat,
+            name="Finolex Pasting Pipe",
+            size="110 mm - 4",
+            unit="METER",
+            pipe_length=Decimal("6.00"),
+            rate=Decimal("581.00"),
+            quantity=60  # 60 meters in stock (= 10 full pipes)
+        )
+
+        # 1. Test 1 Length Pipe pricing
+        self.assertEqual(pipe_prod.pipe_length, Decimal("6.00"))
+        self.assertEqual(pipe_prod.full_pipe_price, Decimal("3486.00"))
+
+        # 2. Bill 2 full lengths of pipe (= 12.00 meters, 40 feet)
+        payload = {
+            "customer_name": "Antony Raj",
+            "customer_phone": "9876501234",
+            "gender": "MALE",
+            "door_no": "5/139/1",
+            "address": "Mulagumoodu Junction",
+            "payment_mode": "CASH",
+            "discount": 0.0,
+            "gst_rate": 18.0,
+            "paid_amount": 8226.96,
+            "items": [
+                {
+                    "product_id": pipe_prod.id,
+                    "quantity": 12.0,  # 2 lengths * 6.00m = 12 meters
+                    "size": "110 mm - 4 • 2 Len (12m/40ft)"
+                }
+            ]
+        }
+        res = self.client.post(
+            reverse('create_bill_api'),
+            data=json.dumps(payload),
+            content_type='application/json'
+        )
+        self.assertEqual(res.status_code, 200)
+        res_data = res.json()
+        self.assertEqual(res_data['status'], 'success')
+        bill_id = res_data['bill_id']
+
+        # 3. Verify BillItem pipe breakdown calculations
+        bill = Bill.objects.get(id=bill_id)
+        item = bill.items.first()
+        self.assertIsNotNone(item)
+        self.assertTrue(item.is_pipe)
+        self.assertEqual(item.pipe_std_len, 6.00)
+        self.assertEqual(item.pipe_lengths, 2)
+        self.assertEqual(item.pipe_meters, 12.0)
+        self.assertEqual(item.pipe_feet, 40)
+        self.assertEqual(item.pipe_display, "2 Lengths = 12.00 Meters (40 Feet)")
+
+        # Verify stock was deducted from 60 meters to 48 meters
+        pipe_prod.refresh_from_db()
+        self.assertEqual(pipe_prod.quantity, 48)
+
+        # 4. Verify Invoice Print view renders detailed length, meter, and feet breakdowns
+        print_res = self.client.get(reverse('invoice_detail', kwargs={'bill_id': bill.id}) + '?type=gst')
+        self.assertEqual(print_res.status_code, 200)
+        html = print_res.content.decode('utf-8')
+        self.assertIn("2 Lengths</strong> = 12.00 Meters (approx. 40 Feet)", html)
+        self.assertIn("Standard: 1 Length Pipe = 6.00 Meters (approx. 20 Feet)", html)
+        self.assertIn("2 <span style=\"font-size: 10px; color: #64748b;\">len</span>", html)
+        self.assertIn("(12.0m)", html)
+        self.assertIn("/meter", html)
+
+        # 5. Verify Invoices List view contains length and meter badges
+        list_res = self.client.get(reverse('invoices_list'))
+        self.assertEqual(list_res.status_code, 200)
+        list_html = list_res.content.decode('utf-8')
+        self.assertIn("2 Lengths (12.0m / 40ft)", list_html)

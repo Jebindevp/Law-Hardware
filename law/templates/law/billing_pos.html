@@ -774,6 +774,95 @@
         box-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
     }
 
+    /* 2 Type Bill Print & Payment Selector Pills */
+    .pos-bill-type-card {
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 9px;
+        padding: 9px 10px;
+        margin-bottom: 8px;
+    }
+
+    .pos-bill-type-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+
+    .pos-bill-type-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 9px;
+        background: #ffffff;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: left;
+        transition: all 0.15s ease;
+    }
+
+    .pos-bill-type-btn .type-icon {
+        font-size: 16px;
+    }
+
+    .pos-bill-type-btn .type-meta {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pos-bill-type-btn .type-title {
+        font-size: 12px;
+        font-weight: 800;
+        color: #334155;
+    }
+
+    .pos-bill-type-btn .type-sub {
+        font-size: 9.5px;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .pos-bill-type-btn.active#posBtnTypeGst {
+        background: #0284c7;
+        border-color: #0284c7;
+        box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+    }
+    .pos-bill-type-btn.active#posBtnTypeGst .type-title,
+    .pos-bill-type-btn.active#posBtnTypeGst .type-sub {
+        color: #ffffff;
+    }
+
+    .pos-bill-type-btn.active#posBtnTypeNoGst {
+        background: #059669;
+        border-color: #059669;
+        box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+    }
+    .pos-bill-type-btn.active#posBtnTypeNoGst .type-title,
+    .pos-bill-type-btn.active#posBtnTypeNoGst .type-sub {
+        color: #ffffff;
+    }
+
+    .bill-type-badge-gst {
+        background: #e0f2fe;
+        color: #0369a1;
+        border: 1px solid #bae6fd;
+        padding: 2px 7px;
+        border-radius: 999px;
+        font-size: 10.5px;
+        font-weight: 800;
+    }
+
+    .bill-type-badge-nogst {
+        background: #dcfce7;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+        padding: 2px 7px;
+        border-radius: 999px;
+        font-size: 10.5px;
+        font-weight: 800;
+    }
+
     /* ==========================================================================
        7. PIPE CUTTING & METER QUICK-ADDER
        ========================================================================== */
@@ -901,6 +990,58 @@
         background: #15803d;
         transform: translateY(-1px);
         box-shadow: 0 4px 10px rgba(22, 163, 74, 0.4);
+    }
+
+    /* Pipe Measurement Presets & Cart Badges */
+    .pipe-preset-btn {
+        background: #ffffff;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 7px 5px;
+        text-align: center;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+    }
+    .pipe-preset-btn strong {
+        font-size: 12px;
+        color: #0f172a;
+    }
+    .pipe-preset-btn small {
+        font-size: 10px;
+        color: #64748b;
+        font-weight: 600;
+        margin-top: 2px;
+    }
+    .pipe-preset-btn:hover {
+        border-color: #0284c7;
+        background: #f0f9ff;
+    }
+    .pipe-preset-btn.active {
+        background: #0284c7;
+        border-color: #0284c7;
+        box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+    }
+    .pipe-preset-btn.active strong,
+    .pipe-preset-btn.active small {
+        color: #ffffff;
+    }
+
+    .pipe-cart-pill {
+        background: #e0f2fe;
+        color: #0369a1;
+        border: 1px solid #bae6fd;
+        padding: 2px 7px;
+        border-radius: 5px;
+        font-size: 11px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 3px;
     }
 
     /* ==========================================================================
@@ -1700,7 +1841,7 @@
                     Store Live
                 </span>
             </h1>
-            <p>Shop Owner: <strong>{{ shop_owner }}</strong> | {{ shop_name }} • Instant Plumbing Hardware Invoicing</p>
+            <p>Shop Owner: <strong>{{ shop_owner }}</strong> | {{ shop_name }} • GSTIN: <strong style="color: #38bdf8; font-family: 'JetBrains Mono', monospace;">{{ gstin|default:"33CGSPC1805K1ZG" }}</strong> | 📍 {{ shop_address|default:"Building No. 5/139/1, Mulagumoodu Junction, Colchal Road, Dist. Kanyakumari, Tamil Nadu - 629167" }}</p>
         </div>
 
         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
@@ -2050,6 +2191,30 @@
 
             <!-- Calculation Breakdown Card -->
             <div class="calc-summary-card">
+                <!-- 2 Type of Bill Printing / Payment Selector: 1 GST vs 2 No GST -->
+                <div class="pos-bill-type-card">
+                    <div style="font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>🏷️ Bill Print & Tax Option:</span>
+                        <span id="posBillTypeBadge" class="bill-type-badge-gst">1. GST Tax Invoice</span>
+                    </div>
+                    <div class="pos-bill-type-grid">
+                        <button type="button" id="posBtnTypeGst" class="pos-bill-type-btn active" onclick="setPosBillMode('GST')">
+                            <span class="type-icon">🧾</span>
+                            <div class="type-meta">
+                                <span class="type-title">1. GST Add</span>
+                                <span class="type-sub">With GSTIN & Tax</span>
+                            </div>
+                        </button>
+                        <button type="button" id="posBtnTypeNoGst" class="pos-bill-type-btn" onclick="setPosBillMode('NOGST')">
+                            <span class="type-icon">📄</span>
+                            <div class="type-meta">
+                                <span class="type-title">2. No GST</span>
+                                <span class="type-sub">Retail Cash Bill</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="calc-row">
                     <span>Subtotal:</span>
                     <strong id="calcSubtotal">₹0.00</strong>
@@ -2060,12 +2225,12 @@
                 </div>
 
                 <!-- GST Rate Selector & Live Calculation -->
-                <div class="calc-row" style="flex-direction: column; align-items: flex-start; gap: 4px; border-top: 1px dashed #e2e8f0; padding-top: 6px;">
+                <div class="calc-row" id="posGstSelectorRow" style="flex-direction: column; align-items: flex-start; gap: 4px; border-top: 1px dashed #e2e8f0; padding-top: 6px;">
                     <div style="display: flex; justify-content: space-between; width: 100%; font-size: 12.5px;">
                         <span>GST (<span id="calcGstRateLabel">18</span>%):</span>
                         <strong id="calcGstAmount" style="color: #0284c7;">+₹0.00</strong>
                     </div>
-                    <div class="gst-pills-row">
+                    <div class="gst-pills-row" id="gstPillsRow">
                         <button type="button" class="gst-pill-btn" onclick="setPosGstRate(0, this)">0%</button>
                         <button type="button" class="gst-pill-btn" onclick="setPosGstRate(5, this)">5%</button>
                         <button type="button" class="gst-pill-btn" onclick="setPosGstRate(12, this)">12%</button>
@@ -2254,12 +2419,125 @@
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <button type="button" class="btn-blue" id="btnModalPrint" style="padding: 12px; justify-content: center; font-size: 14px;">
-                🖨️ Print Tax Invoice
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <button type="button" class="btn-blue" id="btnModalPrintGst" style="padding: 12px 6px; justify-content: center; font-size: 13.5px; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                🧾 1. Print GST Invoice
             </button>
-            <button type="button" class="btn-white" onclick="closePosModal()" style="padding: 12px; justify-content: center; font-size: 14px;">
-                ➕ Next Customer Bill
+            <button type="button" id="btnModalPrintNoGst" style="padding: 12px 6px; justify-content: center; font-size: 13.5px; font-weight: 800; background: #059669; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: filter 0.15s;">
+                📄 2. Print No GST Bill
+            </button>
+        </div>
+        <button type="button" class="btn-white" onclick="closePosModal()" style="width: 100%; padding: 11px; justify-content: center; font-size: 13.5px; font-weight: 700;">
+            ➕ Next Customer Bill
+        </button>
+    </div>
+</div>
+
+<!-- Modal: Pipe Length & Meter Selector for Billing -->
+<div class="modal-backdrop-pos" id="pipeLengthModal">
+    <div class="modal-pos-card" style="max-width: 480px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 10px;">
+            <div>
+                <h3 style="font-size: 17px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+                    <span>📏</span>
+                    <span id="pipeModalTitle">Pipe Length & Meter Selector</span>
+                </h3>
+                <div style="font-size: 12px; color: #64748b; margin-top: 2px;" id="pipeModalSubtitle">
+                    Select how many lengths or meters to add to bill
+                </div>
+            </div>
+            <button type="button" onclick="closePipeLengthModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8; padding: 4px 8px;">✕</button>
+        </div>
+
+        <!-- Standard Length Rule Banner -->
+        <div style="background: #e0f2fe; border: 1.5px solid #bae6fd; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">ℹ️</span>
+            <div>
+                <div style="font-size: 13px; font-weight: 800; color: #0369a1;">
+                    Standard Rule: 1 Full Length Pipe = 6 Meters (20 Feet)
+                </div>
+                <div style="font-size: 11.5px; color: #0284c7; margin-top: 1px;" id="pipeModalRateBanner">
+                    Rate: ₹581.00 / meter • 1 Full 6m Pipe = ₹3,486.00
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Preset Length Buttons -->
+        <div style="margin-bottom: 14px;">
+            <label style="font-size: 11px; font-weight: 800; color: #475569; display: block; margin-bottom: 6px; text-transform: uppercase;">
+                ⚡ Quick Full Length Presets:
+            </label>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;" id="pipePresetButtonsRow">
+                <button type="button" class="pipe-preset-btn active" data-len="1" onclick="setPipeModalLengths(1)">
+                    <strong>1 Length</strong>
+                    <small>6m / 20 Feet</small>
+                </button>
+                <button type="button" class="pipe-preset-btn" data-len="2" onclick="setPipeModalLengths(2)">
+                    <strong>2 Lengths</strong>
+                    <small>12m / 40 Feet</small>
+                </button>
+                <button type="button" class="pipe-preset-btn" data-len="3" onclick="setPipeModalLengths(3)">
+                    <strong>3 Lengths</strong>
+                    <small>18m / 60 Feet</small>
+                </button>
+                <button type="button" class="pipe-preset-btn" data-len="5" onclick="setPipeModalLengths(5)">
+                    <strong>5 Lengths</strong>
+                    <small>30m / 100 Feet</small>
+                </button>
+                <button type="button" class="pipe-preset-btn" data-len="10" onclick="setPipeModalLengths(10)">
+                    <strong>10 Lengths</strong>
+                    <small>60m / 200 Feet</small>
+                </button>
+                <button type="button" class="pipe-preset-btn" data-len="CUSTOM" onclick="enableCustomPipeMeters()">
+                    <strong>✂️ Custom</strong>
+                    <small>Cut Meters</small>
+                </button>
+            </div>
+        </div>
+
+        <!-- Detailed Stepper Inputs (Lengths <-> Meters <-> Feet) -->
+        <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+                <div>
+                    <label style="font-size: 11px; font-weight: 800; color: #475569; display: block; margin-bottom: 4px;">
+                        Full Pipe Lengths:
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <button type="button" class="btn-mini-step" onclick="stepPipeModalLengths(-1)">−</button>
+                        <input type="number" id="pipeModalLengthsInput" class="step-input" value="1" min="0.5" step="0.5" oninput="onPipeModalLengthsChanged()" style="width: 60px; font-size: 14px; font-weight: 800; text-align: center;">
+                        <button type="button" class="btn-mini-step" onclick="stepPipeModalLengths(1)">+</button>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 11px; font-weight: 800; color: #475569; display: block; margin-bottom: 4px;">
+                        Total Meters (m):
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <input type="number" id="pipeModalMetersInput" class="step-input" value="6.00" min="0.1" step="0.5" oninput="onPipeModalMetersChanged()" style="width: 80px; font-size: 14px; font-weight: 800; text-align: center; color: #0284c7;">
+                        <span style="font-size: 12px; font-weight: 800; color: #475569;">m</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conversion Result Display -->
+            <div style="border-top: 1px dashed #cbd5e1; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 12.5px;">
+                <div>
+                    <span style="color: #64748b;">Feet:</span>
+                    <strong style="color: #0f172a;" id="pipeModalFeetDisplay">20 Feet</strong>
+                </div>
+                <div>
+                    <span style="color: #64748b;">Total Amount:</span>
+                    <strong style="font-size: 16px; color: #0284c7; font-family: 'JetBrains Mono', monospace;" id="pipeModalTotalDisplay">₹0.00</strong>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px;">
+            <button type="button" class="btn-white" onclick="closePipeLengthModal()" style="padding: 11px; justify-content: center; font-size: 13px; font-weight: 700;">
+                Cancel
+            </button>
+            <button type="button" class="btn-blue" onclick="confirmAddPipeModalToBill()" style="padding: 11px; justify-content: center; font-size: 13.5px; font-weight: 800;">
+                ➕ Add to Bill (<span id="pipeModalBtnSummary">1 Len = 6m</span>)
             </button>
         </div>
     </div>
@@ -2279,7 +2557,9 @@
     let currentCategory = 'ALL';
     let currentPaymentMode = 'CASH';
     let currentGender = 'MALE';
+    let currentBillMode = 'GST'; // 'GST' (1. GST Add) or 'NOGST' (2. No GST)
     let currentGstRate = 18.0;
+    let savedGstRate = 18.0;
     let manualPaidModified = false;
     let generatedBillId = null;
 
@@ -2341,12 +2621,77 @@
         btn.classList.add('active');
     }
 
+    // 2 TYPE BILL PRINT & PAYMENT MODE SELECTION: 1 GST vs 2 No GST
+    function setPosBillMode(mode) {
+        currentBillMode = mode;
+        const btnGst = document.getElementById('posBtnTypeGst');
+        const btnNoGst = document.getElementById('posBtnTypeNoGst');
+        const badge = document.getElementById('posBillTypeBadge');
+        const rateLabel = document.getElementById('calcGstRateLabel');
+
+        if (mode === 'GST') {
+            if (btnGst) btnGst.classList.add('active');
+            if (btnNoGst) btnNoGst.classList.remove('active');
+            if (badge) {
+                badge.className = 'bill-type-badge-gst';
+                badge.textContent = '1. GST Tax Invoice';
+            }
+            currentGstRate = (savedGstRate > 0) ? savedGstRate : 18.0;
+            if (rateLabel) rateLabel.textContent = currentGstRate;
+            document.querySelectorAll('.gst-pill-btn').forEach(b => {
+                const r = parseFloat(b.textContent);
+                if (r === currentGstRate) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+        } else {
+            if (btnGst) btnGst.classList.remove('active');
+            if (btnNoGst) btnNoGst.classList.add('active');
+            if (badge) {
+                badge.className = 'bill-type-badge-nogst';
+                badge.textContent = '2. No GST (Retail Bill)';
+            }
+            if (currentGstRate > 0) savedGstRate = currentGstRate;
+            currentGstRate = 0.0;
+            if (rateLabel) rateLabel.textContent = '0 (Non-GST)';
+            document.querySelectorAll('.gst-pill-btn').forEach(b => {
+                if (b.textContent.trim() === '0%') b.classList.add('active');
+                else b.classList.remove('active');
+            });
+        }
+        calculatePosTotals();
+    }
+
     // GST RATE SELECTION
     function setPosGstRate(rate, btn) {
         currentGstRate = parseFloat(rate);
         document.querySelectorAll('.gst-pill-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        document.getElementById('calcGstRateLabel').textContent = rate;
+
+        const btnGst = document.getElementById('posBtnTypeGst');
+        const btnNoGst = document.getElementById('posBtnTypeNoGst');
+        const badge = document.getElementById('posBillTypeBadge');
+        const rateLabel = document.getElementById('calcGstRateLabel');
+
+        if (currentGstRate === 0) {
+            currentBillMode = 'NOGST';
+            if (btnGst) btnGst.classList.remove('active');
+            if (btnNoGst) btnNoGst.classList.add('active');
+            if (badge) {
+                badge.className = 'bill-type-badge-nogst';
+                badge.textContent = '2. No GST (Retail Bill)';
+            }
+            if (rateLabel) rateLabel.textContent = '0 (Non-GST)';
+        } else {
+            savedGstRate = currentGstRate;
+            currentBillMode = 'GST';
+            if (btnGst) btnGst.classList.add('active');
+            if (btnNoGst) btnNoGst.classList.remove('active');
+            if (badge) {
+                badge.className = 'bill-type-badge-gst';
+                badge.textContent = '1. GST Tax Invoice';
+            }
+            if (rateLabel) rateLabel.textContent = rate;
+        }
         calculatePosTotals();
     }
 
@@ -2388,6 +2733,126 @@
         filterPosProducts();
     }
 
+    // ==========================================
+    // PIPE LENGTH & METER MODAL SELECTION (1 Length = 6 Meters / 20 Feet)
+    // ==========================================
+    let activePipeProduct = null;
+    let pipeModalLengths = 1;
+    let pipeModalMeters = 6.00;
+
+    function openPipeLengthModal(prod) {
+        activePipeProduct = prod;
+        pipeModalLengths = 1;
+        const stdLen = prod.pipeLength || 6.00;
+        pipeModalMeters = stdLen;
+
+        document.getElementById('pipeModalTitle').textContent = prod.name;
+        document.getElementById('pipeModalSubtitle').textContent = `${prod.category} • Size: ${prod.size} ${prod.brand ? '• [' + prod.brand + ']' : ''}`;
+        document.getElementById('pipeModalRateBanner').textContent = `Rate: ₹${prod.rate.toFixed(2)} / meter • 1 Full ${stdLen}m Pipe (20 Feet) = ₹${(prod.rate * stdLen).toFixed(2)}`;
+
+        document.getElementById('pipeModalLengthsInput').value = 1;
+        document.getElementById('pipeModalMetersInput').value = stdLen.toFixed(2);
+
+        // Reset preset buttons
+        document.querySelectorAll('#pipePresetButtonsRow .pipe-preset-btn').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-len') === '1');
+        });
+
+        updatePipeModalUI();
+        document.getElementById('pipeLengthModal').classList.add('active');
+    }
+
+    function closePipeLengthModal() {
+        document.getElementById('pipeLengthModal').classList.remove('active');
+        activePipeProduct = null;
+    }
+
+    function setPipeModalLengths(lens) {
+        if (!activePipeProduct) return;
+        pipeModalLengths = lens;
+        const stdLen = activePipeProduct.pipeLength || 6.00;
+        pipeModalMeters = parseFloat((lens * stdLen).toFixed(2));
+
+        document.getElementById('pipeModalLengthsInput').value = lens;
+        document.getElementById('pipeModalMetersInput').value = pipeModalMeters.toFixed(2);
+
+        document.querySelectorAll('#pipePresetButtonsRow .pipe-preset-btn').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-len') === String(lens));
+        });
+
+        updatePipeModalUI();
+    }
+
+    function enableCustomPipeMeters() {
+        document.querySelectorAll('#pipePresetButtonsRow .pipe-preset-btn').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-len') === 'CUSTOM');
+        });
+        const inp = document.getElementById('pipeModalMetersInput');
+        if (inp) {
+            inp.focus();
+            inp.select();
+        }
+    }
+
+    function stepPipeModalLengths(delta) {
+        if (!activePipeProduct) return;
+        let l = parseFloat(document.getElementById('pipeModalLengthsInput').value) || 1;
+        l = Math.max(0.5, l + delta);
+        setPipeModalLengths(l);
+    }
+
+    function onPipeModalLengthsChanged() {
+        if (!activePipeProduct) return;
+        const stdLen = activePipeProduct.pipeLength || 6.00;
+        let l = parseFloat(document.getElementById('pipeModalLengthsInput').value) || 1;
+        l = Math.max(0.1, l);
+        pipeModalLengths = l;
+        pipeModalMeters = parseFloat((l * stdLen).toFixed(2));
+        document.getElementById('pipeModalMetersInput').value = pipeModalMeters.toFixed(2);
+
+        document.querySelectorAll('#pipePresetButtonsRow .pipe-preset-btn').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-len') === String(l));
+        });
+
+        updatePipeModalUI();
+    }
+
+    function onPipeModalMetersChanged() {
+        if (!activePipeProduct) return;
+        const stdLen = activePipeProduct.pipeLength || 6.00;
+        let m = parseFloat(document.getElementById('pipeModalMetersInput').value) || stdLen;
+        m = Math.max(0.1, m);
+        pipeModalMeters = m;
+        pipeModalLengths = parseFloat((m / stdLen).toFixed(2));
+        document.getElementById('pipeModalLengthsInput').value = pipeModalLengths;
+
+        document.querySelectorAll('#pipePresetButtonsRow .pipe-preset-btn').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-len') === 'CUSTOM');
+        });
+
+        updatePipeModalUI();
+    }
+
+    function updatePipeModalUI() {
+        if (!activePipeProduct) return;
+        const stdLen = activePipeProduct.pipeLength || 6.00;
+        const feet = stdLen === 6.00 ? Math.round(pipeModalLengths * 20) : Math.round(pipeModalMeters * 3.28084);
+        const totalAmount = pipeModalMeters * activePipeProduct.rate;
+
+        document.getElementById('pipeModalFeetDisplay').textContent = `${feet} Feet (approx.)`;
+        document.getElementById('pipeModalTotalDisplay').textContent = `₹${totalAmount.toFixed(2)}`;
+        document.getElementById('pipeModalBtnSummary').textContent = `${pipeModalLengths} Len = ${pipeModalMeters}m (${feet}ft)`;
+    }
+
+    function confirmAddPipeModalToBill() {
+        if (!activePipeProduct) return;
+        const prod = activePipeProduct;
+        const metersToAdd = pipeModalMeters;
+        closePipeLengthModal();
+
+        addToCart(prod.id, prod.name, prod.category, prod.size, prod.rate, prod.stock, prod.code, prod.unit, prod.brand, prod.pipeLength, metersToAdd);
+    }
+
     // Direct Dropdown Product Selection Handler
     function handleProductDropdownSelect(selElem) {
         const prodId = selElem.value;
@@ -2403,6 +2868,25 @@
         const size = opt.getAttribute('data-size');
         const rate = parseFloat(opt.getAttribute('data-rate')) || 0;
         const stock = parseInt(opt.getAttribute('data-stock')) || 0;
+
+        const isPipe = (unit === 'METER' || (category && category.toLowerCase().includes('pipe')) || (name && name.toLowerCase().includes('pipe')));
+        if (isPipe) {
+            openPipeLengthModal({
+                id: id,
+                name: name,
+                code: code,
+                unit: unit,
+                brand: brand,
+                pipeLength: pipeLen,
+                category: category,
+                size: size,
+                rate: rate,
+                stock: stock
+            });
+            selElem.value = '';
+            return;
+        }
+
         addToCart(id, name, category, size, rate, stock, code, unit, brand, pipeLen);
         selElem.value = ''; // Reset dropdown after selection
 
@@ -2427,6 +2911,24 @@
         const size = cardElem.getAttribute('data-size');
         const rate = parseFloat(cardElem.getAttribute('data-rate')) || 0;
         const stock = parseInt(cardElem.getAttribute('data-stock')) || 0;
+
+        const isPipe = (unit === 'METER' || (category && category.toLowerCase().includes('pipe')) || (name && name.toLowerCase().includes('pipe')));
+        if (isPipe) {
+            openPipeLengthModal({
+                id: id,
+                name: name,
+                code: code,
+                unit: unit,
+                brand: brand,
+                pipeLength: pipeLen,
+                category: category,
+                size: size,
+                rate: rate,
+                stock: stock
+            });
+            return;
+        }
+
         addToCart(id, name, category, size, rate, stock, code, unit, brand, pipeLen);
 
         // Sync Pipe Quick-Adder dropdown
@@ -2523,7 +3025,7 @@
 
         const totalCost = isMeter ? (meters * rate) : (pcs * rate);
         if (formulaElem) {
-            formulaElem.innerHTML = `${pcs} pipe${pcs > 1 ? 's' : ''} × ${stdLen}m = <strong>${meters} meters</strong>`;
+            formulaElem.innerHTML = `${pcs} pipe${pcs > 1 ? 's' : ''} × ${stdLen}m (20ft) = <strong>${meters} meters</strong>`;
         }
         if (priceElem) {
             priceElem.textContent = `₹${totalCost.toFixed(2)}`;
@@ -2549,36 +3051,15 @@
         const stock = parseInt(opt.getAttribute('data-stock')) || 0;
 
         const meters = parseFloat(document.getElementById('pipeQuickMeters').value) || pipeLen;
-        const pcs = parseInt(document.getElementById('pipeQuickPcs').value) || 1;
-        const qtyToAdd = (unit === 'METER') ? meters : pcs;
-
-        const existing = posCart.find(i => i.id === id);
-        if (existing) {
-            existing.qty += qtyToAdd;
-        } else {
-            posCart.push({
-                id: id,
-                code: code,
-                unit: unit,
-                brand: brand,
-                pipeLength: pipeLen,
-                name: name,
-                category: category,
-                size: size,
-                rate: rate,
-                qty: qtyToAdd,
-                stock: stock
-            });
-        }
-        renderPosCart();
+        addToCart(id, name, category, size, rate, stock, code, unit, brand, pipeLen, meters);
     }
 
-    function stepPipeItemLength(id, stdLen, deltaPipes) {
+    function stepPipeItemLengths(id, deltaLengths) {
         const item = posCart.find(i => i.id === id);
         if (!item) return;
-        const len = (stdLen > 0 ? stdLen : 6.00);
-        item.qty += (deltaPipes * len);
-        if (item.qty <= 0) {
+        const stdLen = item.pipeLength || 6.00;
+        item.qty += (deltaLengths * stdLen);
+        if (item.qty <= 0.01) {
             posCart = posCart.filter(i => i.id !== id);
         } else {
             item.qty = parseFloat(item.qty.toFixed(2));
@@ -2586,25 +3067,42 @@
         renderPosCart();
     }
 
+    function stepPipeItemLength(id, stdLen, deltaPipes) {
+        stepPipeItemLengths(id, deltaPipes);
+    }
+
     // ==========================================
     // CART OPERATIONS
     // ==========================================
-    function addToCart(id, name, category, size, rate, stock, code = '', unit = 'PIECE', brand = '', pipeLen = 6.00) {
+    function addToCart(id, name, category, size, rate, stock, code = '', unit = 'PIECE', brand = '', pipeLen = 6.00, customQty = null) {
+        const isPipe = (unit === 'METER' || (category && category.toLowerCase().includes('pipe')) || (name && name.toLowerCase().includes('pipe')));
+        const stdLen = (pipeLen > 0) ? pipeLen : 6.00;
+
+        let qtyToAdd;
+        if (customQty !== null && customQty !== undefined) {
+            qtyToAdd = parseFloat(customQty);
+        } else if (isPipe) {
+            qtyToAdd = stdLen; // Default 1 full length pipe (6m = 20ft)
+        } else {
+            qtyToAdd = 1.0;
+        }
+
         const existing = posCart.find(i => i.id === id);
         if (existing) {
-            existing.qty += 1;
+            existing.qty += qtyToAdd;
+            existing.qty = parseFloat(existing.qty.toFixed(2));
         } else {
             posCart.push({
                 id: id,
                 code: code,
                 unit: unit,
                 brand: brand,
-                pipeLength: pipeLen,
+                pipeLength: stdLen,
                 name: name,
                 category: category,
                 size: size,
                 rate: parseFloat(rate),
-                qty: 1,
+                qty: parseFloat(qtyToAdd.toFixed(2)),
                 stock: parseInt(stock)
             });
         }
@@ -2696,33 +3194,52 @@
 
         posCart.forEach(item => {
             const lineTotal = (item.rate * item.qty).toFixed(2);
-            const isMeter = (item.unit === 'METER');
+            const isPipe = (item.unit === 'METER' || (item.category && item.category.toLowerCase().includes('pipe')) || (item.name && item.name.toLowerCase().includes('pipe')));
             const stdLen = item.pipeLength || 6.00;
-            const fullPipesCount = (item.qty / stdLen).toFixed(1);
+            const lengths = (item.qty / stdLen);
+            const formattedLengths = (lengths % 1 === 0) ? lengths : lengths.toFixed(1);
+            const feet = (stdLen === 6.00) ? Math.round(lengths * 20) : Math.round(item.qty * 3.28084);
+            const fullPipePrice = (item.rate * stdLen).toFixed(2);
+
             const codeBadge = item.code ? `<span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; background: #0f172a; color: #ffffff; padding: 1px 5px; border-radius: 4px; font-weight: 700; margin-right: 4px;">#${item.code}</span>` : '';
             const brandBadge = item.brand ? `<span style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 4px; margin-right: 4px;">${item.brand}</span>` : '';
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>
                     <div class="cart-item-title">${codeBadge}${brandBadge}${item.name}</div>
                     <div class="cart-item-meta">
                         ${item.size} • ${item.category}
-                        ${isMeter ? `<span style="color: #0284c7; font-weight: 700; display: block; margin-top: 2px;">📏 ${item.qty}m (${fullPipesCount} pipes of ${stdLen}m) × ₹${item.rate.toFixed(2)}/m</span>` : ''}
+                        ${isPipe ? `
+                        <div class="pipe-cart-pill">
+                            📏 <strong>${formattedLengths} Length${formattedLengths != 1 ? 's' : ''}</strong> = ${item.qty.toFixed(2)}m (${feet} Feet)
+                        </div>
+                        <div style="font-size: 10px; color: #64748b; margin-top: 2px;">
+                            (1 Length Pipe = 6m / 20ft standard)
+                        </div>` : ''}
                     </div>
                 </td>
                 <td style="font-weight: 700; color: #0284c7;">
-                    ₹${item.rate.toFixed(2)}${isMeter ? '<small style="font-size: 10px; color: #0369a1;">/m</small>' : ''}
+                    ₹${item.rate.toFixed(2)}${isPipe ? '<small style="font-size: 10px; color: #0369a1;">/m</small>' : '<small style="font-size: 10px; color: #64748b;">/pc</small>'}
+                    ${isPipe ? `<div style="font-size: 9.5px; color: #64748b; font-weight: 600;">(₹${fullPipePrice}/len)</div>` : ''}
                 </td>
                 <td style="text-align: center;">
+                    ${isPipe ? `
                     <div class="qty-stepper">
-                        <button type="button" class="btn-step" onclick="updateItemQty(${item.id}, ${isMeter ? -0.5 : -1})">−</button>
-                        <input type="number" class="step-input" step="${isMeter ? '0.5' : '1'}" min="0.1" value="${item.qty}" onchange="setDirectQty(${item.id}, this.value)" style="width: 44px;">
-                        <button type="button" class="btn-step" onclick="updateItemQty(${item.id}, ${isMeter ? 0.5 : 1})">+</button>
+                        <button type="button" class="btn-step" onclick="stepPipeItemLengths(${item.id}, -1)" title="Remove 1 full length (-${stdLen}m)">−</button>
+                        <input type="text" class="step-input" value="${formattedLengths} len" readonly style="width: 54px; font-weight: 800; font-size: 11px; background: #f8fafc; cursor: default; padding: 0 2px;">
+                        <button type="button" class="btn-step" onclick="stepPipeItemLengths(${item.id}, 1)" title="Add 1 full length (+${stdLen}m)">+</button>
                     </div>
-                    ${isMeter ? `
-                    <div style="margin-top: 3px; display: flex; gap: 3px; justify-content: center;">
-                        <button type="button" class="btn-step-pipe" onclick="stepPipeItemLength(${item.id}, ${stdLen}, 1)" title="Add 1 full pipe length (+${stdLen}m)">+1 Pipe</button>
-                    </div>` : ''}
+                    <div style="font-size: 10.5px; font-weight: 800; color: #0284c7; text-align: center; margin-top: 2px;">
+                        ${item.qty.toFixed(1)}m (${feet}ft)
+                    </div>
+                    ` : `
+                    <div class="qty-stepper">
+                        <button type="button" class="btn-step" onclick="updateItemQty(${item.id}, -1)">−</button>
+                        <input type="number" class="step-input" step="1" min="1" value="${item.qty}" onchange="setDirectQty(${item.id}, this.value)" style="width: 44px;">
+                        <button type="button" class="btn-step" onclick="updateItemQty(${item.id}, 1)">+</button>
+                    </div>
+                    `}
                 </td>
                 <td style="text-align: right; font-weight: 800; color: #0f172a;">₹${lineTotal}</td>
                 <td style="text-align: center;">
@@ -3000,10 +3517,22 @@
             gst_rate: currentGstRate,
             paid_amount: totalPaid,
             notes: paymentNotes,
-            items: posCart.map(item => ({
-                product_id: item.id,
-                quantity: item.qty
-            }))
+            items: posCart.map(item => {
+                const isPipe = (item.unit === 'METER' || (item.category && item.category.toLowerCase().includes('pipe')) || (item.name && item.name.toLowerCase().includes('pipe')));
+                const stdLen = item.pipeLength || 6.00;
+                let itemSize = item.size || 'Standard';
+                if (isPipe) {
+                    const lens = (item.qty / stdLen);
+                    const formattedLens = (lens % 1 === 0) ? lens : parseFloat(lens.toFixed(2));
+                    const feet = (stdLen === 6.00) ? Math.round(lens * 20) : Math.round(item.qty * 3.28084);
+                    itemSize = `${item.size} • ${formattedLens} Len (${item.qty}m/${feet}ft)`.slice(0, 80);
+                }
+                return {
+                    product_id: item.id,
+                    quantity: item.qty,
+                    size: itemSize
+                };
+            })
         };
 
         const btn = document.getElementById('btnSubmitBill');
@@ -3064,9 +3593,19 @@
                 statusBadge.className = cls;
                 statusBadge.textContent = txt;
 
-                document.getElementById('btnModalPrint').onclick = function() {
-                    window.open(`/invoice/${result.bill_id}/`, '_blank');
-                };
+                const printGstBtn = document.getElementById('btnModalPrintGst');
+                const printNoGstBtn = document.getElementById('btnModalPrintNoGst');
+
+                if (printGstBtn) {
+                    printGstBtn.onclick = function() {
+                        window.open(`/invoice/${result.bill_id}/?type=gst`, '_blank');
+                    };
+                }
+                if (printNoGstBtn) {
+                    printNoGstBtn.onclick = function() {
+                        window.open(`/invoice/${result.bill_id}/?type=nogst`, '_blank');
+                    };
+                }
 
                 document.getElementById('billSuccessModal').classList.add('active');
             } else {

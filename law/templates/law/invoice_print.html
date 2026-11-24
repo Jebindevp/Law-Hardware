@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice #{{ bill.bill_number }} - {{ shop_name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <title>{% if is_gst %}Tax Invoice (GST){% else %}Retail Bill (Non-GST){% endif %} #{{ bill.bill_number }} - {{ shop_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -15,31 +15,126 @@
 
         body {
             background: #f1f5f9;
-            padding: 30px 15px;
+            padding: 24px 15px;
             color: #0f172a;
         }
 
-        .invoice-card {
-            max-width: 780px;
-            margin: 0 auto;
+        /* Top Action Bar (hidden on print) */
+        .no-print-bar {
+            max-width: 820px;
+            margin: 0 auto 16px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
             background: white;
+            padding: 12px 18px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             border: 1px solid #e2e8f0;
-            padding: 40px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
         }
 
+        .back-link {
+            color: #475569;
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.15s;
+        }
+        .back-link:hover {
+            color: #0284c7;
+        }
+
+        /* 2-Way Print Mode Switcher Pills */
+        .print-mode-pill-bar {
+            display: flex;
+            align-items: center;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            gap: 4px;
+        }
+
+        .print-mode-btn {
+            background: transparent;
+            border: none;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 7px;
+            cursor: pointer;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .print-mode-btn:hover {
+            color: #0f172a;
+        }
+
+        .print-mode-btn.active#btnSwitchGst {
+            background: #0284c7;
+            color: white;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+        }
+
+        .print-mode-btn.active#btnSwitchNoGst {
+            background: #059669;
+            color: white;
+            box-shadow: 0 2px 6px rgba(5, 150, 105, 0.35);
+        }
+
+        .btn-print {
+            background: #0f172a;
+            color: white;
+            padding: 9px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 13.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            transition: background 0.15s;
+        }
+        .btn-print:hover {
+            background: #1e293b;
+        }
+
+        /* Printable Invoice Card */
+        .invoice-card {
+            max-width: 820px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+            padding: 36px 42px;
+            position: relative;
+        }
+
+        /* Header */
         .header-section {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             border-bottom: 2px solid #0f172a;
             padding-bottom: 20px;
-            margin-bottom: 24px;
+            margin-bottom: 22px;
+            gap: 16px;
         }
 
         .shop-brand {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 800;
             color: #0f172a;
             letter-spacing: -0.02em;
@@ -48,42 +143,74 @@
         .shop-sub {
             font-size: 13px;
             color: #475569;
-            margin-top: 4px;
-            line-height: 1.4;
+            margin-top: 5px;
+            line-height: 1.5;
         }
 
         .invoice-tag {
             text-align: right;
+            min-width: 200px;
         }
 
         .inv-title {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 800;
-            color: #0284c7;
-            text-transform: uppercase;
             letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        /* In GST mode */
+        body.mode-gst .inv-title {
+            color: #0284c7;
+        }
+        /* In No-GST mode */
+        body.mode-nogst .inv-title {
+            color: #059669;
+        }
+
+        .inv-badge-sub {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
+        body.mode-gst .inv-badge-sub {
+            background: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+        }
+        body.mode-nogst .inv-badge-sub {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
         }
 
         .inv-meta {
             font-size: 13px;
             color: #475569;
-            margin-top: 6px;
-            line-height: 1.5;
+            margin-top: 8px;
+            line-height: 1.55;
             font-family: 'JetBrains Mono', monospace;
         }
 
+        /* Customer & Payment Meta Grid */
         .meta-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1.2fr 0.8fr;
             gap: 20px;
             background: #f8fafc;
             border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 16px;
+            border-radius: 10px;
+            padding: 16px 20px;
             margin-bottom: 24px;
             font-size: 13.5px;
         }
 
+        /* Items Table */
         .items-table {
             width: 100%;
             border-collapse: collapse;
@@ -96,43 +223,51 @@
             color: #334155;
             font-weight: 700;
             text-align: left;
-            padding: 12px 14px;
+            padding: 11px 14px;
             border-bottom: 2px solid #cbd5e1;
             font-size: 12px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .items-table td {
-            padding: 12px 14px;
+            padding: 11px 14px;
             border-bottom: 1px solid #e2e8f0;
             vertical-align: middle;
         }
 
+        .items-table tbody tr:last-child td {
+            border-bottom: 2px solid #cbd5e1;
+        }
+
+        /* Totals Summary Box */
         .totals-section {
             display: flex;
             justify-content: flex-end;
-            margin-bottom: 30px;
+            margin-bottom: 28px;
         }
 
         .totals-box {
-            width: 280px;
+            width: 340px;
             background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 16px;
-            font-size: 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 18px;
+            font-size: 13.5px;
         }
 
         .total-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
+            align-items: center;
+            margin-bottom: 7px;
             color: #475569;
         }
 
         .grand-row {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-size: 18px;
             font-weight: 800;
             color: #0f172a;
@@ -141,54 +276,70 @@
             margin-top: 10px;
         }
 
+        /* Terms & Signature */
         .terms-section {
-            border-top: 1px dashed #cbd5e1;
+            border-top: 1.5px dashed #cbd5e1;
             padding-top: 18px;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
             font-size: 12px;
             color: #64748b;
+            gap: 20px;
         }
 
         .signature-box {
             text-align: center;
-            width: 180px;
-            border-top: 1px solid #0f172a;
+            width: 200px;
+            border-top: 1.5px solid #0f172a;
             padding-top: 6px;
             font-weight: 700;
             color: #0f172a;
             margin-top: 40px;
         }
 
-        .no-print-bar {
-            max-width: 780px;
-            margin: 0 auto 20px auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* Dynamic Visibility by Mode */
+        body.mode-gst .show-nogst-only {
+            display: none !important;
+        }
+        body.mode-gst .show-gst-only {
+            display: block !important;
+        }
+        body.mode-gst div.show-gst-only {
+            display: flex !important;
+        }
+        body.mode-gst tr.show-gst-only,
+        body.mode-gst th.show-gst-only,
+        body.mode-gst td.show-gst-only {
+            display: table-cell !important;
         }
 
-        .btn-print {
-            background: #0284c7;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: none;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 14px;
+        body.mode-nogst .show-gst-only {
+            display: none !important;
+        }
+        body.mode-nogst .show-nogst-only {
+            display: block !important;
+        }
+        body.mode-nogst div.show-nogst-only {
+            display: flex !important;
+        }
+        body.mode-nogst tr.show-nogst-only,
+        body.mode-nogst th.show-nogst-only,
+        body.mode-nogst td.show-nogst-only {
+            display: table-cell !important;
         }
 
+        /* Print Media Styles */
         @media print {
             body {
-                background: white;
-                padding: 0;
+                background: white !important;
+                padding: 0 !important;
             }
             .invoice-card {
-                box-shadow: none;
-                border: none;
-                padding: 0;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 10px 0 !important;
+                max-width: 100% !important;
             }
             .no-print-bar {
                 display: none !important;
@@ -196,17 +347,32 @@
         }
     </style>
 </head>
-<body>
+<body class="{% if is_gst %}mode-gst{% else %}mode-nogst{% endif %}">
+
+    <!-- TOP CONTROL BAR: Back link, 2 Type switcher, Print Button -->
     <div class="no-print-bar">
-        <a href="{% url 'billing_pos' %}" style="color: #475569; text-decoration: none; font-size: 14px; font-weight: 600;">
+        <a href="{% url 'billing_pos' %}" class="back-link">
             ← Back to Billing Terminal
         </a>
+
+        <!-- 2 Type Switcher: 1 GST Add vs 2 No GST -->
+        <div class="print-mode-pill-bar">
+            <button type="button" id="btnSwitchGst" class="print-mode-btn {% if is_gst %}active{% endif %}" onclick="switchPrintMode('gst')">
+                🧾 1. GST Tax Invoice
+            </button>
+            <button type="button" id="btnSwitchNoGst" class="print-mode-btn {% if not is_gst %}active{% endif %}" onclick="switchPrintMode('nogst')">
+                📄 2. No GST (Retail Bill)
+            </button>
+        </div>
+
         <button class="btn-print" onclick="window.print()">
             🖨️ Print / Save as PDF
         </button>
     </div>
 
+    <!-- MAIN INVOICE CARD -->
     <div class="invoice-card">
+        <!-- HEADER SECTION -->
         <div class="header-section">
             <div>
                 <div class="shop-brand">{{ shop_name }}</div>
@@ -214,11 +380,27 @@
                     Proprietor: <strong>{{ shop_owner }}</strong><br>
                     Dealers in: PVC, CPVC Pipes & Fittings, Brass Valves, Taps, Showers & Sanitaryware<br>
                     Address: {{ shop_address }}<br>
-                    Contact: {{ shop_phone }} | GSTIN: {{ gstin }}
+                    <!-- GST Mode Header Line -->
+                    <span class="show-gst-only">
+                        Contact: <strong>{{ shop_phone }}</strong> | GSTIN: <strong style="font-family: 'JetBrains Mono', monospace; color: #0284c7;">{{ gstin }}</strong>
+                    </span>
+                    <!-- No-GST Mode Header Line -->
+                    <span class="show-nogst-only">
+                        Contact: <strong>{{ shop_phone }}</strong> | <span style="color: #059669; font-weight: 700;">Retail Cash Memo (Non-GST)</span>
+                    </span>
                 </div>
             </div>
+
+            <!-- INVOICE TYPE TITLE & META -->
             <div class="invoice-tag">
-                <div class="inv-title">TAX INVOICE</div>
+                <!-- GST Mode Title -->
+                <div class="inv-title show-gst-only">TAX INVOICE</div>
+                <div class="inv-badge-sub show-gst-only">GST Registered • Tax Invoice</div>
+
+                <!-- No-GST Mode Title -->
+                <div class="inv-title show-nogst-only">RETAIL BILL</div>
+                <div class="inv-badge-sub show-nogst-only">Cash Memo • Non-GST Bill</div>
+
                 <div class="inv-meta">
                     <strong>Bill No:</strong> {{ bill.bill_number }}<br>
                     <strong>Date:</strong> {{ bill.created_at|date:"d-M-Y" }}<br>
@@ -227,9 +409,10 @@
             </div>
         </div>
 
+        <!-- CUSTOMER & PAYMENT META -->
         <div class="meta-grid">
             <div>
-                <strong style="color: #0f172a; font-size: 14px;">Billed To Customer:</strong>
+                <strong style="color: #0f172a; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.5px;">Billed To Customer:</strong>
                 <div style="font-size: 16px; font-weight: 800; margin-top: 4px; color: #0f172a;">
                     {{ bill.customer_name }}
                 </div>
@@ -242,22 +425,23 @@
                 </div>
                 {% endif %}
                 {% if bill.id_proof_number %}
-                <div style="margin-top: 4px; font-size: 12px; display: inline-block; background: #e2e8f0; color: #334155; padding: 3px 8px; border-radius: 4px; font-weight: 700;">
-                    {{ bill.get_id_proof_type_display }}: {{ bill.id_proof_number }}
+                <div style="margin-top: 5px; font-size: 12px; display: inline-block; background: #e2e8f0; color: #334155; padding: 2px 8px; border-radius: 4px; font-weight: 700;">
+                    🪪 {{ bill.get_id_proof_type_display }}: {{ bill.id_proof_number }}
                 </div>
                 {% endif %}
             </div>
+
             <div style="text-align: right;">
-                <strong style="color: #0f172a; font-size: 14px;">Payment & Settlement:</strong>
+                <strong style="color: #0f172a; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.5px;">Payment Details:</strong>
                 <div style="margin-top: 4px; font-size: 13.5px;">
-                    Mode: <strong>{{ bill.get_payment_mode_display }}</strong>
+                    Payment Mode: <strong>{{ bill.get_payment_mode_display }}</strong>
                 </div>
                 {% if bill.notes %}
                 <div style="margin-top: 4px; font-size: 12px; color: #0284c7; font-weight: 700; background: #e0f2fe; padding: 2px 8px; border-radius: 4px; display: inline-block;">
                     {{ bill.notes }}
                 </div>
                 {% endif %}
-                <div style="margin-top: 6px;">
+                <div style="margin-top: 8px;">
                     {% if bill.payment_status == 'COMPLETED_PAID' %}
                     <span style="background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; border: 1px solid #86efac;">
                         ✓ COMPLETED PAID (100%)
@@ -276,22 +460,24 @@
                     </span>
                     {% else %}
                     <span style="background: #fee2e2; color: #b91c1c; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; border: 1px solid #fca5a5;">
-                        ✕ NO PAID (UNPAID)
+                        ✕ UNPAID / DUE
                     </span>
                     {% endif %}
                 </div>
             </div>
         </div>
 
+        <!-- ITEMS TABLE -->
         <table class="items-table">
             <thead>
                 <tr>
-                    <th style="width: 40px;">#</th>
+                    <th style="width: 35px;">#</th>
                     <th>Item Description & Category</th>
-                    <th style="width: 90px;">Size</th>
+                    <th class="show-gst-only" style="width: 80px;">HSN/SAC</th>
+                    <th style="width: 80px;">Size</th>
                     <th style="width: 90px; text-align: right;">Rate (₹)</th>
-                    <th style="width: 70px; text-align: center;">Qty</th>
-                    <th style="width: 100px; text-align: right;">Amount (₹)</th>
+                    <th style="width: 60px; text-align: center;">Qty</th>
+                    <th style="width: 105px; text-align: right;">Total (₹)</th>
                 </tr>
             </thead>
             <tbody>
@@ -301,54 +487,132 @@
                     <td>
                         <strong style="color: #0f172a;">{{ item.product_name }}</strong>
                         <div style="font-size: 11.5px; color: #64748b;">{{ item.category_name }}</div>
+                        {% if item.is_pipe %}
+                        <div style="margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; background: #e0f2fe; color: #0284c7; padding: 2px 7px; border-radius: 4px; font-size: 11.5px; font-weight: 800; border: 1px solid #bae6fd;">
+                            📏 <strong>{{ item.pipe_lengths }} Length{{ item.pipe_lengths|pluralize }}</strong> = {{ item.pipe_meters|floatformat:2 }} Meters (approx. {{ item.pipe_feet }} Feet)
+                        </div>
+                        <div style="font-size: 10.5px; color: #64748b; margin-top: 2px;">
+                            Standard: 1 Length Pipe = 6.00 Meters (approx. 20 Feet)
+                        </div>
+                        {% endif %}
                     </td>
-                    <td>{{ item.size }}</td>
-                    <td style="text-align: right;">{{ item.rate|floatformat:2 }}</td>
-                    <td style="text-align: center; font-weight: 700;">{{ item.quantity }}</td>
-                    <td style="text-align: right; font-weight: 700;">{{ item.total|floatformat:2 }}</td>
+                    <td class="show-gst-only" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #475569;">
+                        {% if item.is_pipe %}3917{% else %}8481{% endif %}
+                    </td>
+                    <td>
+                        <strong>{{ item.size }}</strong>
+                        {% if item.is_pipe %}
+                        <div style="font-size: 11px; color: #0284c7; font-weight: 700; margin-top: 2px;">{{ item.pipe_lengths }} Length{{ item.pipe_lengths|pluralize }}</div>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right; font-family: 'JetBrains Mono', monospace;">
+                        {{ item.rate|floatformat:2 }}
+                        {% if item.is_pipe %}<div style="font-size: 10px; color: #64748b;">/meter</div>{% endif %}
+                    </td>
+                    <td style="text-align: center; font-weight: 700;">
+                        {% if item.is_pipe %}
+                        <div style="font-size: 13px; color: #0f172a;">{{ item.pipe_lengths }} <span style="font-size: 10px; color: #64748b;">len</span></div>
+                        <div style="font-size: 11px; color: #0284c7; font-weight: 800;">({{ item.pipe_meters|floatformat:1 }}m)</div>
+                        {% else %}
+                        {{ item.quantity|floatformat:0 }}
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right; font-weight: 700; font-family: 'JetBrains Mono', monospace;">{{ item.total|floatformat:2 }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
+        <!-- TOTALS BREAKDOWN -->
         <div class="totals-section">
-            <div class="totals-box" style="width: 320px;">
-                <div class="total-row">
-                    <span>Subtotal:</span>
-                    <span>₹{{ bill.subtotal|floatformat:2 }}</span>
+            <div class="totals-box">
+                <!-- 1. GST MODE TOTALS BREAKDOWN -->
+                <div class="show-gst-only" style="flex-direction: column; width: 100%;">
+                    <div class="total-row">
+                        <span>Items Subtotal:</span>
+                        <strong style="font-family: 'JetBrains Mono', monospace;">₹{{ bill.subtotal|floatformat:2 }}</strong>
+                    </div>
+                    {% if bill.discount > 0 %}
+                    <div class="total-row" style="color: #ef4444;">
+                        <span>Discount:</span>
+                        <strong style="font-family: 'JetBrains Mono', monospace;">-₹{{ bill.discount|floatformat:2 }}</strong>
+                    </div>
+                    {% endif %}
+                    <div class="total-row" style="border-top: 1px dashed #cbd5e1; padding-top: 6px;">
+                        <span>Taxable Amount:</span>
+                        <strong style="font-family: 'JetBrains Mono', monospace;">₹{{ taxable_amount|floatformat:2 }}</strong>
+                    </div>
+                    <div class="total-row" style="color: #0284c7; font-size: 12.5px;">
+                        <span>CGST ({{ cgst_rate }}%):</span>
+                        <strong style="font-family: 'JetBrains Mono', monospace;">+₹{{ cgst_amount|floatformat:2 }}</strong>
+                    </div>
+                    <div class="total-row" style="color: #0284c7; font-size: 12.5px;">
+                        <span>SGST ({{ sgst_rate }}%):</span>
+                        <strong style="font-family: 'JetBrains Mono', monospace;">+₹{{ sgst_amount|floatformat:2 }}</strong>
+                    </div>
+                    <div class="total-row" style="color: #0284c7; font-weight: 700;">
+                        <span>Total GST ({{ bill.gst_rate|floatformat:0 }}%):</span>
+                        <strong style="font-family: 'JetBrains Mono', monospace;">+₹{{ bill.gst_amount|floatformat:2 }}</strong>
+                    </div>
+                    <div class="grand-row">
+                        <span>Grand Total:</span>
+                        <span style="color: #0f172a; font-family: 'JetBrains Mono', monospace;">₹{{ bill.grand_total|floatformat:2 }}</span>
+                    </div>
+                    <div class="total-row" style="margin-top: 10px; color: #16a34a; font-weight: 700; font-size: 14px;">
+                        <span>Amount Paid:</span>
+                        <strong style="font-family: 'JetBrains Mono', monospace;">₹{{ bill.paid_amount|floatformat:2 }}</strong>
+                    </div>
+                    <div class="total-row" style="font-weight: 800; font-size: 14px; color: {% if bill.balance_amount > 0 %}#dc2626{% else %}#16a34a{% endif %}; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
+                        <span>Balance Due:</span>
+                        <strong style="font-family: 'JetBrains Mono', monospace;">₹{{ bill.balance_amount|floatformat:2 }}</strong>
+                    </div>
                 </div>
-                {% if bill.discount > 0 %}
-                <div class="total-row" style="color: #ef4444;">
-                    <span>Discount:</span>
-                    <span>-₹{{ bill.discount|floatformat:2 }}</span>
-                </div>
-                {% endif %}
-                <div class="total-row">
-                    <span>GST ({{ bill.gst_rate|floatformat:0 }}%):</span>
-                    <span>+₹{{ bill.gst_amount|floatformat:2 }}</span>
-                </div>
-                <div class="grand-row">
-                    <span>Grand Total:</span>
-                    <span style="color: #0f172a;">₹{{ bill.grand_total|floatformat:2 }}</span>
-                </div>
-                <div class="total-row" style="margin-top: 10px; color: #16a34a; font-weight: 700; font-size: 15px;">
-                    <span>Amount Paid:</span>
-                    <span>₹{{ bill.paid_amount|floatformat:2 }}</span>
-                </div>
-                <div class="total-row" style="font-weight: 800; font-size: 15px; color: {% if bill.balance_amount > 0 %}#dc2626{% else %}#16a34a{% endif %}; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
-                    <span>Balance Due:</span>
-                    <span>₹{{ bill.balance_amount|floatformat:2 }}</span>
+
+                <!-- 2. NO-GST MODE TOTALS BREAKDOWN -->
+                <div class="show-nogst-only" style="flex-direction: column; width: 100%;">
+                    <div class="total-row">
+                        <span>Items Subtotal:</span>
+                        <strong style="font-family: 'JetBrains Mono', monospace;">₹{{ bill.subtotal|floatformat:2 }}</strong>
+                    </div>
+                    {% if bill.discount > 0 %}
+                    <div class="total-row" style="color: #ef4444;">
+                        <span>Discount:</span>
+                        <strong style="font-family: 'JetBrains Mono', monospace;">-₹{{ bill.discount|floatformat:2 }}</strong>
+                    </div>
+                    {% endif %}
+                    <div class="grand-row" style="color: #059669;">
+                        <span>Net Total:</span>
+                        <span style="font-family: 'JetBrains Mono', monospace;">₹{{ non_gst_total|floatformat:2 }}</span>
+                    </div>
+                    <div class="total-row" style="margin-top: 10px; color: #16a34a; font-weight: 700; font-size: 14px;">
+                        <span>Amount Paid:</span>
+                        <strong style="font-family: 'JetBrains Mono', monospace;">₹{{ non_gst_paid|floatformat:2 }}</strong>
+                    </div>
+                    <div class="total-row" style="font-weight: 800; font-size: 14px; color: {% if non_gst_balance > 0 %}#dc2626{% else %}#16a34a{% endif %}; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
+                        <span>Balance Due:</span>
+                        <strong style="font-family: 'JetBrains Mono', monospace;">₹{{ non_gst_balance|floatformat:2 }}</strong>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- TERMS & SIGNATURE -->
         <div class="terms-section">
             <div>
                 <strong>Terms & Conditions:</strong>
-                <ol style="padding-left: 18px; margin-top: 4px; line-height: 1.4;">
-                    <li>Goods once sold will not be taken back without original bill.</li>
-                    <li>Subject to local jurisdiction.</li>
-                    <li>Thank you for doing business with {{ shop_name }}!</li>
+                <!-- GST Mode Terms -->
+                <ol class="show-gst-only" style="padding-left: 18px; margin-top: 4px; line-height: 1.45;">
+                    <li>Tax Invoice issued under Section 31 of CGST Act 2017.</li>
+                    <li>Goods once sold will not be taken back without original Tax Invoice.</li>
+                    <li>GSTIN: <strong>{{ gstin }}</strong> • Subject to Kanyakumari jurisdiction.</li>
+                    <li>Thank you for choosing <strong>{{ shop_name }}</strong>!</li>
+                </ol>
+                <!-- No-GST Mode Terms -->
+                <ol class="show-nogst-only" style="padding-left: 18px; margin-top: 4px; line-height: 1.45;">
+                    <li>Retail cash memo for plumbing fixtures and hardware materials.</li>
+                    <li>Goods once sold will not be taken back without original cash memo.</li>
+                    <li>Subject to local Kanyakumari jurisdiction.</li>
+                    <li>Thank you for shopping at <strong>{{ shop_name }}</strong>!</li>
                 </ol>
             </div>
             <div>
@@ -359,5 +623,37 @@
             </div>
         </div>
     </div>
+
+    <!-- CLIENT-SIDE SCRIPT FOR DYNAMIC MODE SWITCHING -->
+    <script>
+        function switchPrintMode(mode) {
+            const btnGst = document.getElementById('btnSwitchGst');
+            const btnNoGst = document.getElementById('btnSwitchNoGst');
+
+            if (mode === 'nogst') {
+                document.body.classList.remove('mode-gst');
+                document.body.classList.add('mode-nogst');
+                btnNoGst.classList.add('active');
+                btnGst.classList.remove('active');
+                document.title = "Retail Bill (Non-GST) #{{ bill.bill_number }} - {{ shop_name }}";
+                try {
+                    const url = new URL(window.location);
+                    url.searchParams.set('type', 'nogst');
+                    window.history.replaceState({}, '', url);
+                } catch(e) {}
+            } else {
+                document.body.classList.remove('mode-nogst');
+                document.body.classList.add('mode-gst');
+                btnGst.classList.add('active');
+                btnNoGst.classList.remove('active');
+                document.title = "Tax Invoice (GST) #{{ bill.bill_number }} - {{ shop_name }}";
+                try {
+                    const url = new URL(window.location);
+                    url.searchParams.set('type', 'gst');
+                    window.history.replaceState({}, '', url);
+                } catch(e) {}
+            }
+        }
+    </script>
 </body>
 </html>

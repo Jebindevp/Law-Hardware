@@ -556,14 +556,54 @@
         color: #0f766e;
     }
 
-    /* 3 Card Action Buttons: View/Print, Edit, Delete */
+    /* 4 Card Action Buttons: GST Print, No-GST Print, Edit, Delete */
     .bill-actions {
         display: grid;
-        grid-template-columns: 1fr 1fr 40px;
-        gap: 6px;
+        grid-template-columns: 1fr 1fr 1fr 38px;
+        gap: 5px;
         margin-top: 8px;
         border-top: 1px dashed var(--color-gray-border);
         padding-top: 12px;
+    }
+
+    .btn-act-print-gst {
+        background: var(--color-blue);
+        color: #ffffff;
+        border: none;
+        padding: 7px 6px;
+        border-radius: 6px;
+        font-size: 11.5px;
+        font-weight: 700;
+        text-decoration: none;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        transition: opacity 0.15s;
+    }
+    .btn-act-print-gst:hover {
+        opacity: 0.9;
+    }
+
+    .btn-act-print-nogst {
+        background: #059669;
+        color: #ffffff;
+        border: none;
+        padding: 7px 6px;
+        border-radius: 6px;
+        font-size: 11.5px;
+        font-weight: 700;
+        text-decoration: none;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        transition: opacity 0.15s;
+    }
+    .btn-act-print-nogst:hover {
+        opacity: 0.9;
     }
 
     .btn-act-print {
@@ -1110,7 +1150,7 @@
 <div class="inv-header-card">
     <div class="header-left">
         <h1>Plumbing Invoices & Customer Bills (Card View)</h1>
-        <p>Shop Owner: <strong>{{ shop_owner }}</strong> | Category-wise product bill generator & separate bill cards</p>
+        <p>Shop Owner: <strong>{{ shop_owner }}</strong> | {{ shop_name }} • GSTIN: <strong style="color: #0284c7; font-family: 'JetBrains Mono', monospace;">{{ gstin|default:"33CGSPC1805K1ZG" }}</strong> | 📍 {{ shop_address|default:"Building No. 5/139/1, Mulagumoodu Junction, Colchal Road, Dist. Kanyakumari, Tamil Nadu - 629167" }}</p>
     </div>
 
     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
@@ -1335,9 +1375,20 @@
                     <div>
                         <strong>{{ item.product_name }}</strong>
                         <span style="color: #64748b; font-size: 11px;">({{ item.size }})</span>
+                        {% if item.is_pipe %}
+                        <div style="margin-top: 2px;">
+                            <span style="background: #e0f2fe; color: #0284c7; padding: 1px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 800; border: 1px solid #bae6fd;">
+                                📏 {{ item.pipe_lengths }} Length{{ item.pipe_lengths|pluralize }} ({{ item.pipe_meters|floatformat:1 }}m / {{ item.pipe_feet }}ft)
+                            </span>
+                        </div>
+                        {% endif %}
                     </div>
                     <div>
+                        {% if item.is_pipe %}
+                        <span>{{ item.pipe_lengths }} len ({{ item.pipe_meters|floatformat:1 }}m) × ₹{{ item.rate|floatformat:2 }}/m</span> = 
+                        {% else %}
                         <span>{{ item.quantity }} × ₹{{ item.rate|floatformat:2 }}</span> = 
+                        {% endif %}
                         <strong>₹{{ item.total|floatformat:2 }}</strong>
                     </div>
                 </div>
@@ -1377,10 +1428,13 @@
             </div>
         </div>
 
-        <!-- 3 Card Action Buttons: View/Print, Edit, Delete -->
+        <!-- 4 Card Action Buttons: GST Print, No-GST Print, Edit, Delete -->
         <div class="bill-actions">
-            <a href="{% url 'invoice_detail' b.id %}" target="_blank" class="btn-act-print">
-                🖨️ Print
+            <a href="{% url 'invoice_detail' b.id %}?type=gst" target="_blank" class="btn-act-print-gst" title="Print as Official GST Tax Invoice">
+                🧾 GST Bill
+            </a>
+            <a href="{% url 'invoice_detail' b.id %}?type=nogst" target="_blank" class="btn-act-print-nogst" title="Print as Non-GST Retail Cash Memo">
+                📄 No GST
             </a>
             <button type="button" class="btn-act-edit" onclick="editInvoiceFromElement(this)">
                 ✏️ Edit
@@ -1479,9 +1533,10 @@
                 </td>
                 <td style="font-size: 12px; color: #64748b;">{{ b.created_at|date:"d M Y, h:i A" }}</td>
                 <td style="text-align: right; white-space: nowrap;">
-                    <a href="{% url 'invoice_detail' b.id %}" target="_blank" class="btn-act-print" style="display: inline-flex; padding: 4px 10px; font-size: 12px;">🖨️ Print</a>
-                    <button type="button" class="btn-act-edit" style="display: inline-flex; padding: 4px 10px; font-size: 12px;" onclick="editInvoiceFromElement(this)">✏️ Edit</button>
-                    <button type="button" class="btn-act-del" style="display: inline-flex; padding: 4px 8px; font-size: 12px;" onclick="deleteInvoiceFromElement(this)" title="Delete invoice">🗑️</button>
+                    <a href="{% url 'invoice_detail' b.id %}?type=gst" target="_blank" class="btn-act-print-gst" style="display: inline-flex; padding: 4px 7px; font-size: 11px; margin-right: 2px;" title="Print GST Tax Invoice">🧾 GST</a>
+                    <a href="{% url 'invoice_detail' b.id %}?type=nogst" target="_blank" class="btn-act-print-nogst" style="display: inline-flex; padding: 4px 7px; font-size: 11px; margin-right: 4px;" title="Print No-GST Retail Bill">📄 No GST</a>
+                    <button type="button" class="btn-act-edit" style="display: inline-flex; padding: 4px 8px; font-size: 11.5px;" onclick="editInvoiceFromElement(this)">✏️ Edit</button>
+                    <button type="button" class="btn-act-del" style="display: inline-flex; padding: 4px 7px; font-size: 11.5px;" onclick="deleteInvoiceFromElement(this)" title="Delete invoice">🗑️</button>
                 </td>
             </tr>
             {% endfor %}
@@ -1553,7 +1608,7 @@
                     </div>
                     <div>
                         <label class="modal-form-label">Address with Door No</label>
-                        <input type="text" id="billAddress" class="modal-form-input" placeholder="e.g. Main Road, Hardware Market">
+                        <input type="text" id="billAddress" class="modal-form-input" placeholder="e.g. Mulagumoodu Junction, Colchal Road">
                     </div>
                 </div>
 
@@ -2402,24 +2457,37 @@
 
         editBillItems.forEach((item, idx) => {
             const tr = document.createElement('tr');
+            const isPipe = Boolean(item.is_pipe || (item.category_name && item.category_name.toLowerCase().includes('pipe')) || (item.product_name && item.product_name.toLowerCase().includes('pipe')));
+            let pipePill = '';
+            if (isPipe) {
+                const std = 6.00;
+                const qtyMeters = parseFloat(item.quantity) || 0;
+                const lens = item.pipe_lengths || (qtyMeters / std);
+                const formattedLens = (lens % 1 === 0) ? lens : parseFloat(lens.toFixed(2));
+                const feet = item.pipe_feet || Math.round(lens * 20);
+                pipePill = `<div style="margin-top: 3px;"><span style="background: #e0f2fe; color: #0284c7; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 800; border: 1px solid #bae6fd;">📏 ${formattedLens} Length(s) = ${qtyMeters}m (${feet}ft)</span></div>`;
+            }
             tr.innerHTML = `
                 <td style="color: #64748b; font-weight: 700;">${idx + 1}</td>
                 <td>
                     <strong style="color: #0f172a;">${item.product_name}</strong>
                     <span style="color: #64748b; font-size: 11.5px; margin-left: 4px;">(${item.size})</span>
                     <div style="font-size: 11px; color: #94a3b8;">${item.category_name}</div>
+                    ${pipePill}
                 </td>
                 <td>
                     <input type="number" step="0.01" min="0" class="edit-rate-input" value="${item.rate.toFixed(2)}"
                            oninput="updateEditItemRate(${idx}, this.value)" style="width: 95px;">
+                    ${isPipe ? '<div style="font-size: 10px; color: #64748b;">/meter</div>' : ''}
                 </td>
                 <td style="text-align: center;">
                     <div style="display: inline-flex; align-items: center; gap: 4px;">
-                        <button type="button" class="btn-qty-step" onclick="stepEditItemQty(${idx}, -1)">−</button>
-                        <input type="number" step="1" min="1" class="edit-qty-input" value="${item.quantity}"
-                               oninput="updateEditItemQty(${idx}, this.value)" style="width: 50px; text-align: center;">
-                        <button type="button" class="btn-qty-step" onclick="stepEditItemQty(${idx}, 1)">+</button>
+                        <button type="button" class="btn-qty-step" onclick="stepEditItemQty(${idx}, ${isPipe ? -6 : -1})">-${isPipe ? '6m' : '1'}</button>
+                        <input type="number" step="${isPipe ? '6' : '1'}" min="${isPipe ? '0.1' : '1'}" class="edit-qty-input" value="${item.quantity}"
+                               oninput="updateEditItemQty(${idx}, this.value)" style="width: 55px; text-align: center;">
+                        <button type="button" class="btn-qty-step" onclick="stepEditItemQty(${idx}, ${isPipe ? 6 : 1})">+${isPipe ? '6m' : '1'}</button>
                     </div>
+                    ${isPipe ? '<div style="font-size: 10px; color: #0284c7; font-weight: 700; margin-top: 2px;">(meters)</div>' : ''}
                 </td>
                 <td style="text-align: right; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: #0f172a;" id="lineTotalCol-${idx}">
                     ₹${item.total.toFixed(2)}

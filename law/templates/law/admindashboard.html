@@ -1619,7 +1619,8 @@
             </h1>
             <p>
                 Shop Owner: <strong style="color: #0284c7;">{{ shop_owner|default:"Lawrence C" }}</strong> | 
-                {{ shop_name }} • Real-Time Plumbing & Hardware Management
+                {{ shop_name }} • GSTIN: <strong style="color: #0284c7; font-family: 'JetBrains Mono', monospace;">{{ gstin|default:"33CGSPC1805K1ZG" }}</strong> | 
+                📍 {{ shop_address|default:"Building No. 5/139/1, Mulagumoodu Junction, Colchal Road, Dist. Kanyakumari, Tamil Nadu - 629167" }}
             </p>
         </div>
 
@@ -2226,11 +2227,14 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <div style="display: flex; gap: 6px; align-items: center;">
-                                    <a href="{% url 'invoice_detail' b.id %}" target="_blank" class="btn-white" style="padding: 4px 8px; font-size: 11px; text-decoration: none;">
-                                        🖨️ Print
+                                <div style="display: flex; gap: 4px; align-items: center;">
+                                    <a href="{% url 'invoice_detail' b.id %}?type=gst" target="_blank" class="btn-blue" style="padding: 3px 6px; font-size: 11px; text-decoration: none;" title="Print 1. GST Tax Invoice">
+                                        🧾 GST
                                     </a>
-                                    <a href="{% url 'invoices_list' %}" class="btn-blue" style="padding: 4px 8px; font-size: 11px; text-decoration: none;" title="Edit in Invoices Manager">
+                                    <a href="{% url 'invoice_detail' b.id %}?type=nogst" target="_blank" class="btn-white" style="padding: 3px 6px; font-size: 11px; text-decoration: none;" title="Print 2. No GST Retail Bill">
+                                        📄 No GST
+                                    </a>
+                                    <a href="{% url 'invoices_list' %}" class="btn-white" style="padding: 3px 6px; font-size: 11px; text-decoration: none;" title="Edit in Invoices Manager">
                                         ✏️ Edit
                                     </a>
                                 </div>

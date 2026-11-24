@@ -100,7 +100,8 @@ def index_view(request):
         'shop_phone': "+91 98765 43210",
         'shop_phone_alt': "+91 98401 23456",
         'shop_email': "contact@zamzamhardware.com",
-        'shop_address': "Main Road, Near Old Bus Stand, Hardware Market, Chennai, Tamil Nadu - 600001",
+        'shop_address': "Building No. 5/139/1, Mulagumoodu Junction, Colchal Road, Dist. Kanyakumari, Tamil Nadu - 629167",
+        'gstin': "33CGSPC1805K1ZG",
         'featured_products': featured_products,
         'categories': categories,
         'products': products,
@@ -124,7 +125,8 @@ def billing_pos(request):
         'shop_name': "ZAM ZAM HARDWARE",
         'shop_owner': "Lawrence C",
         'shop_phone': "+91 98765 43210",
-        'shop_address': "Main Road, Near Old Bus Stand, Hardware Market",
+        'shop_address': "Building No. 5/139/1, Mulagumoodu Junction, Colchal Road, Dist. Kanyakumari, Tamil Nadu - 629167",
+        'gstin': "33CGSPC1805K1ZG",
         'categories': categories,
         'brands': brands,
         'products': products,
@@ -211,8 +213,13 @@ def invoices_list(request):
                     'category_name': it.category_name,
                     'size': it.size,
                     'rate': float(it.rate),
-                    'quantity': it.quantity,
-                    'total': float(it.total)
+                    'quantity': float(it.quantity),
+                    'total': float(it.total),
+                    'is_pipe': it.is_pipe,
+                    'pipe_lengths': it.pipe_lengths if it.is_pipe else 0,
+                    'pipe_meters': it.pipe_meters if it.is_pipe else 0,
+                    'pipe_feet': it.pipe_feet if it.is_pipe else 0,
+                    'pipe_display': it.pipe_display if it.is_pipe else ''
                 } for it in b.items.all()
             ]
         }
@@ -220,6 +227,9 @@ def invoices_list(request):
     context = {
         'shop_name': "ZAM ZAM HARDWARE",
         'shop_owner': "Lawrence C",
+        'shop_phone': "+91 98765 43210",
+        'shop_address': "Building No. 5/139/1, Mulagumoodu Junction, Colchal Road, Dist. Kanyakumari, Tamil Nadu - 629167",
+        'gstin': "33CGSPC1805K1ZG",
         'bills': bills,
         'bills_dict': bills_dict,
         'products': products,
@@ -240,16 +250,55 @@ def invoices_list(request):
 
 def invoice_detail(request, bill_id):
     """
-    Printable and downloadable tax invoice receipt for customer.
+    Printable and downloadable tax invoice or retail non-gst receipt for customer.
+    Supports 2 types:
+    1. type='gst': GST Tax Invoice (with GSTIN, CGST/SGST tax breakdown, and Tax Invoice header)
+    2. type='nogst': Non-GST Retail Bill / Cash Memo (without GSTIN/tax fields, clean retail receipt)
     """
     bill = get_object_or_404(Bill.objects.prefetch_related('items'), id=bill_id)
+    bill_type = (request.GET.get('type') or '').lower().strip()
+
+    # Determine default type if not explicitly passed
+    if bill_type not in ['gst', 'nogst']:
+        bill_type = 'gst' if (float(bill.gst_rate) > 0 or float(bill.gst_amount) > 0) else 'nogst'
+
+    is_gst = (bill_type == 'gst')
+
+    # Half-split for Intra-state CGST + SGST (standard Indian GST rule)
+    cgst_rate = round(float(bill.gst_rate) / 2.0, 2)
+    sgst_rate = round(float(bill.gst_rate) / 2.0, 2)
+    cgst_amount = round(float(bill.gst_amount) / 2.0, 2)
+    sgst_amount = round(float(bill.gst_amount) / 2.0, 2)
+
+    # Taxable amount (Subtotal - Discount)
+    subtotal_val = float(bill.subtotal)
+    discount_val = float(bill.discount)
+    taxable_amount = max(0.0, subtotal_val - discount_val)
+
+    # Non-GST calculations (pure items total minus discount)
+    non_gst_total = taxable_amount
+    non_gst_paid = min(float(bill.paid_amount), non_gst_total) if float(bill.paid_amount) > 0 else 0.0
+    if float(bill.balance_amount) <= 0.01 and float(bill.paid_amount) >= float(bill.grand_total):
+        non_gst_paid = non_gst_total
+    non_gst_balance = max(0.0, round(non_gst_total - non_gst_paid, 2))
+
     context = {
         'bill': bill,
+        'bill_type': bill_type,
+        'is_gst': is_gst,
+        'cgst_rate': cgst_rate,
+        'sgst_rate': sgst_rate,
+        'cgst_amount': cgst_amount,
+        'sgst_amount': sgst_amount,
+        'taxable_amount': taxable_amount,
+        'non_gst_total': non_gst_total,
+        'non_gst_paid': non_gst_paid,
+        'non_gst_balance': non_gst_balance,
         'shop_name': "ZAM ZAM HARDWARE",
         'shop_owner': "Lawrence C",
         'shop_phone': "+91 98765 43210",
-        'shop_address': "Main Road, Near Old Bus Stand, Hardware Market",
-        'gstin': "33AAACJ1234F1Z8",
+        'shop_address': "Building No. 5/139/1, Mulagumoodu Junction, Colchal Road, Dist. Kanyakumari, Tamil Nadu - 629167",
+        'gstin': "33CGSPC1805K1ZG",
     }
     return render(request, 'law/invoice_print.html', context)
 
@@ -312,13 +361,17 @@ def create_bill_api(request):
                     prod.quantity = 0
                 prod.save(update_fields=['quantity', 'updated_at'])
 
+                custom_size = (item.get('size') or '').strip()
+                if not custom_size:
+                    custom_size = prod.size
+
                 bill_items_to_create.append({
                     'product': prod,
                     'product_name': prod.name,
                     'category_name': prod.category.name,
-                    'size': prod.size,
+                    'size': custom_size[:80],
                     'rate': rate,
-                    'quantity': int(round(qty)) if qty.is_integer() else qty,
+                    'quantity': qty,
                     'total': line_total,
                 })
 
@@ -919,7 +972,8 @@ def admin_dashboard(request):
         'shop_name': "ZAM ZAM HARDWARE",
         'shop_owner': "Lawrence C",
         'shop_phone': "+91 98765 43210",
-        'shop_address': "Main Road, Near Old Bus Stand, Hardware Market",
+        'shop_address': "Building No. 5/139/1, Mulagumoodu Junction, Colchal Road, Dist. Kanyakumari, Tamil Nadu - 629167",
+        'gstin': "33CGSPC1805K1ZG",
         'categories': categories,
         'category_analytics': category_analytics,
         'brands': brands,
