@@ -219,8 +219,29 @@
             text-decoration: underline;
         }
     </style>
+    <style>
+        .zamzam-loader-overlay{position:fixed;inset:0;z-index:999999;background:radial-gradient(circle at center,#0b162c 0%,#050812 70%,#02040a 100%);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;opacity:1;visibility:visible;transition:opacity .45s ease,visibility .45s ease,transform .45s ease}
+        .zamzam-loader-overlay.is-hidden{opacity:0;visibility:hidden;transform:scale(1.04);pointer-events:none}
+        .zamzam-circle-wrap{position:relative;width:148px;height:148px;display:flex;align-items:center;justify-content:center}
+        .zamzam-nano-ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,#00f2fe,#38bdf8,#10b981,#a855f7,#00f2fe);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 3px));animation:zamzamSpin 1.15s linear infinite;filter:drop-shadow(0 0 14px rgba(0,242,254,.55))}
+        .zamzam-nano-ring-inner{position:absolute;inset:10px;border-radius:50%;border:1.5px solid rgba(56,189,248,.28);border-top-color:#10b981;border-bottom-color:#a855f7;animation:zamzamSpinReverse 1.6s linear infinite}
+        .zamzam-loader-text{font-size:16px;font-weight:800;letter-spacing:3px;text-transform:uppercase;background:linear-gradient(90deg,#fff 0%,#38bdf8 45%,#10b981 75%,#fff 100%);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:zamzamTextShimmer 1.8s linear infinite;user-select:none}
+        @keyframes zamzamSpin{to{transform:rotate(360deg)}}
+        @keyframes zamzamSpinReverse{to{transform:rotate(-360deg)}}
+        @keyframes zamzamTextShimmer{to{background-position:200% center}}
+    </style>
 </head>
 <body>
+    <div id="zamzamLoader" class="zamzam-loader-overlay" aria-hidden="true">
+        <div class="zamzam-circle-wrap">
+            <div class="zamzam-nano-ring"></div>
+            <div class="zamzam-nano-ring-inner"></div>
+            <span class="zamzam-loader-text">ZAM ZAM</span>
+        </div>
+    </div>
+    <script>
+        (function(){function h(){var e=document.getElementById('zamzamLoader');if(e&&!e.classList.contains('is-hidden')){e.classList.add('is-hidden');setTimeout(function(){e.style.display='none'},480)}}document.addEventListener('DOMContentLoaded',function(){setTimeout(h,520)});window.addEventListener('load',function(){setTimeout(h,380)});setTimeout(h,2000)})();
+    </script>
     <div class="login-card">
         <div class="brand-header">
             <div class="brand-icon-box">🚰</div>
@@ -293,6 +314,10 @@
         <a href="{% url 'index' %}" class="back-link">
             ← Back to Store Homepage
         </a>
+
+        <footer style="margin-top: 18px; padding-top: 12px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 12px; color: #64748b;">
+            © 2026 - All rights reserved by <a href="https://jebindevp.github.io/JebinJoseph/" target="_blank" rel="noopener noreferrer" style="color: #0284c7; font-weight: 800; text-decoration: none;">Jebin Devp</a>
+        </footer>
     </div>
 </body>
 </html>

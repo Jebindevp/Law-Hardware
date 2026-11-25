@@ -452,12 +452,11 @@ class PlumbingBillingTests(TestCase):
         pipe_prod.refresh_from_db()
         self.assertEqual(pipe_prod.quantity, 48)
 
-        # 4. Verify Invoice Print view renders detailed length, meter, and feet breakdowns
+        # 4. Verify Invoice Print view shows clean name/category in description and len/m in qty
         print_res = self.client.get(reverse('invoice_detail', kwargs={'bill_id': bill.id}) + '?type=gst')
         self.assertEqual(print_res.status_code, 200)
         html = print_res.content.decode('utf-8')
-        self.assertIn("2 Lengths</strong> = 12.00 Meters (approx. 40 Feet)", html)
-        self.assertIn("Standard: 1 Length Pipe = 6.00 Meters (approx. 20 Feet)", html)
+        self.assertNotIn("Standard: 1 Length Pipe = 6.00 Meters (approx. 20 Feet)", html)
         self.assertIn("2 <span style=\"font-size: 10px; color: #64748b;\">len</span>", html)
         self.assertIn("(12.0m)", html)
         self.assertIn("/meter", html)
@@ -603,13 +602,13 @@ class PlumbingBillingTests(TestCase):
         self.assertEqual(pipe_item.pipe_meters, 12.0)
         self.assertEqual(pipe_item.pipe_feet, 40)
 
-        # 5. Verify Invoice Print view renders length badges for pipe but NOT for elbow
+        # 5. Verify Invoice Print view renders clean description and length/meter in Qty for pipe
         print_res = self.client.get(reverse('invoice_detail', kwargs={'bill_id': bill.id}))
         self.assertEqual(print_res.status_code, 200)
         html = print_res.content.decode('utf-8')
 
-        # Pipe length badge is rendered
-        self.assertIn("2 Lengths</strong> = 12.00 Meters", html)
+        # Pipe length & meter shown in Qty column, without extra text in description
+        self.assertNotIn("Standard: 1 Length Pipe", html)
         self.assertIn("(12.0m)", html)
 
         # Elbow fitting is rendered with standard pieces, not length badges

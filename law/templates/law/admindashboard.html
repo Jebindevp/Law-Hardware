@@ -568,33 +568,56 @@
     }
 
     /* =========================================================
-       EXECUTIVE KPI SUMMARY CARDS GRID
+       EXECUTIVE HORIZONTAL KPI SUMMARY RIBBON
        ========================================================= */
     .kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 18px;
-        margin-bottom: 24px;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 14px;
+        margin-bottom: 22px;
+        overflow-x: auto;
+        padding: 4px 2px 12px;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: thin;
+        scrollbar-color: #38bdf8 #e2e8f0;
+    }
+
+    .kpi-grid::-webkit-scrollbar {
+        height: 6px;
+    }
+    .kpi-grid::-webkit-scrollbar-track {
+        background: #e2e8f0;
+        border-radius: 999px;
+    }
+    .kpi-grid::-webkit-scrollbar-thumb {
+        background: linear-gradient(90deg, #0284c7, #38bdf8);
+        border-radius: 999px;
     }
 
     .kpi-card {
+        flex: 0 0 245px;
+        scroll-snap-align: start;
         background: #ffffff;
         border: 1.5px solid #e2e8f0;
         border-radius: 16px;
-        padding: 20px 22px;
+        padding: 18px 20px;
         box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+        transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s ease, border-color 0.22s ease, outline-color 0.22s ease;
         position: relative;
         overflow: hidden;
+        outline: 1.5px solid transparent;
+        outline-offset: 2px;
     }
 
     .kpi-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 14px 28px -4px rgba(2, 132, 199, 0.16);
-        border-color: #93c5fd;
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px -4px rgba(2, 132, 199, 0.16);
+        border-color: #38bdf8;
+        outline: 1.5px solid rgba(56, 189, 248, 0.65);
     }
 
     .kpi-card.border-blue { border-top: 4px solid #0284c7; }
@@ -832,28 +855,33 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        background: #ffffff;
-        border: 1.5px solid #e2e8f0;
+        background: linear-gradient(135deg, #090d16 0%, #0f172a 100%);
+        border: 1.5px solid rgba(56, 189, 248, 0.28);
         border-radius: 16px;
         padding: 8px 10px;
-        margin-bottom: 24px;
-        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+        margin-bottom: 22px;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
         overflow-x: auto;
-        scrollbar-width: none;
+        scrollbar-width: thin;
+        scrollbar-color: #38bdf8 transparent;
     }
 
     .dash-tabs-bar::-webkit-scrollbar {
-        display: none;
+        height: 4px;
+    }
+    .dash-tabs-bar::-webkit-scrollbar-thumb {
+        background: rgba(56, 189, 248, 0.45);
+        border-radius: 999px;
     }
 
     .dash-tab-btn {
         background: transparent;
-        border: none;
-        padding: 11px 18px;
+        border: 1px solid transparent;
+        padding: 10px 16px;
         border-radius: 10px;
-        font-size: 13.5px;
+        font-size: 13px;
         font-weight: 700;
-        color: #64748b;
+        color: #cbd5e1;
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -863,14 +891,15 @@
     }
 
     .dash-tab-btn:hover {
-        background: #f1f5f9;
-        color: #0f172a;
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
     }
 
     .dash-tab-btn.active {
-        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
         color: #ffffff;
-        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.38);
+        border-color: rgba(56, 189, 248, 0.65);
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45);
     }
 
     .tab-counter {
@@ -882,8 +911,8 @@
     }
 
     .dash-tab-btn:not(.active) .tab-counter {
-        background: #e2e8f0;
-        color: #0f172a;
+        background: rgba(255, 255, 255, 0.14);
+        color: #e2e8f0;
     }
 
     /* Tab Panes */
@@ -1299,9 +1328,6 @@
        RESPONSIVE ADAPTATIONS
        ========================================================= */
     @media (max-width: 1200px) {
-        .kpi-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
         .analytics-row {
             grid-template-columns: 1fr;
         }
@@ -1314,8 +1340,8 @@
     }
 
     @media (max-width: 768px) {
-        .kpi-grid {
-            grid-template-columns: 1fr;
+        .kpi-card {
+            flex: 0 0 220px;
         }
         .dash-header-card {
             flex-direction: column;
@@ -1364,251 +1390,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- =========================================================
-     5-SECOND WATER PIPE OPENING INTRO LOADER (REALISTIC ANIMATION)
-     ========================================================= -->
-<div id="pipeWaterIntroLoader" class="pipe-intro-overlay">
-    <div class="pipe-intro-card">
-        <!-- Brand Header -->
-        <div class="pipe-intro-header">
-            <div class="pipe-brand-badge">
-                <span class="pipe-brand-icon">🚰</span>
-                <span class="pipe-brand-name">ZAM ZAM HARDWARE &amp; PLUMBING ERP</span>
-            </div>
-            <div class="pipe-system-status">
-                <span class="pipe-status-dot"></span>
-                <span>SYSTEM PRIMING &bull; 5.0s SEQUENCE</span>
-            </div>
-        </div>
-
-        <!-- 3D Plumbing Visual Scene (Interactive SVG) -->
-        <div class="pipe-visual-assembly">
-            <svg class="pipe-svg-scene" viewBox="0 0 620 220" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <!-- Metallic Pipe Gradient -->
-                    <linearGradient id="metalPipeGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#475569"/>
-                        <stop offset="30%" stop-color="#94a3b8"/>
-                        <stop offset="50%" stop-color="#f1f5f9"/>
-                        <stop offset="70%" stop-color="#64748b"/>
-                        <stop offset="100%" stop-color="#1e293b"/>
-                    </linearGradient>
-
-                    <!-- Brass Valve Body Gradient -->
-                    <linearGradient id="brassGrad" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stop-color="#f59e0b"/>
-                        <stop offset="50%" stop-color="#fbbf24"/>
-                        <stop offset="100%" stop-color="#b45309"/>
-                    </linearGradient>
-
-                    <!-- Industrial Valve Wheel Gradient -->
-                    <linearGradient id="valveWheelGrad" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stop-color="#ef4444"/>
-                        <stop offset="50%" stop-color="#dc2626"/>
-                        <stop offset="100%" stop-color="#991b1b"/>
-                    </linearGradient>
-
-                    <!-- High-Pressure Electric Water Flow Gradient -->
-                    <linearGradient id="waterFlowGrad" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stop-color="#0284c7" stop-opacity="0.9"/>
-                        <stop offset="35%" stop-color="#38bdf8" stop-opacity="0.95"/>
-                        <stop offset="70%" stop-color="#00f2fe" stop-opacity="1"/>
-                        <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0.95"/>
-                    </linearGradient>
-
-                    <!-- Acrylic Glass Inspection Tube Gradient -->
-                    <linearGradient id="glassReflection" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
-                        <stop offset="15%" stop-color="#ffffff" stop-opacity="0.1"/>
-                        <stop offset="85%" stop-color="#38bdf8" stop-opacity="0.05"/>
-                        <stop offset="100%" stop-color="#ffffff" stop-opacity="0.2"/>
-                    </linearGradient>
-
-                    <!-- Pressure Gauge Dial Gradient -->
-                    <radialGradient id="gaugeDialGrad" cx="50%" cy="50%" r="50%">
-                        <stop offset="70%" stop-color="#0f172a"/>
-                        <stop offset="92%" stop-color="#1e293b"/>
-                        <stop offset="100%" stop-color="#334155"/>
-                    </radialGradient>
-
-                    <!-- Water Spray Radial Gradient -->
-                    <radialGradient id="sprayGrad" cx="0%" cy="50%" r="100%">
-                        <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.8"/>
-                        <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.4"/>
-                        <stop offset="100%" stop-color="#0284c7" stop-opacity="0"/>
-                    </radialGradient>
-
-                    <!-- Filter for Water Glow -->
-                    <filter id="waterGlow" x="-10%" y="-20%" width="120%" height="140%">
-                        <feGaussianBlur stdDeviation="4" result="blur"/>
-                        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-                    </filter>
-                </defs>
-
-                <!-- Pipe Background Shadow -->
-                <rect x="20" y="102" width="560" height="20" rx="10" fill="rgba(0,0,0,0.5)" filter="blur(6px)"/>
-
-                <!-- 1. Left Inflow Steel Pipe -->
-                <rect x="30" y="90" width="120" height="40" rx="4" fill="url(#metalPipeGrad)" stroke="#334155" stroke-width="2"/>
-                <!-- Flange Collar -->
-                <rect x="25" y="85" width="12" height="50" rx="3" fill="#64748b" stroke="#1e293b" stroke-width="1.5"/>
-                <circle cx="31" cy="95" r="2.5" fill="#f8fafc"/>
-                <circle cx="31" cy="125" r="2.5" fill="#f8fafc"/>
-
-                <!-- 2. Main Gate Valve Assembly -->
-                <rect x="150" y="75" width="46" height="70" rx="5" fill="url(#brassGrad)" stroke="#78350f" stroke-width="2"/>
-                <!-- Flange bolts -->
-                <rect x="145" y="70" width="8" height="80" rx="2" fill="#d97706" stroke="#92400e" stroke-width="1"/>
-                <rect x="193" y="70" width="8" height="80" rx="2" fill="#d97706" stroke="#92400e" stroke-width="1"/>
-                <!-- Valve Stem -->
-                <rect x="169" y="38" width="8" height="38" fill="url(#metalPipeGrad)" stroke="#334155" stroke-width="1"/>
-                <!-- Valve Packing Nut -->
-                <polygon points="166,62 180,62 178,72 168,72" fill="#d97706" stroke="#78350f" stroke-width="1"/>
-
-                <!-- ROTATABLE VALVE WHEEL -->
-                <g id="valveWheelElem" class="pipe-valve-wheel" transform-origin="173 34">
-                    <!-- Wheel Rim -->
-                    <circle cx="173" cy="34" r="24" fill="none" stroke="url(#valveWheelGrad)" stroke-width="7"/>
-                    <!-- Rim Ridges/Grips -->
-                    <circle cx="173" cy="10" r="3" fill="#ffffff"/>
-                    <circle cx="197" cy="34" r="3" fill="#ffffff"/>
-                    <circle cx="173" cy="58" r="3" fill="#ffffff"/>
-                    <circle cx="149" cy="34" r="3" fill="#ffffff"/>
-                    <!-- Center Hub -->
-                    <circle cx="173" cy="34" r="8" fill="#78350f" stroke="#fbbf24" stroke-width="2"/>
-                    <!-- Spokes -->
-                    <line x1="173" y1="12" x2="173" y2="56" stroke="#ffffff" stroke-width="2.5"/>
-                    <line x1="151" y1="34" x2="195" y2="34" stroke="#ffffff" stroke-width="2.5"/>
-                </g>
-
-                <!-- 3. Central Acrylic Glass Inspection Pipe Tube (Water Flow Section) -->
-                <rect x="201" y="90" width="230" height="40" rx="6" fill="#091428" stroke="#0284c7" stroke-width="1.5"/>
-
-                <!-- SURGING WATER STREAM (Fills with Valve Open) -->
-                <g id="waterStreamSvg" class="water-stream-group" style="opacity: 0; transition: opacity 0.4s ease;">
-                    <!-- Base Water Flow -->
-                    <rect x="202" y="94" width="228" height="32" rx="4" fill="url(#waterFlowGrad)" filter="url(#waterGlow)"/>
-                    <!-- High Velocity Inner Water Waves -->
-                    <path class="water-wave-anim" d="M202,104 Q230,98 260,104 T320,104 T380,104 T430,104 L430,120 Q380,126 320,120 T260,120 T202,120 Z" fill="#38bdf8" opacity="0.6"/>
-                    <path class="water-wave-anim-fast" d="M202,108 Q240,114 280,108 T360,108 T430,108 L430,116 Q360,112 280,116 T202,116 Z" fill="#ffffff" opacity="0.75"/>
-                </g>
-
-                <!-- DYNAMIC WATER BUBBLES IN INSPECTION PIPE -->
-                <g id="waterBubblesSvg" class="water-bubbles-group" style="opacity: 0; transition: opacity 0.4s ease;">
-                    <circle class="pipe-bubble bubble-1" cx="230" cy="106" r="3.5" fill="#ffffff" opacity="0.8"/>
-                    <circle class="pipe-bubble bubble-2" cx="280" cy="114" r="2.5" fill="#e0f2fe" opacity="0.9"/>
-                    <circle class="pipe-bubble bubble-3" cx="330" cy="102" r="4" fill="#ffffff" opacity="0.7"/>
-                    <circle class="pipe-bubble bubble-4" cx="370" cy="112" r="3" fill="#bae6fd" opacity="0.85"/>
-                    <circle class="pipe-bubble bubble-5" cx="400" cy="105" r="2" fill="#ffffff" opacity="0.9"/>
-                </g>
-
-                <!-- Glass Sheen / Reflection Highlights -->
-                <rect x="201" y="90" width="230" height="40" rx="6" fill="url(#glassReflection)"/>
-                <line x1="205" y1="94" x2="425" y2="94" stroke="#ffffff" stroke-width="1.5" stroke-opacity="0.6"/>
-                <line x1="208" y1="98" x2="380" y2="98" stroke="#ffffff" stroke-width="0.8" stroke-opacity="0.4"/>
-
-                <!-- Flange Clamps securing Glass Tube -->
-                <rect x="198" y="86" width="7" height="48" rx="2" fill="#64748b" stroke="#1e293b" stroke-width="1"/>
-                <rect x="427" y="86" width="7" height="48" rx="2" fill="#64748b" stroke="#1e293b" stroke-width="1"/>
-
-                <!-- 4. Right Outflow Steel Pipe & Manifold -->
-                <rect x="431" y="90" width="130" height="40" rx="4" fill="url(#metalPipeGrad)" stroke="#334155" stroke-width="2"/>
-                <!-- Gauge Fitting Neck -->
-                <rect x="496" y="70" width="14" height="22" fill="url(#brassGrad)" stroke="#78350f" stroke-width="1.5"/>
-
-                <!-- 5. INDUSTRIAL PRECISION PRESSURE GAUGE (MANOMETER) -->
-                <g id="pressureGaugeAssembly">
-                    <!-- Gauge Drop Shadow -->
-                    <circle cx="503" cy="46" r="37" fill="rgba(0,0,0,0.6)" filter="blur(4px)"/>
-                    <!-- Chrome Outer Bezel -->
-                    <circle cx="503" cy="44" r="36" fill="url(#metalPipeGrad)" stroke="#94a3b8" stroke-width="2.5"/>
-                    <!-- Dark Dial Face -->
-                    <circle cx="503" cy="44" r="31" fill="url(#gaugeDialGrad)" stroke="#0284c7" stroke-width="1.5"/>
-
-                    <!-- Gauge Scale Arc (0 - 100 PSI) -->
-                    <path d="M478 58 A 24 24 0 1 1 528 58" fill="none" stroke="#334155" stroke-width="3" stroke-linecap="round"/>
-                    <!-- Green Safe Zone -->
-                    <path d="M486 32 A 24 24 0 0 1 520 32" fill="none" stroke="#10b981" stroke-width="3"/>
-                    <!-- High Nominal Pressure Zone (90-100 PSI) -->
-                    <path d="M520 32 A 24 24 0 0 1 528 58" fill="none" stroke="#00f2fe" stroke-width="3"/>
-
-                    <!-- Tick Marks -->
-                    <line x1="479" y1="58" x2="484" y2="55" stroke="#94a3b8" stroke-width="1.5"/>
-                    <line x1="486" y1="32" x2="491" y2="35" stroke="#94a3b8" stroke-width="1.5"/>
-                    <line x1="503" y1="20" x2="503" y2="26" stroke="#94a3b8" stroke-width="2"/>
-                    <line x1="520" y1="32" x2="515" y2="35" stroke="#94a3b8" stroke-width="1.5"/>
-                    <line x1="527" y1="58" x2="522" y2="55" stroke="#00f2fe" stroke-width="2"/>
-
-                    <!-- Gauge Labels -->
-                    <text x="503" y="37" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="7" font-weight="800" fill="#38bdf8" letter-spacing="0.5">PSI</text>
-                    <text x="503" y="58" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="5.5" font-weight="700" fill="#94a3b8">PRESSURE</text>
-
-                    <!-- ROTATABLE GAUGE NEEDLE -->
-                    <g id="gaugeNeedleElem" transform="rotate(-120 503 44)">
-                        <!-- Needle Pointer -->
-                        <polygon points="501,44 505,44 503.5,21 502.5,21" fill="#ef4444"/>
-                        <circle cx="503" cy="44" r="4.5" fill="#f59e0b" stroke="#78350f" stroke-width="1.5"/>
-                        <circle cx="503" cy="44" r="1.5" fill="#ffffff"/>
-                    </g>
-                </g>
-
-                <!-- 6. HIGH-PRESSURE WATER SPRAY / MIST (Outlet on Right) -->
-                <g id="waterSpraySvg" class="water-spray-group" style="opacity: 0; transition: opacity 0.5s ease;">
-                    <!-- Spray Cone -->
-                    <polygon points="560,98 615,80 615,140 560,122" fill="url(#sprayGrad)"/>
-                    <!-- Flying Droplets -->
-                    <circle cx="575" cy="94" r="2" fill="#00f2fe" class="spray-drop-1"/>
-                    <circle cx="590" cy="108" r="2.5" fill="#38bdf8" class="spray-drop-2"/>
-                    <circle cx="605" cy="88" r="1.5" fill="#ffffff" class="spray-drop-3"/>
-                    <circle cx="612" cy="120" r="2.2" fill="#00f2fe" class="spray-drop-4"/>
-                    <circle cx="585" cy="126" r="1.8" fill="#bae6fd" class="spray-drop-5"/>
-                </g>
-            </svg>
-        </div>
-
-        <!-- Dynamic Status Notification Box -->
-        <div class="pipe-stage-wrap">
-            <div class="pipe-stage-icon" id="loaderStageIcon">🔧</div>
-            <div class="pipe-stage-info">
-                <div class="pipe-stage-sub">FLOW INITIALIZATION STATUS:</div>
-                <div class="pipe-stage-text" id="loaderStageText">Inspecting Main Line &amp; Pipe Valves...</div>
-            </div>
-        </div>
-
-        <!-- 5-Second Liquid Progress Bar Tube -->
-        <div class="pipe-progress-container">
-            <div class="pipe-progress-bar">
-                <div class="pipe-progress-fill" id="waterProgressFill">
-                    <div class="pipe-water-shimmer"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Real-Time Metrics & Countdown Row -->
-        <div class="pipe-metrics-row">
-            <div class="pipe-metric-col">
-                <span class="pipe-metric-lbl">SEQUENCE TIMER</span>
-                <span class="pipe-metric-val" id="waterTimerSec">0.0s / 5.0s</span>
-            </div>
-            <div class="pipe-metric-col pipe-metric-center">
-                <span class="pipe-metric-lbl">HYDRAULIC PRESSURE</span>
-                <span class="pipe-metric-val pipe-pressure-val" id="waterPressureVal">0 PSI</span>
-            </div>
-            <div class="pipe-metric-col pipe-metric-right">
-                <span class="pipe-metric-lbl">VALVE OPENING</span>
-                <span class="pipe-metric-val pipe-pct-val" id="waterProgressPct">0%</span>
-            </div>
-        </div>
-
-        <!-- Skip Intro Button -->
-        <div class="pipe-skip-wrap">
-            <button type="button" class="pipe-skip-btn" onclick="dismissPipeLoader()">
-                Skip Intro ⏩
-            </button>
-        </div>
-    </div>
-</div>
-
 <div class="dash-wrapper">
     <!-- Top Executive Header Banner -->
     <div class="dash-header-card">
@@ -3583,119 +3364,6 @@
 
 {% block scripts %}
 <script>
-    // =========================================================
-    // 5-SECOND HIGH-TECH WATER PIPE INTRO LOADER SCRIPT
-    // =========================================================
-    (function() {
-        let loaderDismissed = false;
-
-        window.dismissPipeLoader = function() {
-            if (loaderDismissed) return;
-            loaderDismissed = true;
-            const loader = document.getElementById('pipeWaterIntroLoader');
-            if (loader) {
-                loader.classList.add('pipe-loader-dissolve');
-                setTimeout(() => {
-                    try {
-                        loader.remove();
-                    } catch (e) {
-                        loader.style.display = 'none';
-                    }
-                }, 700);
-            }
-        };
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const loader = document.getElementById('pipeWaterIntroLoader');
-            if (!loader) return;
-
-            const fill = document.getElementById('waterProgressFill');
-            const pct = document.getElementById('waterProgressPct');
-            const sec = document.getElementById('waterTimerSec');
-            const press = document.getElementById('waterPressureVal');
-            const gaugeNeedle = document.getElementById('gaugeNeedleElem');
-            const stageIcon = document.getElementById('loaderStageIcon');
-            const stageText = document.getElementById('loaderStageText');
-            const valveWheel = document.getElementById('valveWheelElem');
-            const waterStream = document.getElementById('waterStreamSvg');
-            const waterBubbles = document.getElementById('waterBubblesSvg');
-            const waterSpray = document.getElementById('waterSpraySvg');
-
-            const DURATION = 5000; // Exact 5.0 seconds (5000ms)
-            const startTime = performance.now();
-
-            const stages = [
-                { threshold: 0.0, icon: '🔧', text: 'Inspecting Main Line & Pipe Valves...' },
-                { threshold: 1.0, icon: '🚰', text: 'Turning Gate Valve — Opening High-Pressure Flow...' },
-                { threshold: 2.3, icon: '🌊', text: 'Water Surging Across Hardware Pipeline & POS Networks...' },
-                { threshold: 3.7, icon: '⚡', text: 'Stabilizing Hydraulic Pressure & Synchronizing Ledger...' },
-                { threshold: 4.6, icon: '✅', text: 'Pressure Nominal (100 PSI) — Opening Executive Dashboard!' }
-            ];
-
-            function frame(now) {
-                if (loaderDismissed) return;
-
-                const elapsed = Math.min(DURATION, now - startTime);
-                const progress = elapsed / DURATION;
-                const progressPct = Math.min(100, Math.round(progress * 100));
-                const elapsedSec = (elapsed / 1000).toFixed(1);
-                const currentPsi = Math.min(100, Math.round(progress * 100));
-
-                // Update Progress Fill & Metrics
-                if (fill) fill.style.width = progressPct + '%';
-                if (pct) pct.textContent = progressPct + '%';
-                if (sec) sec.textContent = `${elapsedSec}s / 5.0s`;
-                if (press) press.textContent = `${currentPsi} PSI`;
-
-                // Rotate Gauge Needle (from -120deg at 0 PSI to +120deg at 100 PSI)
-                if (gaugeNeedle) {
-                    const needleAngle = -120 + (progress * 240);
-                    gaugeNeedle.setAttribute('transform', `rotate(${needleAngle.toFixed(1)} 503 44)`);
-                }
-
-                // Animate Valve Wheel and Water Stream
-                if (progress >= 0.18) {
-                    if (valveWheel && !valveWheel.classList.contains('spinning')) {
-                        valveWheel.classList.add('spinning');
-                    }
-                    if (waterStream) {
-                        waterStream.style.opacity = Math.min(1, (progress - 0.18) / 0.25);
-                    }
-                    if (waterBubbles) {
-                        waterBubbles.style.opacity = Math.min(1, (progress - 0.22) / 0.25);
-                    }
-                }
-
-                if (progress >= 0.48 && waterSpray) {
-                    waterSpray.style.opacity = Math.min(1, (progress - 0.48) / 0.28);
-                }
-
-                // Update Stage Text and Icon
-                const currentSec = elapsed / 1000;
-                for (let i = stages.length - 1; i >= 0; i--) {
-                    if (currentSec >= stages[i].threshold) {
-                        if (stageIcon && stageIcon.textContent !== stages[i].icon) {
-                            stageIcon.textContent = stages[i].icon;
-                        }
-                        if (stageText && stageText.textContent !== stages[i].text) {
-                            stageText.textContent = stages[i].text;
-                        }
-                        break;
-                    }
-                }
-
-                if (elapsed < DURATION) {
-                    requestAnimationFrame(frame);
-                } else {
-                    // Exactly 5.0 seconds reached!
-                    setTimeout(window.dismissPipeLoader, 150);
-                }
-            }
-
-            requestAnimationFrame(frame);
-        });
-    })();
-
     // ==========================================
     // Real-Time Live Clock Script
     // ==========================================

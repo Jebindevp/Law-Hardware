@@ -49,14 +49,17 @@
     .pos-main-wrapper {
         display: flex;
         flex-direction: column;
-        gap: 22px;
-        max-width: 1650px;
+        gap: 20px;
+        max-width: 1660px;
         margin: 0 auto;
-        padding: 24px 28px 100px;
-        background: linear-gradient(160deg, #070c18 0%, #0b1325 50%, #060a14 100%);
-        border: 2px solid rgba(56, 189, 248, 0.3);
+        padding: 22px 24px 96px;
+        background:
+            radial-gradient(circle at 92% 4%, rgba(56, 189, 248, 0.14) 0%, transparent 42%),
+            radial-gradient(circle at 8% 96%, rgba(16, 185, 129, 0.1) 0%, transparent 40%),
+            linear-gradient(160deg, #070b14 0%, #0b1324 55%, #060a13 100%);
+        border: 1.5px solid rgba(56, 189, 248, 0.32);
         border-radius: var(--pos-radius-xl);
-        box-shadow: 0 25px 70px -10px rgba(0, 0, 0, 0.7), 0 0 50px rgba(2, 132, 199, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.65), 0 0 40px rgba(2, 132, 199, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.08);
         position: relative;
     }
 
@@ -64,17 +67,17 @@
        1. TOP COMMAND BAR & LIVE BEACON
        ========================================================================== */
     .pos-banner-card {
-        background: rgba(15, 23, 42, 0.92);
-        backdrop-filter: blur(14px);
-        border: 1.5px solid rgba(56, 189, 248, 0.35);
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.94) 0%, rgba(12, 34, 62, 0.92) 100%);
+        backdrop-filter: blur(16px);
+        border: 1.5px solid rgba(56, 189, 248, 0.38);
         border-radius: var(--pos-radius-lg);
-        padding: 20px 28px;
-        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.45), 0 0 25px rgba(2, 132, 199, 0.15);
+        padding: 18px 24px;
+        box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.45), 0 0 24px rgba(2, 132, 199, 0.14);
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 18px;
+        gap: 16px;
         position: relative;
         overflow: hidden;
     }
@@ -287,21 +290,19 @@
     }
 
     /* ==========================================================================
-       4. TWO-COLUMN POS WORKSTATION LAYOUT (PERFECT SYNCHRONIZED ALIGNMENT)
+       4. TWO-COLUMN POS WORKSTATION LAYOUT (FLEXIBLE & NEVER CLIPPED)
        ========================================================================== */
     .pos-grid-container {
         display: grid;
-        grid-template-columns: minmax(0, 1.35fr) 505px;
+        grid-template-columns: minmax(0, 1.35fr) 500px;
         gap: 20px;
-        align-items: stretch;
-        height: calc(100vh - 120px);
-        min-height: 740px;
-        max-height: 980px;
+        align-items: start;
         width: 100%;
     }
 
     /* Modern Sleek Scrollbars for POS Workstation */
     .pos-items-grid::-webkit-scrollbar,
+    .pos-table-wrap::-webkit-scrollbar,
     .checkout-panel::-webkit-scrollbar,
     .cart-items-scroll::-webkit-scrollbar {
         width: 6px;
@@ -309,6 +310,7 @@
     }
 
     .pos-items-grid::-webkit-scrollbar-track,
+    .pos-table-wrap::-webkit-scrollbar-track,
     .checkout-panel::-webkit-scrollbar-track,
     .cart-items-scroll::-webkit-scrollbar-track {
         background: #f1f5f9;
@@ -316,6 +318,7 @@
     }
 
     .pos-items-grid::-webkit-scrollbar-thumb,
+    .pos-table-wrap::-webkit-scrollbar-thumb,
     .checkout-panel::-webkit-scrollbar-thumb,
     .cart-items-scroll::-webkit-scrollbar-thumb {
         background: #cbd5e1;
@@ -323,13 +326,14 @@
     }
 
     .pos-items-grid::-webkit-scrollbar-thumb:hover,
+    .pos-table-wrap::-webkit-scrollbar-thumb:hover,
     .checkout-panel::-webkit-scrollbar-thumb:hover,
     .cart-items-scroll::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
     }
 
     /* ==========================================================================
-       5. LEFT COLUMN: BRILLIANT HARDWARE CATALOG PANEL
+       5. LEFT COLUMN: BRILLIANT HARDWARE CATALOG PANEL (CARDS + TABLE)
        ========================================================================== */
     .catalog-panel {
         background: #ffffff;
@@ -339,10 +343,83 @@
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         display: flex;
         flex-direction: column;
-        height: 100%;
-        overflow: hidden;
+        height: auto;
+        min-height: auto;
+        max-height: none;
+        overflow: visible;
         min-width: 0;
         box-sizing: border-box;
+    }
+
+    /* Card / Table View Switcher */
+    .pos-view-switcher {
+        display: inline-flex;
+        background: #f1f5f9;
+        padding: 3px;
+        border-radius: 9px;
+        border: 1.5px solid #cbd5e1;
+        gap: 3px;
+        flex-shrink: 0;
+    }
+    .pos-view-btn {
+        background: transparent;
+        border: none;
+        padding: 7px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        color: #475569;
+        transition: all 0.16s ease;
+        white-space: nowrap;
+    }
+    .pos-view-btn.active {
+        background: #0f172a;
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+    }
+
+    /* Table Model Catalog View */
+    .pos-table-wrap {
+        display: none;
+        height: auto;
+        overflow-x: auto;
+        overflow-y: visible;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        background: #ffffff;
+    }
+    .pos-catalog-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12.5px;
+    }
+    .pos-catalog-table th {
+        background: #0f172a;
+        color: #ffffff;
+        padding: 10px 12px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        text-align: left;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        white-space: nowrap;
+    }
+    .pos-catalog-table td {
+        padding: 9px 12px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+        color: #0f172a;
+    }
+    .pos-table-row {
+        cursor: pointer;
+        transition: background 0.14s ease;
+    }
+    .pos-table-row:hover td {
+        background: #f0f9ff;
     }
 
     .catalog-toolbar {
@@ -621,33 +698,50 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 12px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        flex: 1 1 auto;
-        min-height: 0;
-        padding: 2px 4px 12px 2px;
+        height: auto;
+        overflow: visible;
+        padding: 2px 2px 8px 2px;
     }
 
     .pos-product-card {
         background: #ffffff;
         border: 1.5px solid #e2e8f0;
-        border-radius: 14px;
+        border-radius: 15px;
         padding: 13px 14px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+        height: auto;
+        box-shadow: 0 3px 10px rgba(15, 23, 42, 0.04);
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, box-shadow 0.2s ease, outline-color 0.2s ease;
         cursor: pointer;
         user-select: none;
         position: relative;
         box-sizing: border-box;
+        outline: 1.5px solid transparent;
+        outline-offset: 2px;
+        overflow: hidden;
+    }
+
+    .pos-product-card::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #0284c7, #38bdf8);
+        opacity: 0;
+        transition: opacity 0.2s ease;
     }
 
     .pos-product-card:hover {
         transform: translateY(-3px);
         border-color: #0284c7;
-        box-shadow: 0 8px 20px rgba(2, 132, 199, 0.16);
+        outline: 1.5px solid rgba(56, 189, 248, 0.7);
+        box-shadow: 0 10px 22px rgba(2, 132, 199, 0.15);
+    }
+
+    .pos-product-card:hover::before {
+        opacity: 1;
     }
 
     .pos-product-card:active {
@@ -756,9 +850,8 @@
         box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.35), 0 0 20px rgba(0, 0, 0, 0.1);
         display: flex;
         flex-direction: column;
-        height: 100%;
-        overflow-y: auto;
-        overflow-x: hidden;
+        height: auto;
+        overflow: visible;
         min-width: 0;
         box-sizing: border-box;
     }
@@ -1220,11 +1313,12 @@
         border-radius: 10px;
         background: #ffffff;
         margin-bottom: 10px;
-        min-height: 130px;
-        max-height: 190px;
-        overflow-y: auto;
+        height: auto;
+        min-height: 90px;
+        max-height: none;
+        overflow-x: auto;
+        overflow-y: visible;
         box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.02);
-        flex: 1 1 auto;
     }
 
     .cart-items-table {
@@ -1828,9 +1922,63 @@
         padding: 18px;
     }
 
-    .modal-backdrop-pos.active {
-        display: flex;
-    }
+        .modal-backdrop-pos.active,
+        .modal-backdrop-pos.show {
+            display: flex;
+        }
+
+        /* Stock Warning & Out-of-Stock Toast Banner */
+        .pos-stock-toast {
+            position: fixed;
+            top: 22px;
+            right: 22px;
+            z-index: 99999;
+            max-width: 420px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 13.5px;
+            font-weight: 700;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+            animation: popScale 0.2s ease;
+        }
+        .pos-stock-toast.show {
+            display: flex;
+        }
+        .pos-stock-toast.toast-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 2px solid #ef4444;
+        }
+        .pos-stock-toast.toast-warn {
+            background: #fffbeb;
+            color: #92400e;
+            border: 2px solid #f59e0b;
+        }
+        .modal-stock-warn-box {
+            display: none;
+            padding: 9px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .modal-stock-warn-box.warn-low {
+            display: block;
+            background: #fffbeb;
+            color: #92400e;
+            border: 1.5px solid #fcd34d;
+        }
+        .modal-stock-warn-box.warn-high {
+            display: block;
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1.5px solid #fca5a5;
+        }
 
     .modal-pos-card {
         background: #ffffff;
@@ -1871,6 +2019,15 @@
 
         .pos-grid-container {
             grid-template-columns: 1fr;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+        }
+
+        .catalog-panel,
+        .checkout-panel {
+            height: auto !important;
+            overflow: visible !important;
         }
 
         /* Show either Catalog or Checkout based on active mobile tab */
@@ -1899,19 +2056,32 @@
     @media (max-width: 640px) {
         .pos-main-wrapper {
             gap: 14px;
-            padding: 14px 12px 95px;
+            padding: 12px 10px 95px;
             border-radius: 16px;
         }
 
         .pos-banner-card {
-            padding: 16px;
+            padding: 15px;
             flex-direction: column;
             align-items: flex-start;
+        }
+
+        .pos-banner-title h1 {
+            font-size: 18px;
         }
 
         .pos-live-clock {
             width: 100%;
             justify-content: space-between;
+        }
+
+        .modal-pos-card {
+            padding: 18px 16px;
+            border-radius: 16px;
+        }
+
+        #prodAddPresetRow {
+            grid-template-columns: repeat(3, 1fr) !important;
         }
 
         .pos-stats-row {
@@ -2108,13 +2278,17 @@
                     </select>
                 </div>
 
-                <div style="display: flex; gap: 8px; align-items: center;">
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <button type="button" class="btn-blue" onclick="filterPosProducts()" style="padding: 10px 14px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;">
                         🔍 Filter
                     </button>
                     <button type="button" class="btn-white" onclick="resetPosSearch()" style="padding: 10px 12px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;">
                         ↺ Reset
                     </button>
+                    <div class="pos-view-switcher" title="Switch Catalog View">
+                        <button type="button" class="pos-view-btn active" id="btnPosViewCards" onclick="switchPosCatalogView('cards')">🗂️ Cards</button>
+                        <button type="button" class="pos-view-btn" id="btnPosViewTable" onclick="switchPosCatalogView('table')">📋 Table</button>
+                    </div>
                 </div>
             </div>
 
@@ -2230,6 +2404,75 @@
                     <div style="font-size: 13px; margin-top: 4px;">Use the Inventory page or Admin panel to add plumbing supplies.</div>
                 </div>
                 {% endfor %}
+            </div>
+
+            <!-- Product Table Model View -->
+            <div class="pos-table-wrap" id="posProductTableWrap">
+                <table class="pos-catalog-table">
+                    <thead>
+                        <tr>
+                            <th>ID No</th>
+                            <th>Product & Brand</th>
+                            <th>Category</th>
+                            <th>Size / Type</th>
+                            <th style="text-align: right;">Rate</th>
+                            <th style="text-align: center;">Stock</th>
+                            <th style="text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in products %}
+                        <tr class="pos-table-row"
+                            data-id="{{ p.id }}"
+                            data-code="{{ p.display_code }}"
+                            data-unit="{{ p.unit }}"
+                            data-brand="{{ p.brand.name|default:'' }}"
+                            data-pipe-length="{{ p.pipe_length|default:6.00 }}"
+                            data-name="{{ p.name }}"
+                            data-category="{{ p.category.name }}"
+                            data-size="{{ p.size }}"
+                            data-rate="{{ p.rate }}"
+                            data-stock="{{ p.quantity }}"
+                            onclick="selectCardProduct(this)">
+                            <td class="mono" style="font-weight: 800; color: #0284c7; white-space: nowrap;">#{{ p.display_code }}</td>
+                            <td>
+                                <strong style="color: #0f172a;">{{ p.name }}</strong>
+                                {% if p.brand %}
+                                <span style="margin-left: 5px; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 4px;">{{ p.brand.name }}</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="pos-card-cat-badge">{{ p.category.name }}</span></td>
+                            <td>
+                                <span class="pos-card-size">⚙️ {{ p.size }}</span>
+                                {% if p.unit == 'METER' or p.is_pipe %}
+                                <span style="font-size: 10px; font-weight: 800; color: #0284c7; margin-left: 4px;">📏 {{ p.pipe_length|default:6.00 }}m</span>
+                                {% endif %}
+                            </td>
+                            <td class="mono" style="text-align: right; font-weight: 800; color: #0f172a; white-space: nowrap;">
+                                ₹{{ p.rate|floatformat:2 }}<small style="color: #64748b;">{% if p.unit == 'METER' or p.is_pipe %}/m{% else %}/pc{% endif %}</small>
+                            </td>
+                            <td style="text-align: center; white-space: nowrap;">
+                                {% if p.quantity == 0 %}
+                                <span class="pos-stock-tag stock-zero">Out</span>
+                                {% elif p.quantity <= 10 %}
+                                <span class="pos-stock-tag stock-low">{{ p.quantity }}{% if p.unit == 'METER' or p.is_pipe %}m{% endif %}</span>
+                                {% else %}
+                                <span class="pos-stock-tag stock-in">{{ p.quantity }}{% if p.unit == 'METER' or p.is_pipe %}m{% endif %}</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: center;">
+                                <button type="button" class="btn-add-cart" onclick="event.stopPropagation(); selectCardProduct(this.closest('.pos-table-row'))">
+                                    + Add
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 36px; color: #94a3b8;">No hardware products in database</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -2758,6 +3001,8 @@
             </div>
         </div>
 
+        <div id="pipeModalStockWarning" class="modal-stock-warn-box"></div>
+
         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px;">
             <button type="button" class="btn-white" onclick="closePipeLengthModal()" style="padding: 11px; justify-content: center; font-size: 13px; font-weight: 700;">
                 Cancel
@@ -2767,6 +3012,94 @@
             </button>
         </div>
     </div>
+</div>
+
+<!-- Modal: General Product Quick-Add Popup for Billing -->
+<div class="modal-backdrop-pos" id="productAddModal" onclick="if(event.target === this) closeProductAddModal()">
+    <div class="modal-pos-card" style="max-width: 450px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 10px;">
+            <div>
+                <h3 style="font-size: 17px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span>📦</span>
+                    <span id="prodAddModalName">Product Name</span>
+                </h3>
+                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px;">
+                    <span id="prodAddModalCode" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; background: #0f172a; color: #ffffff; padding: 2px 7px; border-radius: 5px; font-weight: 700;">#000</span>
+                    <span id="prodAddModalCategory" style="font-size: 11px; font-weight: 800; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 5px;">Category</span>
+                    <span id="prodAddModalBrand" style="font-size: 11px; font-weight: 800; background: #eef2ff; color: #4338ca; padding: 2px 8px; border-radius: 5px; display: none;">Brand</span>
+                </div>
+            </div>
+            <button type="button" onclick="closeProductAddModal()" title="Close" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; color: #475569; padding: 4px 10px;">✕</button>
+        </div>
+
+        <!-- Product Specs & Rate Info -->
+        <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center;">
+            <div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #64748b; text-transform: uppercase;">Size</div>
+                <div id="prodAddModalSize" style="font-size: 13px; font-weight: 800; color: #0f172a; margin-top: 2px;">-</div>
+            </div>
+            <div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #64748b; text-transform: uppercase;">Rate / Unit</div>
+                <div id="prodAddModalRate" style="font-size: 14px; font-weight: 800; color: #0284c7; font-family: 'JetBrains Mono', monospace; margin-top: 2px;">₹0.00</div>
+            </div>
+            <div>
+                <div style="font-size: 10.5px; font-weight: 800; color: #64748b; text-transform: uppercase;">In Stock</div>
+                <div id="prodAddModalStock" style="font-size: 13px; font-weight: 800; color: #15803d; margin-top: 2px;">0</div>
+            </div>
+        </div>
+
+        <!-- Quick Quantity Presets -->
+        <div style="margin-bottom: 12px;">
+            <label style="font-size: 11px; font-weight: 800; color: #475569; display: block; margin-bottom: 6px; text-transform: uppercase;">
+                ⚡ Quick Quantity:
+            </label>
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;" id="prodAddPresetRow">
+                <button type="button" class="pipe-preset-btn active" data-qty="1" onclick="setProductAddQty(1, this)"><strong>1</strong></button>
+                <button type="button" class="pipe-preset-btn" data-qty="2" onclick="setProductAddQty(2, this)"><strong>2</strong></button>
+                <button type="button" class="pipe-preset-btn" data-qty="5" onclick="setProductAddQty(5, this)"><strong>5</strong></button>
+                <button type="button" class="pipe-preset-btn" data-qty="10" onclick="setProductAddQty(10, this)"><strong>10</strong></button>
+                <button type="button" class="pipe-preset-btn" data-qty="20" onclick="setProductAddQty(20, this)"><strong>20</strong></button>
+                <button type="button" class="pipe-preset-btn" data-qty="50" onclick="setProductAddQty(50, this)"><strong>50</strong></button>
+            </div>
+        </div>
+
+        <!-- Quantity Stepper & Live Total -->
+        <div style="background: #f0f9ff; border: 1.5px solid #bae6fd; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <label style="font-size: 11px; font-weight: 800; color: #0369a1; display: block; margin-bottom: 4px; text-transform: uppercase;">Quantity:</label>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <button type="button" class="btn-mini-step" onclick="stepProductAddQty(-1)">−</button>
+                    <input type="number" id="prodAddQtyInput" class="step-input" value="1" min="1" step="1"
+                           oninput="updateProductAddTotal()"
+                           onkeydown="if(event.key === 'Enter'){ event.preventDefault(); confirmAddProductModalToBill(); }"
+                           style="width: 72px; font-size: 15px; font-weight: 800; text-align: center; color: #0f172a; background: #ffffff; border: 1.5px solid #7dd3fc; border-radius: 6px; padding: 4px;">
+                    <button type="button" class="btn-mini-step" onclick="stepProductAddQty(1)">+</button>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase;">Total Amount</div>
+                <div id="prodAddModalTotal" style="font-size: 20px; font-weight: 800; color: #0284c7; font-family: 'JetBrains Mono', monospace;">₹0.00</div>
+            </div>
+        </div>
+
+        <div id="prodAddStockWarning" class="modal-stock-warn-box"></div>
+
+        <!-- Action Buttons: Close & Add to Bill -->
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px;">
+            <button type="button" class="btn-white" onclick="closeProductAddModal()" style="padding: 11px; justify-content: center; font-size: 13.5px; font-weight: 700;">
+                ✕ Close
+            </button>
+            <button type="button" class="btn-blue" onclick="confirmAddProductModalToBill()" style="padding: 11px; justify-content: center; font-size: 14px; font-weight: 800;">
+                ⚡ Add to Bill (<span id="prodAddBtnQtyLabel">1 pc</span>)
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Stock Alert Toast -->
+<div id="posStockToast" class="pos-stock-toast" role="alert">
+    <span id="posStockToastMsg"></span>
+    <button type="button" onclick="document.getElementById('posStockToast').classList.remove('show')" style="background: none; border: none; font-size: 16px; font-weight: 800; cursor: pointer; color: inherit;">✕</button>
 </div>
 {% endblock %}
 
@@ -2954,25 +3287,56 @@
         filterPosProducts();
     }
 
+    function switchPosCatalogView(mode) {
+        const cardGrid = document.getElementById('posProductGrid');
+        const tableWrap = document.getElementById('posProductTableWrap');
+        const btnCards = document.getElementById('btnPosViewCards');
+        const btnTable = document.getElementById('btnPosViewTable');
+        if (!cardGrid || !tableWrap) return;
+
+        if (mode === 'table') {
+            cardGrid.style.display = 'none';
+            tableWrap.style.display = 'block';
+            if (btnTable) btnTable.classList.add('active');
+            if (btnCards) btnCards.classList.remove('active');
+        } else {
+            tableWrap.style.display = 'none';
+            cardGrid.style.display = 'grid';
+            if (btnCards) btnCards.classList.add('active');
+            if (btnTable) btnTable.classList.remove('active');
+        }
+    }
+
     function filterPosProducts() {
         const query = document.getElementById('posSearchInput').value.toLowerCase().trim();
         const sizeFilter = (currentSelectedSize || 'ALL').toLowerCase();
         const cards = document.querySelectorAll('.pos-product-card');
+        const rows = document.querySelectorAll('.pos-table-row');
 
         cards.forEach(card => {
             const name = (card.getAttribute('data-name') || '').toLowerCase();
+            const code = (card.getAttribute('data-code') || '').toLowerCase();
             const category = card.getAttribute('data-category') || '';
             const size = (card.getAttribute('data-size') || '').toLowerCase();
 
             const matchCat = (currentCategory === 'ALL' || category === currentCategory);
             const matchSize = (sizeFilter === 'all' || size === sizeFilter || size.includes(sizeFilter));
-            const matchQuery = (!query || name.includes(query) || category.toLowerCase().includes(query) || size.includes(query));
+            const matchQuery = (!query || name.includes(query) || code.includes(query) || category.toLowerCase().includes(query) || size.includes(query));
 
-            if (matchCat && matchSize && matchQuery) {
-                card.style.display = 'flex';
-            } else {
-                card.style.display = 'none';
-            }
+            card.style.display = (matchCat && matchSize && matchQuery) ? 'flex' : 'none';
+        });
+
+        rows.forEach(row => {
+            const name = (row.getAttribute('data-name') || '').toLowerCase();
+            const code = (row.getAttribute('data-code') || '').toLowerCase();
+            const category = row.getAttribute('data-category') || '';
+            const size = (row.getAttribute('data-size') || '').toLowerCase();
+
+            const matchCat = (currentCategory === 'ALL' || category === currentCategory);
+            const matchSize = (sizeFilter === 'all' || size === sizeFilter || size.includes(sizeFilter));
+            const matchQuery = (!query || name.includes(query) || code.includes(query) || category.toLowerCase().includes(query) || size.includes(query));
+
+            row.style.display = (matchCat && matchSize && matchQuery) ? '' : 'none';
         });
 
         syncQuickProductSelectDropdown(query, sizeFilter, currentCategory);
@@ -3241,6 +3605,7 @@
         document.getElementById('pipeModalFeetDisplay').textContent = `${feet} Feet (approx.)`;
         document.getElementById('pipeModalTotalDisplay').textContent = `₹${totalAmount.toFixed(2)}`;
         document.getElementById('pipeModalBtnSummary').textContent = `${pipeModalLengths} Len = ${pipeModalMeters}m (${feet}ft)`;
+        updateModalStockWarning('pipeModalStockWarning', activePipeProduct.stock, pipeModalMeters, 'm', activePipeProduct.id);
     }
 
     function confirmAddPipeModalToBill() {
@@ -3268,33 +3633,32 @@
         const rate = parseFloat(opt.getAttribute('data-rate')) || 0;
         const stock = parseInt(opt.getAttribute('data-stock')) || 0;
 
-        const isPipe = checkIsPipeItem(unit, category, name);
-        if (isPipe) {
-            openPipeLengthModal({
-                id: id,
-                name: name,
-                code: code,
-                unit: unit,
-                brand: brand,
-                pipeLength: pipeLen,
-                category: category,
-                size: size,
-                rate: rate,
-                stock: stock
-            });
+        if (stock <= 0) {
+            showPosStockAlert(`🚫 Out of Stock! "${name}" has 0 stock available and cannot be added to the bill.`, 'error');
             selElem.value = '';
             return;
         }
 
-        addToCart(id, name, category, size, rate, stock, code, unit, brand, pipeLen);
-        selElem.value = ''; // Reset dropdown after selection
+        const isPipe = checkIsPipeItem(unit, category, name);
+        const prodObj = {
+            id: id,
+            name: name,
+            code: code,
+            unit: unit,
+            brand: brand,
+            pipeLength: pipeLen,
+            category: category,
+            size: size,
+            rate: rate,
+            stock: stock
+        };
 
-        // Sync Pipe Quick-Adder
-        const pipeSel = document.getElementById('pipeQuickSelect');
-        if (pipeSel && isPipe) {
-            pipeSel.value = id;
-            onPipeQuickProductChanged();
+        if (isPipe) {
+            openPipeLengthModal(prodObj);
+        } else {
+            openProductAddModal(prodObj);
         }
+        selElem.value = ''; // Reset dropdown after selection
     }
 
     // Card Click Product Selection Handler
@@ -3311,31 +3675,116 @@
         const rate = parseFloat(cardElem.getAttribute('data-rate')) || 0;
         const stock = parseInt(cardElem.getAttribute('data-stock')) || 0;
 
-        const isPipe = checkIsPipeItem(unit, category, name);
-        if (isPipe) {
-            openPipeLengthModal({
-                id: id,
-                name: name,
-                code: code,
-                unit: unit,
-                brand: brand,
-                pipeLength: pipeLen,
-                category: category,
-                size: size,
-                rate: rate,
-                stock: stock
-            });
+        if (stock <= 0) {
+            showPosStockAlert(`🚫 Out of Stock! "${name}" has 0 stock available and cannot be added to the bill.`, 'error');
             return;
         }
 
-        addToCart(id, name, category, size, rate, stock, code, unit, brand, pipeLen);
+        const isPipe = checkIsPipeItem(unit, category, name);
+        const prodObj = {
+            id: id,
+            name: name,
+            code: code,
+            unit: unit,
+            brand: brand,
+            pipeLength: pipeLen,
+            category: category,
+            size: size,
+            rate: rate,
+            stock: stock
+        };
 
-        // Sync Pipe Quick-Adder dropdown
-        const pipeSel = document.getElementById('pipeQuickSelect');
-        if (pipeSel) {
-            pipeSel.value = id;
-            onPipeQuickProductChanged();
+        if (isPipe) {
+            openPipeLengthModal(prodObj);
+        } else {
+            openProductAddModal(prodObj);
         }
+    }
+
+    // ==========================================
+    // GENERAL PRODUCT QUICK-ADD POPUP MODAL
+    // ==========================================
+    let currentProdAddData = null;
+
+    function openProductAddModal(prod) {
+        if (!prod) return;
+        currentProdAddData = prod;
+
+        document.getElementById('prodAddModalName').textContent = prod.name;
+        document.getElementById('prodAddModalCode').textContent = '#' + (prod.code || prod.id);
+        document.getElementById('prodAddModalCategory').textContent = prod.category || 'Hardware';
+
+        const brandEl = document.getElementById('prodAddModalBrand');
+        if (prod.brand) {
+            brandEl.textContent = '🏷️ ' + prod.brand;
+            brandEl.style.display = 'inline-block';
+        } else {
+            brandEl.style.display = 'none';
+        }
+
+        document.getElementById('prodAddModalSize').textContent = prod.size || '-';
+        document.getElementById('prodAddModalRate').textContent = '₹' + (parseFloat(prod.rate) || 0).toFixed(2);
+
+        const stockEl = document.getElementById('prodAddModalStock');
+        const stk = parseInt(prod.stock) || 0;
+        stockEl.textContent = stk + ' pcs';
+        stockEl.style.color = stk <= 0 ? '#dc2626' : (stk <= 10 ? '#d97706' : '#15803d');
+
+        document.getElementById('prodAddQtyInput').value = 1;
+        document.querySelectorAll('#prodAddPresetRow .pipe-preset-btn').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-qty') === '1');
+        });
+        updateProductAddTotal();
+
+        document.getElementById('productAddModal').classList.add('active');
+        setTimeout(() => {
+            const inp = document.getElementById('prodAddQtyInput');
+            if (inp) { inp.focus(); inp.select(); }
+        }, 60);
+    }
+
+    function closeProductAddModal() {
+        document.getElementById('productAddModal').classList.remove('active');
+        currentProdAddData = null;
+    }
+
+    function setProductAddQty(qty, btnEl) {
+        document.getElementById('prodAddQtyInput').value = qty;
+        document.querySelectorAll('#prodAddPresetRow .pipe-preset-btn').forEach(b => b.classList.remove('active'));
+        if (btnEl) btnEl.classList.add('active');
+        updateProductAddTotal();
+    }
+
+    function stepProductAddQty(delta) {
+        const inp = document.getElementById('prodAddQtyInput');
+        let val = parseInt(inp.value) || 1;
+        val = Math.max(1, val + delta);
+        inp.value = val;
+        document.querySelectorAll('#prodAddPresetRow .pipe-preset-btn').forEach(b => {
+            b.classList.toggle('active', parseInt(b.getAttribute('data-qty')) === val);
+        });
+        updateProductAddTotal();
+    }
+
+    function updateProductAddTotal() {
+        if (!currentProdAddData) return;
+        const inp = document.getElementById('prodAddQtyInput');
+        const qty = Math.max(1, parseInt(inp.value) || 1);
+        const rate = parseFloat(currentProdAddData.rate) || 0;
+        const total = qty * rate;
+
+        document.getElementById('prodAddModalTotal').textContent = '₹' + total.toFixed(2);
+        document.getElementById('prodAddBtnQtyLabel').textContent = qty + (qty === 1 ? ' pc' : ' pcs');
+        updateModalStockWarning('prodAddStockWarning', currentProdAddData.stock, qty, 'pcs', currentProdAddData.id);
+    }
+
+    function confirmAddProductModalToBill() {
+        if (!currentProdAddData) return;
+        const prod = currentProdAddData;
+        const qty = Math.max(1, parseInt(document.getElementById('prodAddQtyInput').value) || 1);
+
+        closeProductAddModal();
+        addToCart(prod.id, prod.name, prod.category, prod.size, prod.rate, prod.stock, prod.code, prod.unit, prod.brand, prod.pipeLength, qty);
     }
 
     // ==========================================
@@ -3471,9 +3920,57 @@
     }
 
     // ==========================================
+    // STOCK ALERT TOAST & MODAL WARNING HELPERS
+    // ==========================================
+    let posStockToastTimer = null;
+    function showPosStockAlert(msg, type = 'warn') {
+        const toast = document.getElementById('posStockToast');
+        const msgEl = document.getElementById('posStockToastMsg');
+        if (!toast || !msgEl) {
+            alert(msg);
+            return;
+        }
+        msgEl.textContent = msg;
+        toast.className = 'pos-stock-toast show ' + (type === 'error' ? 'toast-error' : 'toast-warn');
+        if (posStockToastTimer) clearTimeout(posStockToastTimer);
+        posStockToastTimer = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 4200);
+    }
+
+    function updateModalStockWarning(boxId, stock, addingQty, unitLabel, prodId) {
+        const box = document.getElementById(boxId);
+        if (!box) return;
+        const stk = parseFloat(stock) || 0;
+        const existingItem = posCart.find(i => i.id === prodId);
+        const alreadyInCart = existingItem ? (parseFloat(existingItem.qty) || 0) : 0;
+        const totalRequested = alreadyInCart + (parseFloat(addingQty) || 0);
+
+        if (stk <= 0) {
+            box.className = 'modal-stock-warn-box warn-high';
+            box.textContent = `🚫 Out of Stock: 0 ${unitLabel} available!`;
+        } else if (totalRequested > stk) {
+            box.className = 'modal-stock-warn-box warn-high';
+            box.textContent = `⚠️ Stock Warning: Only ${stk} ${unitLabel} in stock! Adding ${addingQty} ${unitLabel}${alreadyInCart > 0 ? ` (+ ${alreadyInCart} in bill)` : ''} is higher than available stock.`;
+        } else if (stk <= 10) {
+            box.className = 'modal-stock-warn-box warn-low';
+            box.textContent = `⚠️ Low Stock Notice: Only ${stk} ${unitLabel} left in inventory.`;
+        } else {
+            box.className = 'modal-stock-warn-box';
+            box.textContent = '';
+        }
+    }
+
+    // ==========================================
     // CART OPERATIONS
     // ==========================================
     function addToCart(id, name, category, size, rate, stock, code = '', unit = 'PIECE', brand = '', pipeLen = 6.00, customQty = null) {
+        const stk = parseInt(stock) || 0;
+        if (stk <= 0) {
+            showPosStockAlert(`🚫 Out of Stock! "${name}" has 0 stock available and cannot be added to the bill.`, 'error');
+            return;
+        }
+
         const isPipe = checkIsPipeItem(unit, category, name);
         const stdLen = (pipeLen > 0) ? pipeLen : 6.00;
 
@@ -3487,6 +3984,13 @@
         }
 
         const existing = posCart.find(i => i.id === id);
+        const newTotalQty = (existing ? existing.qty : 0) + qtyToAdd;
+        if (newTotalQty > stk) {
+            showPosStockAlert(`⚠️ Low Stock Warning: "${name}" only has ${stk}${isPipe ? 'm' : ' pcs'} in stock, but bill has ${parseFloat(newTotalQty.toFixed(2))}${isPipe ? 'm' : ' pcs'}!`, 'warn');
+        } else if (stk <= 10) {
+            showPosStockAlert(`⚠️ Low Stock Notice: "${name}" only has ${stk}${isPipe ? 'm' : ' pcs'} left in stock.`, 'warn');
+        }
+
         if (existing) {
             existing.qty += qtyToAdd;
             existing.qty = parseFloat(existing.qty.toFixed(2));
@@ -3502,7 +4006,7 @@
                 size: size,
                 rate: parseFloat(rate),
                 qty: parseFloat(qtyToAdd.toFixed(2)),
-                stock: parseInt(stock)
+                stock: stk
             });
         }
         renderPosCart();
@@ -3521,6 +4025,9 @@
             posCart = posCart.filter(i => i.id !== id);
         } else {
             item.qty = parseFloat(item.qty.toFixed(2));
+            if (item.stock > 0 && item.qty > item.stock) {
+                showPosStockAlert(`⚠️ Stock Warning: "${item.name}" only has ${item.stock} in stock (bill has ${item.qty})!`, 'warn');
+            }
         }
         renderPosCart();
     }
@@ -3533,6 +4040,9 @@
             posCart = posCart.filter(i => i.id !== id);
         } else {
             item.qty = parsed;
+            if (item.stock > 0 && item.qty > item.stock) {
+                showPosStockAlert(`⚠️ Stock Warning: "${item.name}" only has ${item.stock} in stock (bill has ${item.qty})!`, 'warn');
+            }
         }
         renderPosCart();
     }

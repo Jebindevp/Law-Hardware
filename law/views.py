@@ -264,7 +264,7 @@ def invoice_detail(request, bill_id):
     1. type='gst': GST Tax Invoice (with GSTIN, CGST/SGST tax breakdown, and Tax Invoice header)
     2. type='nogst': Non-GST Retail Bill / Cash Memo (without GSTIN/tax fields, clean retail receipt)
     """
-    bill = get_object_or_404(Bill.objects.prefetch_related('items'), id=bill_id)
+    bill = get_object_or_404(Bill.objects.prefetch_related('items__product'), id=bill_id)
     bill_type = (request.GET.get('type') or '').lower().strip()
 
     # Determine default type if not explicitly passed
@@ -273,32 +273,44 @@ def invoice_detail(request, bill_id):
 
     is_gst = (bill_type == 'gst')
 
-    # Half-split for Intra-state CGST + SGST (standard Indian GST rule)
-    cgst_rate = round(float(bill.gst_rate) / 2.0, 2)
-    sgst_rate = round(float(bill.gst_rate) / 2.0, 2)
-    cgst_amount = round(float(bill.gst_amount) / 2.0, 2)
-    sgst_amount = round(float(bill.gst_amount) / 2.0, 2)
+    # Effective GST rate (default 18% if bill was created without GST rate)
+    effective_gst_rate = float(bill.gst_rate) if float(bill.gst_rate) > 0 else 18.0
 
-    # Taxable amount (Subtotal - Discount)
-    subtotal_val = float(bill.subtotal)
-    discount_val = float(bill.discount)
-    taxable_amount = max(0.0, subtotal_val - discount_val)
+    # Subtotal and Discount
+    subtotal_val = round(float(bill.subtotal), 2)
+    discount_val = round(float(bill.discount), 2)
+    net_fixed_total = max(0.0, round(subtotal_val - discount_val, 2))
+
+    # Inclusive GST calculation (Total amount already includes GST)
+    incl_taxable_amount = round(net_fixed_total / (1.0 + (effective_gst_rate / 100.0)), 2) if effective_gst_rate > 0 else net_fixed_total
+    incl_gst_amount = round(net_fixed_total - incl_taxable_amount, 2)
+    incl_cgst_amount = round(incl_gst_amount / 2.0, 2)
+    incl_sgst_amount = round(incl_gst_amount - incl_cgst_amount, 2)
+    incl_grand_total = net_fixed_total
+
+    # Half-split rates for Intra-state CGST + SGST (standard Indian GST rule)
+    cgst_rate = round(effective_gst_rate / 2.0, 2)
+    sgst_rate = round(effective_gst_rate / 2.0, 2)
+
+    # Paid and balance for Inclusive GST (final fixed total = net_fixed_total)
+    paid_val = round(float(bill.paid_amount), 2)
+    if float(bill.balance_amount) <= 0.01:
+        incl_paid = incl_grand_total
+        incl_balance = 0.0
+    else:
+        incl_paid = round(min(paid_val, incl_grand_total), 2)
+        incl_balance = round(max(0.0, incl_grand_total - incl_paid), 2)
 
     # Non-GST calculations (pure items total minus discount)
-    non_gst_total = taxable_amount
+    non_gst_total = net_fixed_total
     if float(bill.balance_amount) <= 0.01:
-        # Full paid bill
         non_gst_paid = non_gst_total
         non_gst_balance = 0.0
     else:
-        # Bill with balance due
         if float(bill.grand_total) > 0 and float(bill.gst_amount) > 0:
-            # Proportional or capped paid amount from GST bill
-            paid_val = float(bill.paid_amount)
             non_gst_paid = round(min(paid_val, non_gst_total), 2)
             non_gst_balance = round(max(0.0, non_gst_total - non_gst_paid), 2)
         else:
-            # Non-GST bill originally created
             non_gst_paid = float(bill.paid_amount)
             non_gst_balance = float(bill.balance_amount)
 
@@ -306,11 +318,16 @@ def invoice_detail(request, bill_id):
         'bill': bill,
         'bill_type': bill_type,
         'is_gst': is_gst,
+        'effective_gst_rate': effective_gst_rate,
         'cgst_rate': cgst_rate,
         'sgst_rate': sgst_rate,
-        'cgst_amount': cgst_amount,
-        'sgst_amount': sgst_amount,
-        'taxable_amount': taxable_amount,
+        'cgst_amount': incl_cgst_amount,
+        'sgst_amount': incl_sgst_amount,
+        'gst_amount': incl_gst_amount,
+        'taxable_amount': incl_taxable_amount,
+        'incl_grand_total': incl_grand_total,
+        'incl_paid': incl_paid,
+        'incl_balance': incl_balance,
         'non_gst_total': non_gst_total,
         'non_gst_paid': non_gst_paid,
         'non_gst_balance': non_gst_balance,

@@ -93,6 +93,75 @@
             box-shadow: 0 2px 6px rgba(5, 150, 105, 0.35);
         }
 
+        /* GST Rate & Calculation Mode Controls (hidden on print & No-GST mode) */
+        .gst-controls-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        body.mode-nogst .gst-controls-bar {
+            display: none !important;
+        }
+        .gst-rate-pill-group {
+            display: inline-flex;
+            background: #f1f5f9;
+            padding: 3px;
+            border-radius: 7px;
+            border: 1px solid #cbd5e1;
+            gap: 3px;
+        }
+        .gst-rate-pill {
+            background: transparent;
+            border: none;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #475569;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.15s;
+        }
+        .gst-rate-pill:hover {
+            color: #0f172a;
+            background: #e2e8f0;
+        }
+        .gst-rate-pill.active {
+            background: #0f172a;
+            color: #ffffff;
+        }
+        .gst-calc-mode-btn {
+            background: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #7dd3fc;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .gst-calc-mode-btn.exclusive {
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #fcd34d;
+        }
+        .totals-table tr.discount-row td {
+            color: #15803d;
+            font-weight: 700;
+        }
+        .tax-incl-tag {
+            font-size: 9.5px;
+            font-weight: 700;
+            color: #0284c7;
+            background: #e0f2fe;
+            padding: 1px 6px;
+            border-radius: 4px;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+
         .btn-print {
             background: #0f172a;
             color: #ffffff;
@@ -122,6 +191,24 @@
             border: 2px solid #0f172a;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
             position: relative;
+            overflow: hidden;
+        }
+
+        /* Background Text Watermark */
+        .inv-watermark {
+            position: absolute;
+            top: 52%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 54px;
+            font-weight: 800;
+            letter-spacing: 5px;
+            color: rgba(15, 23, 42, 0.065);
+            text-transform: uppercase;
+            white-space: nowrap;
+            pointer-events: none;
+            user-select: none;
+            z-index: 5;
         }
 
         /* Top Header Strip / Banner */
@@ -559,13 +646,40 @@
             .no-print-bar {
                 display: none !important;
             }
+            .inv-watermark {
+                color: rgba(0, 0, 0, 0.07) !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
             tr {
                 page-break-inside: avoid;
             }
         }
     </style>
+    <style>
+        .zamzam-loader-overlay{position:fixed;inset:0;z-index:999999;background:radial-gradient(circle at center,#0b162c 0%,#050812 70%,#02040a 100%);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;opacity:1;visibility:visible;transition:opacity .45s ease,visibility .45s ease,transform .45s ease}
+        .zamzam-loader-overlay.is-hidden{opacity:0;visibility:hidden;transform:scale(1.04);pointer-events:none}
+        .zamzam-circle-wrap{position:relative;width:148px;height:148px;display:flex;align-items:center;justify-content:center}
+        .zamzam-nano-ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,#00f2fe,#38bdf8,#10b981,#a855f7,#00f2fe);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 3px));animation:zamzamSpin 1.15s linear infinite;filter:drop-shadow(0 0 14px rgba(0,242,254,.55))}
+        .zamzam-nano-ring-inner{position:absolute;inset:10px;border-radius:50%;border:1.5px solid rgba(56,189,248,.28);border-top-color:#10b981;border-bottom-color:#a855f7;animation:zamzamSpinReverse 1.6s linear infinite}
+        .zamzam-loader-text{font-size:16px;font-weight:800;letter-spacing:3px;text-transform:uppercase;background:linear-gradient(90deg,#fff 0%,#38bdf8 45%,#10b981 75%,#fff 100%);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:zamzamTextShimmer 1.8s linear infinite;user-select:none}
+        @keyframes zamzamSpin{to{transform:rotate(360deg)}}
+        @keyframes zamzamSpinReverse{to{transform:rotate(-360deg)}}
+        @keyframes zamzamTextShimmer{to{background-position:200% center}}
+        @media print{.zamzam-loader-overlay{display:none!important}}
+    </style>
 </head>
 <body class="{% if is_gst %}mode-gst{% else %}mode-nogst{% endif %}">
+    <div id="zamzamLoader" class="zamzam-loader-overlay" aria-hidden="true">
+        <div class="zamzam-circle-wrap">
+            <div class="zamzam-nano-ring"></div>
+            <div class="zamzam-nano-ring-inner"></div>
+            <span class="zamzam-loader-text">ZAM ZAM</span>
+        </div>
+    </div>
+    <script>
+        (function(){function h(){var e=document.getElementById('zamzamLoader');if(e&&!e.classList.contains('is-hidden')){e.classList.add('is-hidden');setTimeout(function(){e.style.display='none'},480)}}document.addEventListener('DOMContentLoaded',function(){setTimeout(h,520)});window.addEventListener('load',function(){setTimeout(h,380)});setTimeout(h,2000)})();
+    </script>
 
     <!-- TOP CONTROL BAR: Back link, 2 Type switcher, Print Button -->
     <div class="no-print-bar">
@@ -583,6 +697,19 @@
             </button>
         </div>
 
+        <!-- GST Rate & Inclusive/Exclusive Mode Controls -->
+        <div class="gst-controls-bar" id="gstControlsBar">
+            <div class="gst-rate-pill-group" title="Select GST Percentage">
+                <button type="button" class="gst-rate-pill {% if effective_gst_rate == 5 %}active{% endif %}" data-rate="5" onclick="setInvoiceGstRate(5, this)">5%</button>
+                <button type="button" class="gst-rate-pill {% if effective_gst_rate == 12 %}active{% endif %}" data-rate="12" onclick="setInvoiceGstRate(12, this)">12%</button>
+                <button type="button" class="gst-rate-pill {% if effective_gst_rate == 18 %}active{% endif %}" data-rate="18" onclick="setInvoiceGstRate(18, this)">18%</button>
+                <button type="button" class="gst-rate-pill {% if effective_gst_rate == 28 %}active{% endif %}" data-rate="28" onclick="setInvoiceGstRate(28, this)">28%</button>
+            </div>
+            <button type="button" id="btnToggleCalcMode" class="gst-calc-mode-btn" onclick="toggleGstCalcMode()" title="Switch between Inclusive GST (Final Total Fixed) and Exclusive GST (+Extra)">
+                ✓ Incl. GST (Fixed Total)
+            </button>
+        </div>
+
         <button class="btn-print" onclick="window.print()">
             🖨️ Print / Save as PDF
         </button>
@@ -590,6 +717,9 @@
 
     <!-- AUTHENTIC TABLE MODEL INVOICE BILL -->
     <div class="invoice-box-table">
+        <!-- Background Text Watermark -->
+        <div class="inv-watermark" aria-hidden="true">{{ shop_name }}</div>
+
         <!-- 1. TOP HEADER BANNER STRIP -->
         <div class="inv-header-banner">
             <div class="inv-copy-badge">ORIGINAL FOR RECIPIENT</div>
@@ -692,6 +822,7 @@
             <thead>
                 <tr>
                     <th style="width: 36px; text-align: center;">#</th>
+                    <th style="width: 72px; text-align: center;">ID No</th>
                     <th>Item Description & Category</th>
                     <th class="show-gst-only" style="width: 75px; text-align: center;">HSN/SAC</th>
                     <th style="width: 80px; text-align: center;">Size</th>
@@ -704,26 +835,18 @@
                 {% for item in bill.items.all %}
                 <tr>
                     <td style="text-align: center;" class="mono">{{ forloop.counter }}</td>
+                    <td style="text-align: center; font-weight: 700; color: #0284c7; font-size: 11.5px;" class="mono">
+                        {% if item.product %}#{{ item.product.display_code }}{% else %}#{{ item.id }}{% endif %}
+                    </td>
                     <td>
                         <strong style="color: #0f172a;">{{ item.product_name }}</strong>
                         <div style="font-size: 11px; color: #64748b;">{{ item.category_name }}</div>
-                        {% if item.is_pipe %}
-                        <div class="pipe-spec-badge">
-                            📏 <strong>{{ item.pipe_lengths }} Length{{ item.pipe_lengths|pluralize }}</strong> = {{ item.pipe_meters|floatformat:2 }} Meters (approx. {{ item.pipe_feet }} Feet)
-                        </div>
-                        <div class="pipe-note">
-                            Standard: 1 Length Pipe = 6.00 Meters (approx. 20 Feet)
-                        </div>
-                        {% endif %}
                     </td>
                     <td class="show-gst-only mono" style="text-align: center; font-size: 12px; color: #475569;">
                         {% if item.is_pipe %}3917{% else %}8481{% endif %}
                     </td>
                     <td style="text-align: center;">
                         <strong>{{ item.size }}</strong>
-                        {% if item.is_pipe %}
-                        <div style="font-size: 11px; color: #0284c7; font-weight: 700; margin-top: 2px;">{{ item.pipe_lengths }} Length{{ item.pipe_lengths|pluralize }}</div>
-                        {% endif %}
                     </td>
                     <td style="text-align: right;" class="mono">
                         {{ item.rate|floatformat:2 }}
@@ -765,48 +888,62 @@
                     </ol>
                 </div>
 
-                {% if bill.notes %}
                 <div class="inv-notes-box">
-                    <strong>Note / Remarks:</strong> {{ bill.notes }}
+                    <strong>Note / Remarks:</strong>
+                    {% if bill.notes %}
+                        {{ bill.notes }}
+                    {% elif bill.payment_mode == 'CASH' %}
+                        Split Payment: Cash: ₹{{ bill.paid_amount|floatformat:2 }} | UPI (GPay/PhonePe/Paytm): ₹0.00
+                    {% elif bill.payment_mode == 'UPI' %}
+                        Split Payment: Cash: ₹0.00 | UPI (GPay/PhonePe/Paytm): ₹{{ bill.paid_amount|floatformat:2 }}
+                    {% else %}
+                        Split Payment: Cash: ₹0.00 | UPI (GPay/PhonePe/Paytm): ₹0.00 ({{ bill.get_payment_mode_display }}: ₹{{ bill.paid_amount|floatformat:2 }})
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
 
-            <!-- Right: Totals Breakdown Table (No discount row shown on print) -->
+            <!-- Right: Totals Breakdown Table (with Discount & CGST/SGST Breakdown) -->
             <div class="inv-footer-right">
                 <!-- 1. GST MODE TOTALS -->
                 <table class="totals-table show-gst-only">
                     <tr>
                         <td class="lbl">Items Subtotal:</td>
-                        <td class="val mono">₹{{ bill.subtotal|floatformat:2 }}</td>
+                        <td class="val mono" id="gstSubtotalVal">₹{{ bill.subtotal|floatformat:2 }}</td>
+                    </tr>
+                    <tr class="discount-row">
+                        <td class="lbl">Discount (-):</td>
+                        <td class="val mono" id="gstDiscountVal">-₹{{ bill.discount|floatformat:2 }}</td>
                     </tr>
                     <tr>
-                        <td class="lbl">Taxable Amount:</td>
-                        <td class="val mono">₹{{ taxable_amount|floatformat:2 }}</td>
+                        <td class="lbl">Taxable Value (Excl. GST):</td>
+                        <td class="val mono" id="gstTaxableVal">₹{{ taxable_amount|floatformat:2 }}</td>
                     </tr>
                     <tr>
-                        <td class="lbl">CGST ({{ cgst_rate }}%):</td>
-                        <td class="val mono">+₹{{ cgst_amount|floatformat:2 }}</td>
+                        <td class="lbl">CGST (<span id="lblCgstRate">{{ cgst_rate|floatformat:2 }}</span>%):</td>
+                        <td class="val mono" id="gstCgstVal">+₹{{ cgst_amount|floatformat:2 }}</td>
                     </tr>
                     <tr>
-                        <td class="lbl">SGST ({{ sgst_rate }}%):</td>
-                        <td class="val mono">+₹{{ sgst_amount|floatformat:2 }}</td>
+                        <td class="lbl">SGST (<span id="lblSgstRate">{{ sgst_rate|floatformat:2 }}</span>%):</td>
+                        <td class="val mono" id="gstSgstVal">+₹{{ sgst_amount|floatformat:2 }}</td>
                     </tr>
                     <tr>
-                        <td class="lbl"><strong>Total GST ({{ bill.gst_rate|floatformat:0 }}%):</strong></td>
-                        <td class="val mono"><strong>+₹{{ bill.gst_amount|floatformat:2 }}</strong></td>
+                        <td class="lbl"><strong>Total GST (<span id="lblTotalGstRate">{{ effective_gst_rate|floatformat:0 }}</span>%):</strong></td>
+                        <td class="val mono" id="gstTotalTaxVal"><strong>+₹{{ gst_amount|floatformat:2 }}</strong></td>
                     </tr>
                     <tr class="grand-total-row">
-                        <td class="lbl">GRAND TOTAL:</td>
-                        <td class="val mono">₹{{ bill.grand_total|floatformat:2 }}</td>
+                        <td class="lbl">
+                            GRAND TOTAL:
+                            <span class="tax-incl-tag" id="gstModeTag">Incl. GST</span>
+                        </td>
+                        <td class="val mono" id="gstGrandTotalVal">₹{{ incl_grand_total|floatformat:2 }}</td>
                     </tr>
                     <tr class="paid-row">
                         <td class="lbl">Amount Paid:</td>
-                        <td class="val mono" style="color: #15803d; font-weight: 800;">₹{{ bill.paid_amount|floatformat:2 }}</td>
+                        <td class="val mono" id="gstPaidVal" style="color: #15803d; font-weight: 800;">₹{{ incl_paid|floatformat:2 }}</td>
                     </tr>
-                    <tr class="balance-row {% if bill.balance_amount > 0 %}has-due{% endif %}">
+                    <tr class="balance-row {% if incl_balance > 0 %}has-due{% endif %}" id="gstBalanceRow">
                         <td class="lbl">Balance Due:</td>
-                        <td class="val mono" style="font-weight: 900; font-size: 13.5px; color: {% if bill.balance_amount > 0 %}#dc2626{% else %}#15803d{% endif %};">₹{{ bill.balance_amount|floatformat:2 }}</td>
+                        <td class="val mono" id="gstBalanceVal" style="font-weight: 900; font-size: 13.5px; color: {% if incl_balance > 0 %}#dc2626{% else %}#15803d{% endif %};">₹{{ incl_balance|floatformat:2 }}</td>
                     </tr>
                 </table>
 
@@ -845,8 +982,97 @@
         </div>
     </div>
 
-    <!-- CLIENT-SIDE SCRIPT FOR DYNAMIC MODE SWITCHING -->
+    <footer class="no-print-bar" style="justify-content: center; margin-top: 16px; font-size: 12.5px; color: #475569;">
+        <span>© 2026 - All rights reserved by <a href="https://jebindevp.github.io/JebinJoseph/" target="_blank" rel="noopener noreferrer" style="color: #0284c7; font-weight: 800; text-decoration: none;">Jebin Devp</a></span>
+    </footer>
+
+    <!-- CLIENT-SIDE SCRIPT FOR DYNAMIC MODE SWITCHING & GST BREAKDOWN -->
     <script>
+        const BILL_SUBTOTAL = parseFloat("{{ bill.subtotal|default:'0' }}") || 0;
+        const BILL_DISCOUNT = parseFloat("{{ bill.discount|default:'0' }}") || 0;
+        const BILL_PAID_RAW = parseFloat("{{ bill.paid_amount|default:'0' }}") || 0;
+        const BILL_BALANCE_RAW = parseFloat("{{ bill.balance_amount|default:'0' }}") || 0;
+        const IS_FULL_PAID = BILL_BALANCE_RAW <= 0.01;
+
+        let activeGstRate = parseFloat("{{ effective_gst_rate|default:'18' }}") || 18;
+        let isInclusiveGst = true; // Default: Total amount already includes GST (Fixed Final Total)
+
+        function formatInr(val) {
+            return (Math.round(val * 100) / 100).toFixed(2);
+        }
+
+        function recalculateGstInvoiceTable() {
+            const netAfterDiscount = Math.max(0, Math.round((BILL_SUBTOTAL - BILL_DISCOUNT) * 100) / 100);
+            let taxable = 0;
+            let totalGst = 0;
+            let grandTotal = 0;
+
+            if (isInclusiveGst) {
+                // Total amount already includes GST -> back-calculate Taxable & GST so Final Total stays fixed
+                taxable = activeGstRate > 0
+                    ? Math.round((netAfterDiscount / (1 + activeGstRate / 100)) * 100) / 100
+                    : netAfterDiscount;
+                totalGst = Math.round((netAfterDiscount - taxable) * 100) / 100;
+                grandTotal = netAfterDiscount;
+            } else {
+                // Exclusive GST -> add GST on top of taxable amount
+                taxable = netAfterDiscount;
+                totalGst = Math.round(((taxable * activeGstRate) / 100) * 100) / 100;
+                grandTotal = Math.round((taxable + totalGst) * 100) / 100;
+            }
+
+            const halfRate = Math.round((activeGstRate / 2) * 100) / 100;
+            const cgstAmt = Math.round((totalGst / 2) * 100) / 100;
+            const sgstAmt = Math.round((totalGst - cgstAmt) * 100) / 100;
+
+            let paidAmt = IS_FULL_PAID ? grandTotal : Math.min(BILL_PAID_RAW, grandTotal);
+            paidAmt = Math.round(paidAmt * 100) / 100;
+            const balanceAmt = Math.max(0, Math.round((grandTotal - paidAmt) * 100) / 100);
+
+            document.getElementById('gstTaxableVal').textContent = '₹' + formatInr(taxable);
+            document.getElementById('lblCgstRate').textContent = halfRate % 1 === 0 ? halfRate.toFixed(0) : halfRate.toFixed(2);
+            document.getElementById('lblSgstRate').textContent = halfRate % 1 === 0 ? halfRate.toFixed(0) : halfRate.toFixed(2);
+            document.getElementById('lblTotalGstRate').textContent = activeGstRate % 1 === 0 ? activeGstRate.toFixed(0) : activeGstRate.toFixed(2);
+
+            document.getElementById('gstCgstVal').textContent = '+₹' + formatInr(cgstAmt);
+            document.getElementById('gstSgstVal').textContent = '+₹' + formatInr(sgstAmt);
+            document.getElementById('gstTotalTaxVal').innerHTML = '<strong>+₹' + formatInr(totalGst) + '</strong>';
+            document.getElementById('gstGrandTotalVal').textContent = '₹' + formatInr(grandTotal);
+            document.getElementById('gstModeTag').textContent = isInclusiveGst ? 'Incl. GST' : 'Excl. GST';
+
+            document.getElementById('gstPaidVal').textContent = '₹' + formatInr(paidAmt);
+            const balEl = document.getElementById('gstBalanceVal');
+            const balRow = document.getElementById('gstBalanceRow');
+            balEl.textContent = '₹' + formatInr(balanceAmt);
+            if (balanceAmt > 0.01) {
+                balEl.style.color = '#dc2626';
+                balRow.classList.add('has-due');
+            } else {
+                balEl.style.color = '#15803d';
+                balRow.classList.remove('has-due');
+            }
+        }
+
+        function setInvoiceGstRate(rate, btnEl) {
+            activeGstRate = parseFloat(rate) || 18;
+            document.querySelectorAll('.gst-rate-pill').forEach(b => b.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+            recalculateGstInvoiceTable();
+        }
+
+        function toggleGstCalcMode() {
+            isInclusiveGst = !isInclusiveGst;
+            const btn = document.getElementById('btnToggleCalcMode');
+            if (isInclusiveGst) {
+                btn.classList.remove('exclusive');
+                btn.textContent = '✓ Incl. GST (Fixed Total)';
+            } else {
+                btn.classList.add('exclusive');
+                btn.textContent = '+ Excl. GST (Add Extra)';
+            }
+            recalculateGstInvoiceTable();
+        }
+
         function switchPrintMode(mode) {
             const btnGst = document.getElementById('btnSwitchGst');
             const btnNoGst = document.getElementById('btnSwitchNoGst');
@@ -868,6 +1094,7 @@
                 btnGst.classList.add('active');
                 btnNoGst.classList.remove('active');
                 document.title = "Tax Invoice (GST) #{{ bill.bill_number }} - {{ shop_name }}";
+                recalculateGstInvoiceTable();
                 try {
                     const url = new URL(window.location);
                     url.searchParams.set('type', 'gst');
