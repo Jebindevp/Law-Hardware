@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
@@ -148,24 +149,59 @@ def billing_pos(request):
     return render(request, 'law/billing_pos.html', context)
 
 
+def _product_id_sort_key(prod):
+    """Natural sort key for plumbing products ordered by ID No (display_code / id ascending)."""
+    code = (prod.display_code or '').strip()
+    m = re.search(r'(\d+)', code)
+    if m:
+        return (0, int(m.group(1)), code.lower(), prod.id or 0)
+    return (1, 0, code.lower(), prod.id or 0)
+
+
 def inventory_view(request):
     """
-    Inventory management view with live stock, rates, sizes, and total values for ZAM ZAM HARDWARE.
+    Inventory management view ordered by Product ID No, with brand product counts,
+    low-stock quick restock list, total stock amount, and total stock sell amount.
     """
     categories = Category.objects.all()
     brands = Brand.objects.all()
-    products = Product.objects.select_related('category', 'brand').all()
+    products_qs = Product.objects.select_related('category', 'brand').all()
+    products = sorted(products_qs, key=_product_id_sort_key)
+
     total_inventory_value = sum(p.total for p in products)
-    low_stock_count = products.filter(quantity__lte=10).count()
+    total_stock_sell_amount = sum(float(item.total or 0) for item in BillItem.objects.all())
+
+    low_stock_products = sorted(
+        [p for p in products if (p.quantity or 0) <= 10],
+        key=lambda p: (p.quantity or 0, _product_id_sort_key(p))
+    )
+    low_stock_count = len(low_stock_products)
+
+    # Brand-wise product counts
+    brand_counts = {}
+    generic_count = 0
+    for p in products:
+        if p.brand:
+            bid = p.brand.id
+            if bid not in brand_counts:
+                brand_counts[bid] = {'id': bid, 'name': p.brand.name, 'count': 0}
+            brand_counts[bid]['count'] += 1
+        else:
+            generic_count += 1
+    brand_summary = sorted(brand_counts.values(), key=lambda b: (-b['count'], b['name'].lower()))
 
     context = {
         'shop_name': "ZAM ZAM HARDWARE",
         'shop_owner': "Lawrence C",
         'categories': categories,
         'brands': brands,
+        'brand_summary': brand_summary,
+        'generic_brand_count': generic_count,
         'products': products,
+        'low_stock_products': low_stock_products,
         'total_inventory_value': total_inventory_value,
-        'total_items_count': products.count(),
+        'total_stock_sell_amount': total_stock_sell_amount,
+        'total_items_count': len(products),
         'low_stock_count': low_stock_count,
     }
     return render(request, 'law/inventory.html', context)

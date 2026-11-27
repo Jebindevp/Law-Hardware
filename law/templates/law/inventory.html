@@ -104,9 +104,152 @@
     /* Stat Cards Bar */
     .stats-container {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 14px;
         margin-bottom: 20px;
+    }
+
+    /* Brand Product Count Strip at Top */
+    .brand-summary-card {
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 14px 18px;
+        margin-bottom: 18px;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+    }
+    .brand-summary-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    .brand-summary-title {
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #0f172a;
+        letter-spacing: 0.05em;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .brand-summary-scroll {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+    .brand-count-chip {
+        background: #f8fafc;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 999px;
+        padding: 6px 13px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #334155;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        white-space: nowrap;
+        transition: all 0.16s ease;
+    }
+    .brand-count-chip:hover {
+        border-color: #0284c7;
+        color: #0284c7;
+        background: #f0f9ff;
+    }
+    .brand-count-chip.active {
+        background: #0f172a;
+        color: #ffffff;
+        border-color: #0f172a;
+    }
+    .brand-count-num {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        font-weight: 800;
+        background: #e2e8f0;
+        color: #0f172a;
+        padding: 1px 7px;
+        border-radius: 999px;
+    }
+    .brand-count-chip.active .brand-count-num {
+        background: #38bdf8;
+        color: #0f172a;
+    }
+
+    /* Low Stock Alert & Quick Restock Strip */
+    .low-stock-strip {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef2f2 100%);
+        border: 1.5px solid #fca5a5;
+        border-radius: 14px;
+        padding: 14px 18px;
+        margin-bottom: 18px;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.08);
+    }
+    .low-stock-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    .low-stock-items-scroll {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: #fca5a5 transparent;
+    }
+    .low-stock-mini-card {
+        flex: 0 0 auto;
+        min-width: 235px;
+        background: #ffffff;
+        border: 1.5px solid #fecaca;
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+    .btn-quick-restock {
+        background: #0284c7;
+        color: #ffffff;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 7px;
+        font-size: 11.5px;
+        font-weight: 800;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s;
+    }
+    .btn-quick-restock:hover {
+        background: #0369a1;
+    }
+    .btn-lowstock-filter {
+        background: #fee2e2;
+        color: #b91c1c;
+        border: 1.5px solid #fca5a5;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .btn-lowstock-filter.active {
+        background: #dc2626;
+        color: #ffffff;
+        border-color: #dc2626;
     }
 
     .stat-box {
@@ -133,6 +276,7 @@
     .stat-box.box-black { border-left: 5px solid #0f172a; }
     .stat-box.box-blue  { border-left: 5px solid #0284c7; }
     .stat-box.box-green { border-left: 5px solid #10b981; }
+    .stat-box.box-teal  { border-left: 5px solid #0f766e; }
     .stat-box.box-red   { border-left: 5px solid #ef4444; }
 
     .stat-box-title {
@@ -787,10 +931,17 @@
     </div>
     <div class="stat-box box-blue">
         <div>
-            <div class="stat-box-title">Total Valuation</div>
+            <div class="stat-box-title">Total Stock Amount</div>
             <div class="stat-box-value" style="color: #0284c7;">₹{{ total_inventory_value|floatformat:2 }}</div>
         </div>
         <span class="stat-icon-pill">💰</span>
+    </div>
+    <div class="stat-box box-teal">
+        <div>
+            <div class="stat-box-title">Stock Sell Amount</div>
+            <div class="stat-box-value" style="color: #0f766e;">₹{{ total_stock_sell_amount|floatformat:2 }}</div>
+        </div>
+        <span class="stat-icon-pill">🧾</span>
     </div>
     <div class="stat-box box-green">
         <div>
@@ -799,7 +950,7 @@
         </div>
         <span class="stat-icon-pill">🏷️</span>
     </div>
-    <div class="stat-box box-red">
+    <div class="stat-box box-red" onclick="toggleLowStockFilter()" style="cursor: pointer;" title="Click to show Low Stock products">
         <div>
             <div class="stat-box-title">Low Stock Alerts</div>
             <div class="stat-box-value" style="color: #ef4444;" id="statLowStock">{{ low_stock_count }}</div>
@@ -807,6 +958,73 @@
         <span class="stat-icon-pill">⚠️</span>
     </div>
 </div>
+
+<!-- Brand-Wise Product Count List (Shown Separately at Top) -->
+<div class="brand-summary-card">
+    <div class="brand-summary-head">
+        <div class="brand-summary-title">
+            <span>🏷️</span>
+            <span>Brand-Wise Product Count ({{ brand_summary|length }} Brands)</span>
+        </div>
+        <span style="font-size: 11.5px; color: #64748b; font-weight: 700;">Ordered by: ID No</span>
+    </div>
+    <div class="brand-summary-scroll" id="brandSummaryBar">
+        <button type="button" class="brand-count-chip active" data-brand="ALL" onclick="selectBrandChip('ALL', this)">
+            <span>All Brands</span>
+            <span class="brand-count-num">{{ total_items_count }}</span>
+        </button>
+        {% for b in brand_summary %}
+        <button type="button" class="brand-count-chip" data-brand="{{ b.name }}" onclick="selectBrandChip('{{ b.name|escapejs }}', this)">
+            <span>{{ b.name }}</span>
+            <span class="brand-count-num">{{ b.count }}</span>
+        </button>
+        {% endfor %}
+        {% if generic_brand_count > 0 %}
+        <button type="button" class="brand-count-chip" data-brand="GENERIC" onclick="selectBrandChip('GENERIC', this)">
+            <span>Generic / Unbranded</span>
+            <span class="brand-count-num">{{ generic_brand_count }}</span>
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Low Stock & Out of Stock Quick Restock Strip -->
+{% if low_stock_products %}
+<div class="low-stock-strip">
+    <div class="low-stock-head">
+        <div style="font-size: 13px; font-weight: 800; color: #991b1b; display: flex; align-items: center; gap: 6px;">
+            <span>⚠️</span>
+            <span>Low Stock &amp; Out of Stock ({{ low_stock_count }} Items) — Quick Add Stock</span>
+        </div>
+        <button type="button" id="btnLowStockFilter" class="btn-lowstock-filter" onclick="toggleLowStockFilter()">
+            🔍 Show Low Stock Only
+        </button>
+    </div>
+    <div class="low-stock-items-scroll">
+        {% for lp in low_stock_products %}
+        <div class="low-stock-mini-card">
+            <div style="min-width: 0;">
+                <div style="font-size: 12px; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">
+                    #{{ lp.display_code }} {{ lp.name }}
+                </div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                    Size: <strong>{{ lp.size }}</strong> •
+                    {% if lp.quantity == 0 %}
+                    <span style="color: #dc2626; font-weight: 800;">0 (Out)</span>
+                    {% else %}
+                    <span style="color: #d97706; font-weight: 800;">{{ lp.quantity }} left</span>
+                    {% endif %}
+                </div>
+            </div>
+            <button type="button" class="btn-quick-restock"
+                    onclick="openEditModal({{ lp.id }}, '{{ lp.name|escapejs }}', {{ lp.category.id }}, '{{ lp.size|escapejs }}', {{ lp.rate }}, {{ lp.quantity }}, '{{ lp.product_code|default:''|escapejs }}', '{{ lp.unit }}', '{{ lp.brand.id|default:'' }}', {{ lp.pipe_length|default:6.00 }})">
+                ➕ Add
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
 <!-- Controls & Search Toolbar -->
 <div class="controls-card">
@@ -1210,6 +1428,26 @@
         executeSearch();
     }
 
+    let lowStockOnlyFilter = false;
+
+    function selectBrandChip(brandVal, chipElem) {
+        const brandSelect = document.getElementById('brandFilter');
+        if (brandSelect) brandSelect.value = brandVal;
+        document.querySelectorAll('.brand-count-chip').forEach(c => c.classList.remove('active'));
+        if (chipElem) chipElem.classList.add('active');
+        executeSearch();
+    }
+
+    function toggleLowStockFilter() {
+        lowStockOnlyFilter = !lowStockOnlyFilter;
+        const btn = document.getElementById('btnLowStockFilter');
+        if (btn) {
+            btn.classList.toggle('active', lowStockOnlyFilter);
+            btn.textContent = lowStockOnlyFilter ? '✓ Showing Low Stock Only (Click to Show All)' : '🔍 Show Low Stock Only';
+        }
+        executeSearch();
+    }
+
     function executeSearch() {
         const queryElem = document.getElementById('inventorySearch');
         const query = queryElem ? queryElem.value.toLowerCase().trim() : '';
@@ -1217,6 +1455,10 @@
         const categoryFilter = catFilterElem ? catFilterElem.value : 'ALL';
         const brandFilterElem = document.getElementById('brandFilter');
         const brandFilter = brandFilterElem ? brandFilterElem.value : 'ALL';
+
+        document.querySelectorAll('.brand-count-chip').forEach(c => {
+            c.classList.toggle('active', c.getAttribute('data-brand') === brandFilter);
+        });
 
         // Filter cards
         const cards = document.querySelectorAll('.inv-card');
@@ -1227,6 +1469,7 @@
             const brand = card.getAttribute('data-brand') || '';
             const size = (card.getAttribute('data-size') || '').toLowerCase();
             const code = (card.getAttribute('data-product-code') || card.getAttribute('data-display-code') || card.getAttribute('data-code') || '').toLowerCase();
+            const qty = parseFloat(card.getAttribute('data-quantity')) || 0;
 
             const matchCat = (categoryFilter === 'ALL' || cat === categoryFilter);
             let matchBrand = true;
@@ -1235,9 +1478,10 @@
             } else if (brandFilter !== 'ALL') {
                 matchBrand = (brand === brandFilter);
             }
+            const matchLowStock = (!lowStockOnlyFilter || qty <= 10);
             const matchQuery = (!query || name.includes(query) || cat.toLowerCase().includes(query) || size.includes(query) || brand.toLowerCase().includes(query) || code.includes(query));
 
-            if (matchCat && matchBrand && matchQuery) {
+            if (matchCat && matchBrand && matchLowStock && matchQuery) {
                 card.style.display = 'flex';
                 visibleCardCount++;
             } else {
@@ -1254,6 +1498,7 @@
             const brand = row.getAttribute('data-brand') || '';
             const size = (row.getAttribute('data-size') || '').toLowerCase();
             const code = (row.getAttribute('data-product-code') || row.getAttribute('data-display-code') || row.getAttribute('data-code') || '').toLowerCase();
+            const qty = parseFloat(row.getAttribute('data-quantity')) || 0;
 
             const matchCat = (categoryFilter === 'ALL' || cat === categoryFilter);
             let matchBrand = true;
@@ -1262,9 +1507,10 @@
             } else if (brandFilter !== 'ALL') {
                 matchBrand = (brand === brandFilter);
             }
+            const matchLowStock = (!lowStockOnlyFilter || qty <= 10);
             const matchQuery = (!query || name.includes(query) || cat.toLowerCase().includes(query) || size.includes(query) || brand.toLowerCase().includes(query) || code.includes(query));
 
-            if (matchCat && matchBrand && matchQuery) {
+            if (matchCat && matchBrand && matchLowStock && matchQuery) {
                 row.style.display = '';
                 visibleRowCount++;
             } else {
@@ -1294,6 +1540,12 @@
     }
 
     function resetSearch() {
+        lowStockOnlyFilter = false;
+        const lowBtn = document.getElementById('btnLowStockFilter');
+        if (lowBtn) {
+            lowBtn.classList.remove('active');
+            lowBtn.textContent = '🔍 Show Low Stock Only';
+        }
         const searchInput = document.getElementById('inventorySearch');
         if (searchInput) searchInput.value = '';
         const catFilter = document.getElementById('categoryFilter');
